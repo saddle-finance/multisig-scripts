@@ -1,0 +1,9 @@
+**/__pycache__
+.venv
+build
+reports
+contracts
+interfaces
+tests
+*.local
+**/.DS_Store
