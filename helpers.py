@@ -11,18 +11,15 @@ def assert_filename(file: str):
     chain = Chain()
     assert chain.id == int(chain_id), f"Expected script to be run on network {chain_id}, but it was run on network {chain.id}"
 
-class ChainId(Enum):
-    """Enum of supported chain IDs"""
-    MAINNET = 1
-    ROPSTEN = 3
-    OPTIMISM = 10
-    HARDHAT = 31337
-    ARBITRUM = 42161
-    
-# class MultisigAddresses(Enum):
-#     """Enum of supported multisig addresses"""
-#     ChainId.MAINNET = "0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE"
+ChainId = {
+    "MAINNET": 1,
+    "ROPSTEN": 3,
+    "OPTIMISM": 10,
+    "HARDHAT": 31337,
+    "ARBITRUM": 42161,
+}
 
 MultisigAddresses = {
-    ChainId.MAINNET: "0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE",
+    ChainId["MAINNET"]: "0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE",
+    ChainId["HARDHAT"]: "0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE",
 }

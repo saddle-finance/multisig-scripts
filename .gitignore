@@ -7,3 +7,5 @@ interfaces
 tests
 *.local
 **/.DS_Store
+.env
+.hypothesis

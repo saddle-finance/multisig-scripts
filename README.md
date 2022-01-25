@@ -6,28 +6,15 @@ A collection of ApeSafe scripts which create txns executed by Saddle.finance's m
 
 On a machine with Python and mkvenv installed...
 
-1. Install pipx globally
+1. Run `./setup.sh` to install deps, move files, and add deployer account. Interactive. 
 
-    `python3 -m pip install --user pipx && python3 -m pipx ensurepath`
-
-2. Install eth-brownie globally
-    `pipx install eth-brownie`
-
-3. Create a new virtual environment (note: don't install deps at this step)
-
-    `mkvenv --python=3.9.9`
-
-4. Install dependencies 
-
-    `pip install --no-deps -r requirements.txt`
-
-5. Add your keys to .env
-
-6. Run your script against a forked mainnet before running against mainnet
+2. Run your script against a forked mainnet before running against mainnet
 
     `brownie run scripts/2022_01_15_1_hello_multisig.py --network mainnet-fork`
 
-7. Run your script on mainnet using the multisig private key
+3. Run your script on mainnet once everything looks good
+
+    `brownie run scripts/2022_01_15_1_hello_multisig.py --network mainnet`
 
 ## Conventions
 

@@ -1,11 +1,14 @@
 from helpers import ChainId, MultisigAddresses
 from ape_safe import ApeSafe
-import os
 from datetime import datetime, timedelta
+from brownie import accounts, network
+import click
 
 def main():
     """Ramps A param for select pools as per SIP-3"""
-    multisig = ApeSafe(MultisigAddresses[ChainId.MAINNET])
+    print(f"You are using the '{network.show_active()}' network")
+    deployer = accounts.load("deployer")
+    multisig = ApeSafe(MultisigAddresses[ChainId["MAINNET"]])
 
     pools_to_future_a = {
         "0xa6018520EAACC06C30fF2e1B3ee2c7c22e64196a": 240, # SaddleALETHPool
@@ -25,11 +28,16 @@ def main():
     safe_tx = multisig.multisend_from_receipts()
 
     # sign with private key
-    safe_tx.sign(os.environ.get("DEPLOYER_PRIVATE_KEY"))
+    safe_tx.sign(deployer.private_key)
     multisig.preview(safe_tx)
     
     # post to network
-    multisig.post_transaction(safe_tx)
+    should_execute = click.confirm("Execute multisig transaction?")
+    while True:
+        if should_execute:
+            multisig.post_transaction(safe_tx)
+            print("Multisig transaction posted to network")
+            break
+        else:
+            should_execute = click.confirm("Execute multisig transaction?")
 
-if __name__ == "__main__":
-    main()

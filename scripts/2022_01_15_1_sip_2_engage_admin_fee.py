@@ -1,10 +1,14 @@
 from helpers import ChainId, MultisigAddresses
 from ape_safe import ApeSafe
-import os
+from brownie import accounts, network
+import click
 
 def main():
     """Turns on admin fee for non-paused pools"""
-    multisig = ApeSafe(MultisigAddresses[ChainId.MAINNET])
+
+    print(f"You are using the '{network.show_active()}' network")
+    deployer = accounts.load("deployer")
+    multisig = ApeSafe(MultisigAddresses[ChainId["MAINNET"]])
 
     pools = [
         "0xa6018520EAACC06C30fF2e1B3ee2c7c22e64196a", # SaddleALETHPool
@@ -30,11 +34,19 @@ def main():
     safe_tx = multisig.multisend_from_receipts()
 
     # sign with private key
-    safe_tx.sign(os.environ.get("DEPLOYER_PRIVATE_KEY"))
+    safe_tx.sign(deployer)
+    multisig.preview(safe_tx)
+    
+    # sign with private key
+    safe_tx.sign(deployer.private_key)
     multisig.preview(safe_tx)
     
     # post to network
-    multisig.post_transaction(safe_tx)
-
-if __name__ == "__main__":
-    main()
+    should_execute = click.confirm("Execute multisig transaction?")
+    while True:
+        if should_execute:
+            multisig.post_transaction(safe_tx)
+            print("Multisig transaction posted to network")
+            break
+        else:
+            should_execute = click.confirm("Execute multisig transaction?")
