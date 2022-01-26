@@ -2,7 +2,8 @@ from helpers import ChainId, MultisigAddresses
 from ape_safe import ApeSafe
 from datetime import datetime, timedelta
 from brownie import accounts, network
-import click
+
+from scripts.utils import confirm_posting_transaction
 
 def main():
     """Ramps A param for select pools as per SIP-3"""
@@ -28,16 +29,8 @@ def main():
     safe_tx = multisig.multisend_from_receipts()
 
     # sign with private key
+    safe_tx.safe_nonce = 20
     safe_tx.sign(deployer.private_key)
     multisig.preview(safe_tx)
-    
-    # post to network
-    should_execute = click.confirm("Execute multisig transaction?")
-    while True:
-        if should_execute:
-            multisig.post_transaction(safe_tx)
-            print("Multisig transaction posted to network")
-            break
-        else:
-            should_execute = click.confirm("Execute multisig transaction?")
 
+    confirm_posting_transaction(multisig, safe_tx)
