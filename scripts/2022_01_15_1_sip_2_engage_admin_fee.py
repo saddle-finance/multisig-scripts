@@ -3,6 +3,8 @@ from ape_safe import ApeSafe
 from brownie import accounts, network
 import click
 
+from scripts.utils import confirm_posting_transaction
+
 def main():
     """Turns on admin fee for non-paused pools"""
 
@@ -34,15 +36,8 @@ def main():
     safe_tx = multisig.multisend_from_receipts()
 
     # sign with private key
+    safe_tx.safe_nonce = 19
     safe_tx.sign(deployer.private_key)
     multisig.preview(safe_tx, False)
-    
-    # post to network
-    should_execute = click.confirm("Execute multisig transaction?")
-    while True:
-        if should_execute:
-            multisig.post_transaction(safe_tx)
-            print("Multisig transaction posted to network")
-            break
-        else:
-            should_execute = click.confirm("Execute multisig transaction?")
+
+    confirm_posting_transaction(multisig, safe_tx)

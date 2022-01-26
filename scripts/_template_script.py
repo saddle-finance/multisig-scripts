@@ -1,7 +1,8 @@
 from helpers import ChainId, MultisigAddresses
 from ape_safe import ApeSafe
 from brownie import accounts, network
-import click
+
+from scripts.utils import confirm_posting_transaction
 
 def main():
     """DESCRIPTION OF WHAT THIS SCRIPT DOES"""
@@ -22,13 +23,5 @@ def main():
     # sign with private key
     safe_tx.sign(deployer.private_key)
     multisig.preview(safe_tx)
-    
-    # post to network
-    should_execute = click.confirm("Execute multisig transaction?")
-    while True:
-        if should_execute:
-            multisig.post_transaction(safe_tx)
-            print("Multisig transaction posted to network")
-            break
-        else:
-            should_execute = click.confirm("Execute multisig transaction?")
+
+    confirm_posting_transaction(multisig, safe_tx)
