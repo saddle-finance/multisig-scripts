@@ -1,15 +1,4 @@
 from brownie.network.state import Chain
-from enum import Enum
-
-def assert_filename(file: str):
-    """Asserts that a file follows naming convention and is being executed on the expected network"""
-    filename = file.rsplit("/", 1)[1].split('.')[0]
-    try:
-        [_year, _month, _day, chain_id, _name] = filename.split('_')
-    except ValueError:
-        raise ValueError(f"Filename `{filename}` does not follow naming convention: `year_month_day_chainid_[file_name].py`")
-    chain = Chain()
-    assert chain.id == int(chain_id), f"Expected script to be run on network {chain_id}, but it was run on network {chain.id}"
 
 ChainId = {
     "MAINNET": 1,
@@ -23,3 +12,13 @@ MultisigAddresses = {
     ChainId["MAINNET"]: "0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE",
     ChainId["HARDHAT"]: "0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE",
 }
+
+def assert_filename(file: str):
+    """Asserts that a file follows naming convention and is being executed on the expected network"""
+    filename = file.rsplit("/", 1)[1].split('.')[0]
+    try:
+        [_year, _month, _day, chain_id, _name] = filename.split('_')
+    except ValueError:
+        raise ValueError(f"Filename `{filename}` does not follow naming convention: `year_month_day_chainid_[file_name].py`")
+    chain = Chain()
+    assert chain.id == int(chain_id), f"Expected script to be run on network {chain_id}, but it was run on network {chain.id}"

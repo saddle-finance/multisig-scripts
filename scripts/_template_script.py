@@ -16,14 +16,10 @@ def main():
 
     """
 
-    # combine history into multisend txn
+     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
 
     # sign with private key
-    safe_tx.sign(deployer)
-    multisig.preview(safe_tx)
-
-   # sign with private key
     safe_tx.sign(deployer.private_key)
     multisig.preview(safe_tx)
     

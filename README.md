@@ -8,13 +8,9 @@ On a machine with Python and mkvenv installed...
 
 1. Run `./setup.sh` to install deps, move files, and add deployer account. Interactive. 
 
-2. Run your script against a forked mainnet before running against mainnet
+2. Run your script against a forked mainnet
 
     `brownie run scripts/2022_01_15_1_hello_multisig.py --network mainnet-fork`
-
-3. Run your script on mainnet once everything looks good
-
-    `brownie run scripts/2022_01_15_1_hello_multisig.py --network mainnet`
 
 ## Conventions
 
