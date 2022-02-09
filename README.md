@@ -6,8 +6,10 @@ A collection of ApeSafe scripts which create txns executed by Saddle.finance's m
 
 On a machine with Python and mkvenv installed...
 
-1. Run `./setup.sh` to install deps, move files, and add deployer account. Interactive. 
+1. ***WARNING** this will overwrite existing global brownie network config*
 
+    Run `./setup.sh` to install deps, move files, and add deployer account. Interactive. 
+    
 2. Run your script against a forked mainnet
 
     `brownie run scripts/2022_01_15_1_hello_multisig.py --network mainnet-fork`

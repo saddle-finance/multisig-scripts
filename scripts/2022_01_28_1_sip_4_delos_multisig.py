@@ -1,4 +1,4 @@
-from helpers import ChainId, MultisigAddresses
+from helpers import CHAIN_IDS, MULTISIG_ADDRESSES
 from ape_safe import ApeSafe
 from brownie import accounts, network
 
@@ -9,7 +9,7 @@ def main():
 
     print(f"You are using the '{network.show_active()}' network")
     deployer = accounts.load("deployer") # prompts for password
-    multisig = ApeSafe(MultisigAddresses[ChainId["MAINNET"]])
+    multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
 
     delos_multisig = "0x03D319a9921474B9cdE1fff1DBaFba778f9eFEb0"
     SDLcontract = multisig.contract("0xf1Dc500FdE233A4055e25e5BbF516372BC4F6871")
