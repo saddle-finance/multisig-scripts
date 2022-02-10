@@ -17,7 +17,7 @@ def main():
 
     """
 
-     # combine history into multisend txn
+    # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
 
     # sign with private key
