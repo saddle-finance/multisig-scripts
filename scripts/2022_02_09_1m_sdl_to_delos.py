@@ -13,10 +13,11 @@ def main():
 
     delos_multisig = DELO_MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]]
     sdl_contract = multisig.contract(SDL_ADDRESSES[CHAIN_IDS["MAINNET"]])
-    receipt = sdl_contract.transfer(delos_multisig, 1_000_000 * 1e18)
+    sdl_contract.addToAllowedList([multisig.address])
+    sdl_contract.transfer(delos_multisig, 1_000_000 * 1e18)
 
      # combine history into multisend txn
-    safe_tx = multisig.tx_from_receipt(receipt)
+    safe_tx = multisig.multisend_from_receipts()
     safe_tx.safe_nonce = 23
 
     # sign with private key
