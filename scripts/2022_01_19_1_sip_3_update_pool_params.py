@@ -1,4 +1,4 @@
-from helpers import ChainId, MultisigAddresses
+from helpers import CHAIN_IDS, MULTISIG_ADDRESSES
 from ape_safe import ApeSafe
 from datetime import datetime, timedelta
 from brownie import accounts, network
@@ -9,7 +9,7 @@ def main():
     """Ramps A param for select pools as per SIP-3"""
     print(f"You are using the '{network.show_active()}' network")
     deployer = accounts.load("deployer")
-    multisig = ApeSafe(MultisigAddresses[ChainId["MAINNET"]])
+    multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
 
     pools_to_future_a = {
         "0xa6018520EAACC06C30fF2e1B3ee2c7c22e64196a": 240, # SaddleALETHPool

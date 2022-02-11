@@ -1,6 +1,6 @@
 from brownie.network.state import Chain
 
-ChainId = {
+CHAIN_IDS = {
     "MAINNET": 1,
     "ROPSTEN": 3,
     "OPTIMISM": 10,
@@ -8,9 +8,17 @@ ChainId = {
     "ARBITRUM": 42161,
 }
 
-MultisigAddresses = {
-    ChainId["MAINNET"]: "0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE",
-    ChainId["HARDHAT"]: "0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE",
+MULTISIG_ADDRESSES = {
+    CHAIN_IDS["MAINNET"]: "0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE",
+    CHAIN_IDS["HARDHAT"]: "0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE",
+}
+
+SDL_ADDRESSES = {
+    CHAIN_IDS["MAINNET"]: "0xf1Dc500FdE233A4055e25e5BbF516372BC4F6871",
+}
+
+DELO_MULTISIG_ADDRESSES = {
+    CHAIN_IDS["MAINNET"]: "0x03D319a9921474B9cdE1fff1DBaFba778f9eFEb0",
 }
 
 def assert_filename(file: str):

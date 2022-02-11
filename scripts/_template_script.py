@@ -1,4 +1,4 @@
-from helpers import ChainId, MultisigAddresses
+from helpers import CHAIN_IDS, MULTISIG_ADDRESSES
 from ape_safe import ApeSafe
 from brownie import accounts, network
 
@@ -9,7 +9,7 @@ def main():
 
     print(f"You are using the '{network.show_active()}' network")
     deployer = accounts.load("deployer") # prompts for password
-    multisig = ApeSafe(MultisigAddresses[ChainId["MAINNET"]])
+    multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
 
     """
 
@@ -17,7 +17,7 @@ def main():
 
     """
 
-     # combine history into multisend txn
+    # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
 
     # sign with private key
