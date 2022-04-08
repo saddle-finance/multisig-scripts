@@ -24,10 +24,11 @@ def main():
         contract = multisig.contract(pool_addr)
         contract.rampA(A, now_plus_17_days_seconds)
         if pool_addr == "0xaCb83E0633d6605c5001e2Ab59EF3C745547C8C7":
-            contract.setAdminFee(3e6)
+            contract.setSwapFee(3e6)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
+    safe_tx.safe_nonce = 26
 
     # sign with private key
     safe_tx.sign(deployer.private_key)
