@@ -29,7 +29,7 @@ def main():
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
-    safe_tx.safe_nonce = 30
+    safe_tx.safe_nonce = 29
 
     # sign with private key
     safe_tx.sign(deployer.private_key)
