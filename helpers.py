@@ -25,6 +25,10 @@ DELO_MULTISIG_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0x03D319a9921474B9cdE1fff1DBaFba778f9eFEb0",
 }
 
+DISPERSE_APP_ADDRESSES = {
+    CHAIN_IDS["MAINNET"]: "0xD152f549545093347A162Dce210e7293f1452150",
+}
+
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
     filename = file.rsplit("/", 1)[1].split('.')[0]
