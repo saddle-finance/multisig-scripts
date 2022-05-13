@@ -37,38 +37,44 @@ def main():
 
     # Add new migration data for the meta pools
     # Users are able to use the migrator contract to send in their old LP token for the new ones.
+
+    # tbtc metapool migration data
     migrator.addMigrationData(
         # oldPoolAddress
-        "0x824dcD7b044D60df2e89B1bB888e66D8BCf41491",
-        [
-            # newPoolAddress
-            "0x4568727f50c7246ded8C39214Ed6FF3c157f080D",
-            # oldPoolLPTokenAddress
-            "0xb6214a9d18f5Bf34A23a355114A03bE4f7D804fa",
-            # newPoolLPTokenAddress
-            "0x444F94460a641429CDa4e38E02E51642Cc38276A",
-            # tokens
-            [
-                "0x57Ab1ec28D129707052df4dF418D58a2D46d5f51",
-                "0x5f86558387293b6009d7896A61fcc86C17808D62"
-            ]
-        ],
-        # shouldOverwrite
-        False
-    )
-    migrator.addMigrationData(
         "0xA0b4a2667dD60d5CdD7EcFF1084F0CeB8dD84326",
         [
+            # newPoolAddress
             "0xfa9ED0309Bf79Eb84C847819F0B3CB84F6d351Af",
+            # oldPoolLPTokenAddress
             "0x3f2f811605bC6D701c3Ad6E501be13461c560320",
+            # newPoolLPTokenAddress
             "0xA2E81Eb93F0F9814ae9A3bea2D2A63408f2709C1",
+            # tokens
             [
                 "0x18084fbA666a33d37592fA2633fD49a74DD93a88",
                 "0xF32E91464ca18fc156aB97a697D6f8ae66Cd21a3"
             ]
         ],
+        # shouldOverwrite
         False
     )
+
+    # susd metapool migration data
+    migrator.addMigrationData(
+        "0x824dcD7b044D60df2e89B1bB888e66D8BCf41491",
+        [
+            "0x4568727f50c7246ded8C39214Ed6FF3c157f080D",
+            "0xb6214a9d18f5Bf34A23a355114A03bE4f7D804fa",
+            "0x444F94460a641429CDa4e38E02E51642Cc38276A",
+            [
+                "0x57Ab1ec28D129707052df4dF418D58a2D46d5f51",
+                "0x5f86558387293b6009d7896A61fcc86C17808D62"
+            ]
+        ],
+        False
+    )
+
+    # wcusd metapool migration data
     migrator.addMigrationData(
         "0xc02D481B52Ae04Ebc76a8882441cfAED45eb8342",
         [
