@@ -41,11 +41,12 @@ def main():
     )
     minichef.updatePool(newPoolIndex)
 
-    # # combine history into multisend txn
-    # safe_tx = multisig.multisend_from_receipts()
+    # combine history into multisend txn
+    safe_tx = multisig.multisend_from_receipts()
+    safe_tx.safe_nonce = 34
 
-    # # sign with private key
-    # safe_tx.sign(deployer.private_key)
-    # multisig.preview(safe_tx)
+    # sign with private key
+    safe_tx.sign(deployer.private_key)
+    multisig.preview(safe_tx)
 
-    # confirm_posting_transaction(multisig, safe_tx)
+    confirm_posting_transaction(multisig, safe_tx)
