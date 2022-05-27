@@ -15,8 +15,8 @@ def main():
     minichef = multisig.contract(MINICHEF_ADDRESSES[CHAIN_IDS["MAINNET"]])
     poolLength = minichef.poolLength()
     newPoolIndex = poolLength + 1
-    minichef.massUpdatePools(range(1, poolLength))
-    
+    minichef.massUpdatePools(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
+
     # Static
     currentSDLPerSecond = minichef.saddlePerSecond()
     frax3poolSDLPerSecond = (2_000_000 * 1e18) / (2 * 4 * 7 * 24 * 60 * 60)
@@ -26,22 +26,26 @@ def main():
     newSDLPerSecond = currentSDLPerSecond + frax3poolSDLPerSecond
     fraxAllocationRate = frax3poolSDLPerSecond / newSDLPerSecond
     fraxAlloc = round((totalAlloc * fraxAllocationRate) / (1 - fraxAllocationRate))
-    
+    print("fraxAlloc: ", fraxAlloc)
+    print("newPoolIndex: ", newPoolIndex)
+
     # State Change
     minichef.setSaddlePerSecond(newSDLPerSecond)
     minichef.add(
-      newPoolIndex,
-      "0x0785aDDf5F7334aDB7ec40cD785EBF39bfD91520",
-      "0x0000000000000000000000000000000000000000",
+        newPoolIndex,
+        "0x0785aDDf5F7334aDB7ec40cD785EBF39bfD91520",
+        "0x0000000000000000000000000000000000000000",
     )
-    minichef.set(newPoolIndex, fraxAlloc, "0x0000000000000000000000000000000000000000", False)
+    minichef.set(
+        newPoolIndex, fraxAlloc, "0x0000000000000000000000000000000000000000", False
+    )
     minichef.updatePool(newPoolIndex)
 
-    # combine history into multisend txn
-    safe_tx = multisig.multisend_from_receipts()
+    # # combine history into multisend txn
+    # safe_tx = multisig.multisend_from_receipts()
 
-    # sign with private key
-    safe_tx.sign(deployer.private_key)
-    multisig.preview(safe_tx)
+    # # sign with private key
+    # safe_tx.sign(deployer.private_key)
+    # multisig.preview(safe_tx)
 
-    confirm_posting_transaction(multisig, safe_tx)
+    # confirm_posting_transaction(multisig, safe_tx)
