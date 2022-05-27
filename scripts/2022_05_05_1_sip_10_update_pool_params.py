@@ -13,9 +13,9 @@ def main():
     multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
 
     pools_to_future_a = {
-        "0xa6018520EAACC06C30fF2e1B3ee2c7c22e64196a": 480,  # SaddleALETHPool
-        "0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2": 800,  # SaddleBTCPoolV2
-        "0xaCb83E0633d6605c5001e2Ab59EF3C745547C8C7": 800,  # SaddleUSDPoolV2
+        "0xa6018520EAACC06C30fF2e1B3ee2c7c22e64196a": 920,  # SaddleALETHPool
+        "0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2": 1600,  # SaddleBTCPoolV2
+        "0xaCb83E0633d6605c5001e2Ab59EF3C745547C8C7": 1600,  # SaddleUSDPoolV2
     }
     now = datetime.now()
     # @dev delta must be min 14 days. Add a couple days buffer for multisig to sign.
@@ -26,12 +26,10 @@ def main():
     for pool_addr, A in pools_to_future_a.items():
         contract = multisig.contract(pool_addr)
         contract.rampA(A, now_plus_17_days_seconds)
-        if pool_addr == "0xaCb83E0633d6605c5001e2Ab59EF3C745547C8C7":
-            contract.setSwapFee(3e6)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
-    safe_tx.safe_nonce = 26
+    safe_tx.safe_nonce = 30
 
     # sign with private key
     safe_tx.sign(deployer.private_key)
