@@ -6,12 +6,11 @@ from scripts.utils import confirm_posting_transaction
 
 
 def main():
-    """Send SDL to top off the MiniChefV2 rewards contract"""
+    """Send SDL to BlockSec"""
 
     print(f"You are using the '{network.show_active()}' network")
     deployer = accounts.load("deployer")  # prompts for password
     multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
-
     sdl_contract = multisig.contract(SDL_ADDRESSES[CHAIN_IDS["MAINNET"]])
     # blocksec address, 1_323_340 SDL
     sdl_contract.transfer(
