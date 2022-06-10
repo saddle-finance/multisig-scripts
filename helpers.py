@@ -33,12 +33,25 @@ DISPERSE_APP_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0xD152f549545093347A162Dce210e7293f1452150",
 }
 
+ARBITRUM_L2_BRIDGE_ROUTER = {
+    CHAIN_IDS["MAINNET"]: "0x72Ce9c846789fdB6fC1f34aC4AD25Dd9ef7031ef",
+}
+
+EVMOS_NOMAD_ERC20_BRIDGE_ROUTER = {
+    CHAIN_IDS["MAINNET"]: "0x88A69B4E698A4B090DF6CF5Bd7B2D47325Ad30A3",
+}
+
+
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
-    filename = file.rsplit("/", 1)[1].split('.')[0]
+    filename = file.rsplit("/", 1)[1].split(".")[0]
     try:
-        [_year, _month, _day, chain_id, _name] = filename.split('_')
+        [_year, _month, _day, chain_id, _name] = filename.split("_")
     except ValueError:
-        raise ValueError(f"Filename `{filename}` does not follow naming convention: `year_month_day_chainid_[file_name].py`")
+        raise ValueError(
+            f"Filename `{filename}` does not follow naming convention: `year_month_day_chainid_[file_name].py`"
+        )
     chain = Chain()
-    assert chain.id == int(chain_id), f"Expected script to be run on network {chain_id}, but it was run on network {chain.id}"
+    assert chain.id == int(
+        chain_id
+    ), f"Expected script to be run on network {chain_id}, but it was run on network {chain.id}"
