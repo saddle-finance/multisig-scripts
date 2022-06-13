@@ -1,4 +1,4 @@
-from helpers import CHAIN_IDS, MULTISIG_ADDRESSES, DISPERSE_APP_ADDRESSES
+from helpers import CHAIN_IDS, MULTISIG_ADDRESSES
 from ape_safe import ApeSafe
 from brownie import accounts, network
 from eth_utils import to_wei
@@ -40,14 +40,13 @@ def main():
     }
     total = sum(refunds.values())
     print(f"Total amount to be refunded: {total} FRAX")
-    frax = multisig.contract("0x853d955acef822db058eb8505911ed77f175b99e")
-    disperse = multisig.contract(DISPERSE_APP_ADDRESSES[CHAIN_IDS["MAINNET"]])
-    frax.approve(disperse, total)
-    disperse.disperseToken(frax, *zip(*refunds.items()))
+    frax = multisig.contract("0x853d955aCEf822Db058eb8505911ED77F175b99e")
+    for address, amount in refunds.items():
+        frax.transfer(address, amount)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
-    safe_tx.safe_nonce = 31
+    safe_tx.safe_nonce = 37
     
     # sign with private key
     safe_tx.sign(deployer.private_key)
