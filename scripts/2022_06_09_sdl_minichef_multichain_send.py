@@ -28,6 +28,9 @@ def main():
         EVMOS_NOMAD_ERC20_BRIDGE_ROUTER[CHAIN_IDS["MAINNET"]]
     )
 
+    # Enable transferability of SDL
+    sdl_contract.enableTransfer()
+
     # Pause MiniChef rewards on mainnet and update pools
     minichef.setSaddlePerSecond(0)
     poolLength = minichef.poolLength()
@@ -46,6 +49,7 @@ def main():
     arbitrumMinichefAddress = "0x2069043d7556B1207a505eb459D18d908DF29b55"
     sdlGatewayAddress = arbitrum_L1_Gateway.getGateway(sdl_contract.address)
     sdl_contract.approve(sdlGatewayAddress, amountToSendArbitrumMiniChef)
+    arb_calldata = "0x000000000000000000000000000000000000000000000000000009184e72a00000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000"
     arbitrum_L1_Gateway.outboundTransfer(
         sdl_contract.address,
         arbitrumMinichefAddress,
@@ -53,14 +57,15 @@ def main():
         gasLimitL2,
         gasPriceL2,
         # todo: find how to convert tuple to bytes, brownie.convert.to_bytes() only takes a singe arg
-        brownie.convert.to_bytes(maxSubmisstionCostL2, type_str="bytes32"),
+        arb_calldata,
         {"value": 1e15},
     )
+    # should look like Arbitrum calldata: 0x000000000000000000000000000000000000000000000000000009184e72a00000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000
 
     # Send needed SDL to EVMOS minichef
     amountToSendEvmosMinichef = 1e18
     NomadEVMOSMainnetDestinationCode = "1702260083"
-    evmosMiniChefAddress = "0x0232e0b6df048c8CC4037c52Bc90cf943c9C8cC6"
+    evmosMiniChefAddress = "0x0000000000000000000000000232e0b6df048c8CC4037c52Bc90cf943c9C8cC6"
     sdl_contract.approve(evmos_L1_Gateway.address, amountToSendEvmosMinichef)
     evmos_L1_Gateway.send(
         sdl_contract.address,
@@ -70,6 +75,7 @@ def main():
         (brownie.convert.to_bytes(evmosMiniChefAddress)).decode(),
         False,
     )
+    # should look like EVMOS calldata 0x0000000000000000000000000232e0b6df048c8CC4037c52Bc90cf943c9C8cC6
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
