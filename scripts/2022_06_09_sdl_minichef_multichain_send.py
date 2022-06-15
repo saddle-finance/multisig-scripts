@@ -65,14 +65,13 @@ def main():
     )
     # arb_calldata should look like "0x000000000000000000000000000000000000000000000000000009184e72a00000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000"
     cheat = "0x000000000000000000000000000000000000000000000000000009184e72a00000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000"
-    print("buh: " + (eth_abi.encode_abi(["uint256"], [maxSubmisstionCostL2])).hex())
-    encoded = eth_abi.encode_abi(["uint256"], [maxSubmisstionCostL2]).hex()
-    # below when passed to outboundTransfer() fails
-    arb_calldata = (
-        "0x"
-        + encoded
-        + "00000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000"
-    )
+    arb_encoded = eth_abi.encode_abi(
+        ["uint256", "bytes32"], [maxSubmisstionCostL2, b"0x"]
+    ).hex()
+    arb_encoded_cheat = "0x" + arb_encoded[:-16]
+    print(cheat)
+    print(arb_encoded_cheat)
+
     arbitrum_L1_Gateway.outboundTransfer(
         sdl_contract.address,
         arbitrumMinichefAddress,
@@ -80,7 +79,7 @@ def main():
         gasLimitL2,
         gasPriceL2,
         # todo: find how to convert tuple to bytes, brownie.convert.to_bytes() only takes a singe arg
-        cheat,
+        arb_encoded,
         {"value": 1e15, "from": deployer},
     )
     print("ARB SDL bridged")
