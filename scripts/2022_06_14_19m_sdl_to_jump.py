@@ -29,14 +29,13 @@ def main():
 
     # release vested tokens to deployer account
     sdl_vesting_contract_proxy.release()
-    print("sdl bal after release:" + str(sdl_contract.balanceOf(multisig.address)))
 
     # transfer sdl to jump
     sdl_contract.transfer(jump_receiver, sdl_transfer_amount)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
-    safe_tx.safe_nonce = 32
+    safe_tx.safe_nonce = 37
 
     # sign with private key
     safe_tx.sign(deployer.private_key)
