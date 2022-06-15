@@ -1,8 +1,15 @@
-from helpers import CHAIN_IDS, MULTISIG_ADDRESSES, SDL_ADDRESSES, JUMP_RECEIVER_ADDRESS
+from helpers import (
+    CHAIN_IDS,
+    MULTISIG_ADDRESSES,
+    SDL_ADDRESSES,
+    SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS,
+    JUMP_RECEIVER_ADDRESS,
+)
 from ape_safe import ApeSafe
 from brownie import accounts, network
 
 from scripts.utils import confirm_posting_transaction
+import json
 
 
 def main():
@@ -14,24 +21,25 @@ def main():
 
     jump_receiver = JUMP_RECEIVER_ADDRESS[CHAIN_IDS["MAINNET"]]
     sdl_contract = multisig.contract(SDL_ADDRESSES[CHAIN_IDS["MAINNET"]])
-    sdl_vesting_contract = multisig.contract(
-        "0xf8504e92428d65E56e495684A38f679C1B1DC30b"
+    sdl_vesting_contract_proxy = multisig.contract(
+        SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS["MAINNET"]]
     )
     sdl_transfer_amount = 19_999_999 * 1e18
     sdl_contract.addToAllowedList([jump_receiver])
 
     # release vested tokens to deployer account
-    sdl_vesting_contract.release()
+    sdl_vesting_contract_proxy.release()
+    print("sdl bal after release:" + str(sdl_contract.balanceOf(multisig.address)))
 
     # transfer sdl to jump
     sdl_contract.transfer(jump_receiver, sdl_transfer_amount)
 
-    # # combine history into multisend txn
-    # safe_tx = multisig.multisend_from_receipts()
-    # safe_tx.safe_nonce = 32
+    # combine history into multisend txn
+    safe_tx = multisig.multisend_from_receipts()
+    safe_tx.safe_nonce = 32
 
-    # # sign with private key
-    # safe_tx.sign(deployer.private_key)
-    # multisig.preview(safe_tx)
+    # sign with private key
+    safe_tx.sign(deployer.private_key)
+    multisig.preview(safe_tx)
 
     # confirm_posting_transaction(multisig, safe_tx)
