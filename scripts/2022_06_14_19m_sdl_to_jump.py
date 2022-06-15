@@ -9,7 +9,6 @@ from ape_safe import ApeSafe
 from brownie import accounts, network
 
 from scripts.utils import confirm_posting_transaction
-import json
 
 
 def main():
@@ -41,4 +40,4 @@ def main():
     safe_tx.sign(deployer.private_key)
     multisig.preview(safe_tx)
 
-    # confirm_posting_transaction(multisig, safe_tx)
+    confirm_posting_transaction(multisig, safe_tx)
