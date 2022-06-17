@@ -24,7 +24,6 @@ def main():
         SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS["MAINNET"]]
     )
     sdl_transfer_amount = 19_999_999 * 1e18
-    sdl_contract.addToAllowedList([jump_receiver])
 
     # release vested tokens to deployer account
     sdl_vesting_contract_proxy.release()
@@ -34,7 +33,7 @@ def main():
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
-    safe_tx.safe_nonce = 37
+    safe_tx.safe_nonce = 38
 
     # sign with private key
     safe_tx.sign(deployer.private_key)
