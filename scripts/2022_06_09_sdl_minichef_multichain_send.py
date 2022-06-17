@@ -8,7 +8,7 @@ from helpers import (
     EVMOS_NOMAD_ERC20_BRIDGE_ROUTER,
 )
 from ape_safe import ApeSafe
-from brownie import accounts, network
+from brownie import accounts, network, web3
 
 from scripts.utils import confirm_posting_transaction
 import eth_abi
@@ -65,12 +65,10 @@ def main():
     )
     # arb_calldata should look like "0x000000000000000000000000000000000000000000000000000009184e72a00000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000"
     cheat = "0x000000000000000000000000000000000000000000000000000009184e72a00000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000"
-    arb_encoded = eth_abi.encode_abi(
-        ["uint256", "bytes32"], [maxSubmisstionCostL2, b"0x"]
-    ).hex()
-    arb_encoded_cheat = "0x" + arb_encoded[:-16]
-    print(cheat)
-    print(arb_encoded_cheat)
+    arb_encoded = (
+        "0x"
+        + eth_abi.encode_abi(["uint256", "bytes32[]"], [maxSubmisstionCostL2, []]).hex()
+    )
 
     arbitrum_L1_Gateway.outboundTransfer(
         sdl_contract.address,
