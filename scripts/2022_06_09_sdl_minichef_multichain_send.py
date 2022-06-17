@@ -6,9 +6,12 @@ from helpers import (
     SDL_ADDRESSES,
     ARBITRUM_L2_BRIDGE_ROUTER,
     EVMOS_NOMAD_ERC20_BRIDGE_ROUTER,
+    ARBITRUM_MINICHEF_ADDRESS,
+    EVMOS_MINICHEF_ADDRESS,
 )
 from ape_safe import ApeSafe
-from brownie import accounts, network, web3
+from brownie import accounts, network
+import web3 as Web3
 
 from scripts.utils import confirm_posting_transaction
 import eth_abi
@@ -57,14 +60,12 @@ def main():
     gasLimitL2 = 1000000
     gasPriceL2 = 990000000
     maxSubmisstionCostL2 = 10000000000000
-    arbitrumMinichefAddress = "0x2069043d7556B1207a505eb459D18d908DF29b55"
+    arbitrumMinichefAddress = ARBITRUM_MINICHEF_ADDRESS[CHAIN_IDS["MAINNET"]]
     sdlGatewayAddress = arbitrum_L1_Gateway.getGateway(sdl_contract.address)
     sdl_contract.approve(sdlGatewayAddress, amountToSendArbitrumMiniChef)
     print(
         "SDL bal of deployer / 1e18:", sdl_contract.balanceOf(deployer.address) / 1e18
     )
-    # arb_calldata should look like "0x000000000000000000000000000000000000000000000000000009184e72a00000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000"
-    cheat = "0x000000000000000000000000000000000000000000000000000009184e72a00000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000"
     arb_encoded = (
         "0x"
         + eth_abi.encode_abi(["uint256", "bytes32[]"], [maxSubmisstionCostL2, []]).hex()
@@ -81,33 +82,28 @@ def main():
         {"value": 1e15, "from": deployer},
     )
     print("ARB SDL bridged")
-    # should look like Arbitrum calldata: 0x000000000000000000000000000000000000000000000000000009184e72a00000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000
 
     # Send needed SDL to EVMOS minichef
     amountToSendEvmosMinichef = 1e18
     NomadEVMOSMainnetDestinationCode = "1702260083"
-    evmosMiniChefAddress = (
-        "0x0000000000000000000000000232e0b6df048c8CC4037c52Bc90cf943c9C8cC6"
-    )
-    # Below errors out on encode
-    # evmos_encoded = eth_abi.encode_abi(["bytes32"], ["0x232e0b6df048c8CC4037c52Bc90cf943c9C8cC6"]).hex()
+    evmosMiniChefAddress = EVMOS_MINICHEF_ADDRESS[CHAIN_IDS["MAINNET"]]
+    evmos_encoded = "0x" + evmosMiniChefAddress[2:].zfill(64)
     sdl_contract.approve(evmos_L1_Gateway.address, amountToSendEvmosMinichef)
     evmos_L1_Gateway.send(
         sdl_contract.address,
         amountToSendEvmosMinichef,
         NomadEVMOSMainnetDestinationCode,
         # .to_bytes convert by default to bytes32 then decode to str
-        evmosMiniChefAddress,
+        evmos_encoded,
         False,
     )
     print("EVMOS SDL bridged")
-    # should look like EVMOS calldata 0x0000000000000000000000000232e0b6df048c8CC4037c52Bc90cf943c9C8cC6
 
-    # # combine history into multisend txn
-    # safe_tx = multisig.multisend_from_receipts()
+    # combine history into multisend txn
+    safe_tx = multisig.multisend_from_receipts()
 
-    # # sign with private key
-    # safe_tx.sign(deployer.private_key)
-    # multisig.preview(safe_tx)
+    # sign with private key
+    safe_tx.sign(deployer.private_key)
+    multisig.preview(safe_tx)
 
-    # confirm_posting_transaction(multisig, safe_tx)
+    confirm_posting_transaction(multisig, safe_tx)

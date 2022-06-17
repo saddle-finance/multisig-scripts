@@ -41,6 +41,14 @@ EVMOS_NOMAD_ERC20_BRIDGE_ROUTER = {
     CHAIN_IDS["MAINNET"]: "0x88A69B4E698A4B090DF6CF5Bd7B2D47325Ad30A3",
 }
 
+ARBITRUM_MINICHEF_ADDRESS = {
+    CHAIN_IDS["MAINNET"]: "0x2069043d7556B1207a505eb459D18d908DF29b55",
+}
+
+EVMOS_MINICHEF_ADDRESS = {
+    CHAIN_IDS["MAINNET"]: "0x0232e0b6df048c8CC4037c52Bc90cf943c9C8cC6",
+}
+
 
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
