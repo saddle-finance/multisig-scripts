@@ -17,6 +17,10 @@ SDL_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0xf1Dc500FdE233A4055e25e5BbF516372BC4F6871",
 }
 
+SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS = {
+    CHAIN_IDS["MAINNET"]: "0x5DFbCeea7A5F6556356C7A66d2A43332755D68A5"
+}
+
 MINICHEF_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0x691ef79e40d909C715BE5e9e93738B3fF7D58534",
 }
@@ -33,12 +37,21 @@ DISPERSE_APP_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0xD152f549545093347A162Dce210e7293f1452150",
 }
 
+JUMP_RECEIVER_ADDRESS = {
+    CHAIN_IDS["MAINNET"]: "0xCB8EFB0c065071E4110932858A84365A80C8feF0",
+}
+
+
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
-    filename = file.rsplit("/", 1)[1].split('.')[0]
+    filename = file.rsplit("/", 1)[1].split(".")[0]
     try:
-        [_year, _month, _day, chain_id, _name] = filename.split('_')
+        [_year, _month, _day, chain_id, _name] = filename.split("_")
     except ValueError:
-        raise ValueError(f"Filename `{filename}` does not follow naming convention: `year_month_day_chainid_[file_name].py`")
+        raise ValueError(
+            f"Filename `{filename}` does not follow naming convention: `year_month_day_chainid_[file_name].py`"
+        )
     chain = Chain()
-    assert chain.id == int(chain_id), f"Expected script to be run on network {chain_id}, but it was run on network {chain.id}"
+    assert chain.id == int(
+        chain_id
+    ), f"Expected script to be run on network {chain_id}, but it was run on network {chain.id}"
