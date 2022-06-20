@@ -7,8 +7,6 @@ from helpers import (
     SDL_ADDRESSES,
     ARBITRUM_L2_BRIDGE_ROUTER,
     EVMOS_NOMAD_ERC20_BRIDGE_ROUTER,
-    ARBITRUM_MINICHEF_ADDRESS,
-    EVMOS_MINICHEF_ADDRESS,
     SDL_MINTER_ADDRESS,
 )
 from ape_safe import ApeSafe
@@ -62,7 +60,7 @@ def main():
     gasLimitL2 = 1000000
     gasPriceL2 = 990000000
     maxSubmisstionCostL2 = 10000000000000
-    arbitrumMinichefAddress = ARBITRUM_MINICHEF_ADDRESS[CHAIN_IDS["MAINNET"]]
+    arbitrumMinichefAddress = MINICHEF_ADDRESSES[CHAIN_IDS["ARBITRUM"]]
     sdlGatewayAddress = arbitrum_L1_Gateway.getGateway(sdl_contract.address)
     sdl_contract.approve(sdlGatewayAddress, amountToSendArbitrumMiniChef)
     arb_encoded = (
@@ -84,7 +82,7 @@ def main():
     # Send needed SDL to EVMOS minichef
     amountToSendEvmosMinichef = ceil(197135) * 1e18
     NomadEVMOSMainnetDestinationCode = "1702260083"
-    evmosMiniChefAddress = EVMOS_MINICHEF_ADDRESS[CHAIN_IDS["MAINNET"]]
+    evmosMiniChefAddress = MINICHEF_ADDRESSES[CHAIN_IDS["EVMOS"]]
     evmos_encoded = "0x" + evmosMiniChefAddress[2:].zfill(64)
     sdl_contract.approve(evmos_L1_Gateway.address, amountToSendEvmosMinichef)
     evmos_L1_Gateway.send(
@@ -98,8 +96,8 @@ def main():
     print("EVMOS SDL bridged")
 
     # Send needed SDL to SDL minter
-    minter = multisig.contract(SDL_MINTER_ADDRESS[CHAIN_IDS["MAINNET"]])
-    sdl_contract.transfer(minter.address, 5000000)
+    # minter = multisig.contract(SDL_MINTER_ADDRESS[CHAIN_IDS["MAINNET"]])
+    # sdl_contract.transfer(minter.address, 5000000)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
