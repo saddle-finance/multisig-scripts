@@ -40,20 +40,16 @@ def main():
 
     # Enable transferability of SDL
     sdl_contract.enableTransfer()
-    print("SDL Transferability Enabled")
 
     # Pause MiniChef rewards on mainnet and update pools
     minichef.setSaddlePerSecond(0)
-    print("SDL per second set to 0")
 
     poolLength = list(map(str, list(range(1, minichef.poolLength()))))
     minichef.massUpdatePools(poolLength)
-    print("mass updated pools")
 
     # Send needed SDL to minichef
     amountToSendMainnetMiniChef = ceil(7543898) * 1e18
     sdl_contract.transfer(minichef.address, amountToSendMainnetMiniChef)
-    print("mainnet minichef sent needed SDL")
 
     # Send needed SDL to Arbitrum minichef
     amountToSendArbitrumMiniChef = ceil(8974940) * 1e18
@@ -77,7 +73,6 @@ def main():
         arb_encoded,
         {"value": 1e15},
     )
-    print("ARB SDL bridged")
 
     # Send needed SDL to EVMOS minichef
     amountToSendEvmosMinichef = ceil(197135) * 1e18
@@ -93,7 +88,6 @@ def main():
         evmos_encoded,
         False,
     )
-    print("EVMOS SDL bridged")
 
     # Send needed SDL to SDL minter
     # minter = multisig.contract(SDL_MINTER_ADDRESS[CHAIN_IDS["MAINNET"]])
