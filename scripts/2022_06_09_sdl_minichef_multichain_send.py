@@ -1,3 +1,4 @@
+from math import ceil
 from multiprocessing import pool
 from helpers import (
     CHAIN_IDS,
@@ -8,6 +9,7 @@ from helpers import (
     EVMOS_NOMAD_ERC20_BRIDGE_ROUTER,
     ARBITRUM_MINICHEF_ADDRESS,
     EVMOS_MINICHEF_ADDRESS,
+    SDL_MINTER_ADDRESS,
 )
 from ape_safe import ApeSafe
 from brownie import accounts, network
@@ -51,21 +53,18 @@ def main():
     print("mass updated pools")
 
     # Send needed SDL to minichef
-    amountToSendMainnetMiniChef = 1e18
+    amountToSendMainnetMiniChef = ceil(7543898) * 1e18
     sdl_contract.transfer(minichef.address, amountToSendMainnetMiniChef)
     print("mainnet minichef sent needed SDL")
 
     # Send needed SDL to Arbitrum minichef
-    amountToSendArbitrumMiniChef = 1e18
+    amountToSendArbitrumMiniChef = ceil(8974940) * 1e18
     gasLimitL2 = 1000000
     gasPriceL2 = 990000000
     maxSubmisstionCostL2 = 10000000000000
     arbitrumMinichefAddress = ARBITRUM_MINICHEF_ADDRESS[CHAIN_IDS["MAINNET"]]
     sdlGatewayAddress = arbitrum_L1_Gateway.getGateway(sdl_contract.address)
     sdl_contract.approve(sdlGatewayAddress, amountToSendArbitrumMiniChef)
-    print(
-        "SDL bal of deployer / 1e18:", sdl_contract.balanceOf(deployer.address) / 1e18
-    )
     arb_encoded = (
         "0x"
         + eth_abi.encode_abi(["uint256", "bytes32[]"], [maxSubmisstionCostL2, []]).hex()
@@ -77,14 +76,13 @@ def main():
         amountToSendArbitrumMiniChef,
         gasLimitL2,
         gasPriceL2,
-        # todo: find how to convert tuple to bytes, brownie.convert.to_bytes() only takes a singe arg
         arb_encoded,
-        {"value": 1e15, "from": deployer},
+        {"value": 1e15},
     )
     print("ARB SDL bridged")
 
     # Send needed SDL to EVMOS minichef
-    amountToSendEvmosMinichef = 1e18
+    amountToSendEvmosMinichef = ceil(197135) * 1e18
     NomadEVMOSMainnetDestinationCode = "1702260083"
     evmosMiniChefAddress = EVMOS_MINICHEF_ADDRESS[CHAIN_IDS["MAINNET"]]
     evmos_encoded = "0x" + evmosMiniChefAddress[2:].zfill(64)
@@ -98,6 +96,10 @@ def main():
         False,
     )
     print("EVMOS SDL bridged")
+
+    # Send needed SDL to SDL minter
+    minter = multisig.contract(SDL_MINTER_ADDRESS[CHAIN_IDS["MAINNET"]])
+    sdl_contract.transfer(minter.address, 5000000)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
