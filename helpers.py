@@ -41,6 +41,14 @@ JUMP_RECEIVER_ADDRESS = {
     CHAIN_IDS["MAINNET"]: "0xCB8EFB0c065071E4110932858A84365A80C8feF0",
 }
 
+GAUGE_CONTROLLER_ADDRESS = {
+    CHAIN_IDS["MAINNET"]: "0x99Cb6c36816dE2131eF2626bb5dEF7E5cc8b9B14",
+}
+
+MINTER = {
+    CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
+}
+
 
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
