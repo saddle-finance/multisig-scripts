@@ -41,6 +41,14 @@ JUMP_RECEIVER_ADDRESS = {
     CHAIN_IDS["MAINNET"]: "0xCB8EFB0c065071E4110932858A84365A80C8feF0",
 }
 
+SMART_WALLET_CHECKER_ADDRESSES = {
+    CHAIN_IDS["MAINNET"]: "0x1085E85A7384DD2F0d46D2918630a1CF174b5853"
+}
+
+VOTING_ESCROW_ADDRESSES = {
+    CHAIN_IDS["MAINNET"]: "0xD2751CdBED54B87777E805be36670D7aeAe73bb2"
+}
+
 
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
