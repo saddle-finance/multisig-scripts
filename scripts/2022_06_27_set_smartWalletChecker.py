@@ -17,9 +17,8 @@ def main():
     deployer = accounts.load("deployer")  # prompts for password
     multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
     vesdl = multisig.contract(VOTING_ESCROW_ADDRESSES[CHAIN_IDS["MAINNET"]])
-    smart_wallet_checker = multisig.contract(SMART_WALLET_CHECKER_ADDRESSES[CHAIN_IDS["MAINNET"]])
 
-    vesdl.commit_smart_wallet_checker(smart_wallet_checker.address)
+    vesdl.commit_smart_wallet_checker(SMART_WALLET_CHECKER_ADDRESSES[CHAIN_IDS["MAINNET"]])
     vesdl.apply_smart_wallet_checker()
 
     safe_tx = multisig.multisend_from_receipts()
