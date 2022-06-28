@@ -14,22 +14,21 @@ def main():
     gauge_controller = multisig.contract(GAUGE_CONTROLLER_ADDRESS[CHAIN_IDS["MAINNET"]])
     
     # gauges to add to gauge controller 
-    # TODO: insert gauge addresses when we have them deployed
     gauge_data = {
         "SaddleFRAXBPPoolGauge" : 
-            {"address" : "0x0",
+            {"address" : "0xB2Ac3382dA625eb41Fc803b57743f941a484e2a6",
              "type" : 0,
              "weight" : 0 },
         "SaddleFRAXsUSDMetaPoolGauge" : 
-            {"address" : "0x0",
+            {"address" : "0x104F44551386d603217450822443456229F73aE4",
              "type" : 0,
              "weight" : 0 },
         "SaddleFRAXUSDTMetaPoolGauge" : 
-            {"address" : "0x0",
+            {"address" : "0x6EC5DD7D8E396973588f0dEFD79dCA04F844d57C",
              "type" : 0,
              "weight" : 0 },
         "SaddleFRAXalUSDMetaPoolGauge" : 
-            {"address" : "0x0",
+            {"address" : "0x3B35a3f9163CF5733837c5B51B1dF493C340F8E3",
              "type" : 0,
              "weight" : 0 }
     }
