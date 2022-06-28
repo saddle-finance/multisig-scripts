@@ -7,7 +7,7 @@ from scripts.utils import confirm_posting_transaction
 
 
 def main():
-    """Send the 3m FRAX recovered by BlockSec to affected LPs according to https://dune.com/queries/689792"""
+    """Send the 6.7m SDL to affected LPs according to https://snapshot.org/#/saddlefinance.eth/proposal/0xf27b07ef7025aa23edb2a84d56825511ea7adff8d6164cd09a23c63c42cdc01a"""
 
     print(f"You are using the '{network.show_active()}' network")
     deployer = accounts.load("deployer")  # prompts for password
