@@ -5,7 +5,7 @@ from brownie import accounts, network
 from scripts.utils import confirm_posting_transaction
 
 def main():
-    """DESCRIPTION OF WHAT THIS SCRIPT DOES"""
+    """Adds new alUSD gauge and sets 'is_killed' on old alUSD gauge"""
 
     print(f"You are using the '{network.show_active()}' network")
     deployer = accounts.load("deployer") # prompts for password
