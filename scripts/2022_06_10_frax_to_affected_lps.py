@@ -5,11 +5,11 @@ from eth_utils import to_wei
 
 from scripts.utils import confirm_posting_transaction
 
+
 def main():
     """Send the 3m FRAX recovered by BlockSec to affected LPs according to https://dune.com/queries/689792"""
-
     print(f"You are using the '{network.show_active()}' network")
-    deployer = accounts.load("deployer") # prompts for password
+    deployer = accounts.load("deployer")  # prompts for password
     multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
 
     refunds = {
@@ -36,7 +36,7 @@ def main():
         "0x46866d274e6d9015c5fdc098ce270803e11e3ef4": to_wei(369.22, "ether"),
         "0x2d5d79753bb8e02ca1ce8ece0aa55288f8c8d840": to_wei(184.61, "ether"),
         "0xb5e46afa9596cb6f44d2fcb6dbd2096dbe35396c": to_wei(33.79, "ether"),
-        "0x74f8744020f5900a2c3a3289c6c2182f56a6901f": to_wei(9.25, "ether")
+        "0x74f8744020f5900a2c3a3289c6c2182f56a6901f": to_wei(9.25, "ether"),
     }
     total = sum(refunds.values())
     print(f"Total amount to be refunded: {total} FRAX")
@@ -47,7 +47,7 @@ def main():
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
     safe_tx.safe_nonce = 37
-    
+
     # sign with private key
     safe_tx.sign(deployer.private_key)
     multisig.preview(safe_tx)
