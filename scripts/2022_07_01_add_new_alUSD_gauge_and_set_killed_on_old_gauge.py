@@ -1,4 +1,4 @@
-from helpers import CHAIN_IDS, MULTISIG_ADDRESSES
+from helpers import CHAIN_IDS, MULTISIG_ADDRESSES, GAUGE_CONTROLLER_ADDRESS
 from ape_safe import ApeSafe
 from brownie import accounts, network
 
