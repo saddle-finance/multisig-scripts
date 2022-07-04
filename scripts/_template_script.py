@@ -18,7 +18,9 @@ def main():
     """
 
     # combine history into multisend txn
+    # TODO: change nonce to current multisig nonce + 1
     safe_tx = multisig.multisend_from_receipts()
+    safe_tx.safe_nonce = 0
 
     # sign with private key
     safe_tx.sign(deployer.private_key)
