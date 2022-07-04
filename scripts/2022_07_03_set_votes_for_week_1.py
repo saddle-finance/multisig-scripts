@@ -12,6 +12,9 @@ def main():
     deployer = accounts.load("deployer")  # prompts for password
     multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
 
+    # Run any pending transactions before simulating any more transactions
+    multisig.preview_pending()
+
     gauge_controller = multisig.contract(
         GAUGE_CONTROLLER_ADDRESS[CHAIN_IDS["MAINNET"]])
 
@@ -64,6 +67,6 @@ def main():
 
     # sign with private key
     safe_tx.sign(deployer.private_key)
-    multisig.preview(safe_tx)
+    multisig.preview(safe_tx, True, False, False)
 
     confirm_posting_transaction(multisig, safe_tx)
