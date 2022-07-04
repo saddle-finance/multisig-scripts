@@ -12,7 +12,8 @@ def main():
     deployer = accounts.load("deployer")  # prompts for password
     multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
 
-    gauge_controller = multisig.contract(GAUGE_CONTROLLER_ADDRESS[CHAIN_IDS["MAINNET"]])
+    gauge_controller = multisig.contract(
+        GAUGE_CONTROLLER_ADDRESS[CHAIN_IDS["MAINNET"]])
 
     gauge_to_relative_weight_dict = {
         "0xB2Ac3382dA625eb41Fc803b57743f941a484e2a6": 7786,
@@ -30,10 +31,29 @@ def main():
         "0xB79B4fCF7cB4A1c4064Ff5b48F71A331880ab53a": 0,
     }
 
+    gauge_abi = [{
+        "stateMutability": "view",
+        "type": "function",
+        "name": "name",
+        "inputs": [],
+        "outputs": [
+                {
+                    "name": "",
+                    "type": "string"
+                }
+        ]
+    }]
+
+    # print out details first to confirm the we are setting gauge weights correctly
+    # separate printing and executing into 2 loops to avoid printing inbetween transaction logs
     for gauge in gauge_to_relative_weight_dict:
-        gauge_contract = Contract(gauge)
+        gauge_contract = Contract.from_abi("LiqGaugeV5", gauge, gauge_abi)
         gauge_name = gauge_contract.name()
-        print(f"Setting {gauge_name}'s weight to {gauge_to_relative_weight_dict[gauge]}")
+        print(
+            f"Setting {gauge_name}'s weight to {gauge_to_relative_weight_dict[gauge]}")
+
+    # execute txs for setting gauge weights
+    for gauge in gauge_to_relative_weight_dict:
         gauge_controller.change_gauge_weight(
             gauge, gauge_to_relative_weight_dict[gauge]
         )
