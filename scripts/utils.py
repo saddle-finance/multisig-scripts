@@ -24,11 +24,17 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
     pending_nonce = safe.pending_nonce()
     
     # check if nonce is invalid or already in use
-    if safe_nonce < current_nonce:
+    if safe_nonce == 0:
+        if (input("Safe nonce is set to 0. This tx will be executed using pending " + 
+            f"nonce at the time of submission. Continue? [y/N]")) == "N":
+            return
+        else: 
+            safe_tx.safe_nonce = None
+    elif safe_nonce < current_nonce:
         print(f"Error: Your nonce ({safe_nonce}) is already used. " + 
             f"Please use a nonce greater equal {current_nonce}.")
-        return  
-    if safe_nonce < pending_nonce:
+        return 
+    elif safe_nonce < pending_nonce:
         if (input(f"There is already a pending transaction at nonce {safe_nonce}. " + 
             "Are you sure you want to use duplicate nonce for this submission? [y/N]")) == "N":
             return
