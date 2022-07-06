@@ -72,6 +72,28 @@ MINTER = {
     CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
 }
 
+VESTING_ABI = [
+    {
+        "inputs": [],
+        "name": "release",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "newBeneficiary",
+                "type": "address"
+            }
+        ],
+        "name": "changeBeneficiary",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]
 
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
