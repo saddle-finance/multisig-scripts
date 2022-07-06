@@ -1,6 +1,7 @@
 from helpers import CHAIN_IDS, MULTISIG_ADDRESSES, VESTING_ABI
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract
+import datetime
 
 from scripts.utils import confirm_posting_transaction
 
@@ -8,6 +9,11 @@ def main():
     """Release tokens and shift beneficiary for vesting contract of outgoing employee"""
 
     print(f"You are using the '{network.show_active()}' network")
+
+    if (datetime.datetime.now() < datetime.datetime(2022,7,15)):
+        print("Too early to execute, returning")
+        return
+
     deployer = accounts.load("deployer") # prompts for password
     multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
 

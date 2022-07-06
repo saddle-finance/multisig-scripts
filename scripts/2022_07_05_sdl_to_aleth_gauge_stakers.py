@@ -1,7 +1,6 @@
 from helpers import CHAIN_IDS, MULTISIG_ADDRESSES, SDL_ADDRESSES, SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS
 from ape_safe import ApeSafe
 from brownie import accounts, network
-from eth_utils import to_wei
 
 from scripts.utils import confirm_posting_transaction
 
@@ -39,7 +38,6 @@ def main():
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
-    safe_tx.safe_nonce = 44
 
     # sign with private key
     safe_tx.sign(deployer.private_key)
