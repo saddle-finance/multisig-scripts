@@ -6,7 +6,7 @@ from brownie import Contract
 def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
     safe_nonce = safe_tx.safe_nonce
 
-    # check if nonce is invalid or already in use
+    # small abi of safe, only to be able to check nonce
     nonce_abi = [{
         "stateMutability": "view",
         "type": "function",
@@ -23,6 +23,7 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
     current_nonce = Contract.from_abi("GnosisSafeProxy", safe.address, nonce_abi).nonce()
     pending_nonce = safe.pending_nonce()
     
+    # check if nonce is invalid or already in use
     if safe_nonce < current_nonce:
         print(f"Error: Your nonce ({safe_nonce}) is already used. " + 
             f"Please use a nonce greater equal {current_nonce}.")
