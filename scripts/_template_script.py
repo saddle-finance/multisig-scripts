@@ -22,24 +22,6 @@ def main():
     safe_tx = multisig.multisend_from_receipts()
     safe_nonce = 0
     
-    # check if nonce is invalid or already in use
-    current_nonce = multisig.contract(multisig.address).nonce()
-    pending_nonce = multisig.pending_nonce()
-    
-    if safe_nonce < current_nonce:
-        print(f"Error: Your nonce ({safe_nonce}) is already used. " + 
-            f"Please use a nonce greater equal {current_nonce}.")
-        return  
-    if safe_nonce < pending_nonce:
-        if (input(f"There is already a pending transaction at nonce {safe_nonce}. " + 
-            "Are you sure you want to use duplicate nonce for this submission? [y/N]")) == "N":
-            return
-    elif safe_nonce > pending_nonce:
-        if (input(f"Your nonce ({safe_nonce}) is greater than current pending nonce " + 
-            f"({pending_nonce}). Tx won't execute until intermediate nonces have " + 
-            "been used. Are you sure you want to post submission? [y/N]")) == "N":
-            return
-
     safe_tx.safe_nonce = safe_nonce
 
     # sign with private key
