@@ -1,4 +1,4 @@
-from helpers import CHAIN_IDS, MULTISIG_ADDRESSES, GAUGE_CONTROLLER_ADDRESS
+from helpers import CHAIN_IDS, MULTISIG_ADDRESSES, GAUGE_CONTROLLER_ADDRESS, GAUGE_ABI
 from ape_safe import ApeSafe
 from brownie import Contract, accounts, network
 
@@ -25,7 +25,7 @@ def main():
         "0x953693DCB2E9DDC0c1398C1b540b81b63ceA5e16": 206,  # alUSDFRAX Metapool
         "0x13Ba45c2B686c6db7C2E28BD3a9E8EDd24B894eD": 206,  # Frax 3Pool
         "0x702c1b8Ec3A77009D5898e18DA8F8959B6dF2093": 206,  # Saddle D4Pool
-        "0x17Bde8EBf1E9FDA85b9Bd1a104266b394E9Db33e": 2,  # Saddle s/w/renBTC Pool
+        "0x17Bde8EBf1E9FDA85b9Bd1a104266b394E9Db33e": 2,  # Saddle s/w/renBTCV2 Pool
         "0x3dC88ee38db8C7b6DCEB447E4348e51bd87ced93": 0,  # WCUSD Metapool
         "0x7B2025Bf8c5ee8Baad9da8C3E3Ee45E96ed8b8EA": 0,  # Saddle USD Pool
         "0x2683190e31e8ce47467c98ff1DBc018aCDD43C2f": 0,  # Saddle sUSD Metapool
@@ -34,20 +34,10 @@ def main():
         "0x50d745c2a2918A47A363A2d32becd6BBC1A53ece": 0,  # Saddle USX Pool
     }
 
-    gauge_abi = [
-        {
-            "stateMutability": "view",
-            "type": "function",
-            "name": "name",
-            "inputs": [],
-            "outputs": [{"name": "", "type": "string"}],
-        }
-    ]
-
     # print out details first to confirm the we are setting gauge weights correctly
     # separate printing and executing into 2 loops to avoid printing inbetween transaction logs
     for gauge in gauge_to_relative_weight_dict:
-        gauge_contract = Contract.from_abi("LiqGaugeV5", gauge, gauge_abi)
+        gauge_contract = Contract.from_abi("LiqGaugeV5", gauge, GAUGE_ABI)
         gauge_name = gauge_contract.name()
         print(
             f"Setting {gauge_name}'s weight to {gauge_to_relative_weight_dict[gauge]}"
