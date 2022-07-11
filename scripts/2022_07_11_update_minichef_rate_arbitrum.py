@@ -6,7 +6,7 @@ from scripts.utils import confirm_posting_transaction, fetch_current_nonce
 
 
 def main():
-    """Set Gauge weights for week 07_14_2022 -> 07_21_2022 from results of snapshot vote"""
+    """Update Arbitrum Minichef's rates and allocpoints"""
 
     print(f"You are using the '{network.show_active()}' network")
     deployer = accounts.load("deployer")  # prompts for password
