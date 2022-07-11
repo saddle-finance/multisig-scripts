@@ -3,9 +3,7 @@ from ape_safe import ApeSafe
 from gnosis.safe.safe_tx import SafeTx
 from brownie import Contract
 
-def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
-    safe_nonce = safe_tx.safe_nonce
-
+def fetch_current_nonce(safe: ApeSafe):
     # small abi of safe, only to be able to check nonce
     nonce_abi = [{
         "stateMutability": "view",
@@ -19,8 +17,13 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
                 }
         ]
     }]
+    return Contract.from_abi("GnosisSafeProxy", safe.address, nonce_abi).nonce()
 
-    current_nonce = Contract.from_abi("GnosisSafeProxy", safe.address, nonce_abi).nonce()
+
+def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
+    safe_nonce = safe_tx.safe_nonce
+
+    current_nonce = safe_tx.current_nonce
     pending_nonce = safe.pending_nonce()
     
     # check if nonce is invalid or already in use
