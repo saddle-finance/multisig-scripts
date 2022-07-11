@@ -78,22 +78,29 @@ VESTING_ABI = [
         "name": "release",
         "outputs": [],
         "stateMutability": "nonpayable",
-        "type": "function"
+        "type": "function",
     },
     {
         "inputs": [
-            {
-                "internalType": "address",
-                "name": "newBeneficiary",
-                "type": "address"
-            }
+            {"internalType": "address", "name": "newBeneficiary", "type": "address"}
         ],
         "name": "changeBeneficiary",
         "outputs": [],
         "stateMutability": "nonpayable",
-        "type": "function"
+        "type": "function",
+    },
+]
+
+GAUGE_ABI = [
+    {
+        "stateMutability": "view",
+        "type": "function",
+        "name": "name",
+        "inputs": [],
+        "outputs": [{"name": "", "type": "string"}],
     }
 ]
+
 
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
