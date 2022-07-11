@@ -19,8 +19,8 @@ def main():
 
     # combine history into multisend txn
     # TODO: set 'safe_nonce' 
-    safe_tx.current_nonce = fetch_current_nonce(multisig)
     safe_tx = multisig.multisend_from_receipts()
+    safe_tx.current_nonce = fetch_current_nonce(multisig)
     safe_nonce = 47
     
     safe_tx.safe_nonce = safe_nonce
