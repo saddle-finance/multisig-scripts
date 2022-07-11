@@ -13,7 +13,7 @@ from scripts.utils import confirm_posting_transaction, fetch_current_nonce
 
 
 def main():
-    """Add SimpleRewarder for T to minichef"""
+    """Bridges 187,418 SDL to EVMOS minichef using the Nomad Gateway contract"""
 
     print(f"You are using the '{network.show_active()}' network")
     deployer = accounts.load("deployer")  # prompts for password
