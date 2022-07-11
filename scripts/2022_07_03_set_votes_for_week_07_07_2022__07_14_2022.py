@@ -7,6 +7,7 @@ from scripts.utils import confirm_posting_transaction
 
 def main():
     """Adds new alUSD gauge and sets 'is_killed' on old alUSD gauge"""
+    """Set Gauge weights for week 07_07_2022 -> 07_14_2022 from results of snapshot vote"""
 
     print(f"You are using the '{network.show_active()}' network")
     deployer = accounts.load("deployer")  # prompts for password
@@ -15,8 +16,7 @@ def main():
     # Run any pending transactions before simulating any more transactions
     multisig.preview_pending()
 
-    gauge_controller = multisig.contract(
-        GAUGE_CONTROLLER_ADDRESS[CHAIN_IDS["MAINNET"]])
+    gauge_controller = multisig.contract(GAUGE_CONTROLLER_ADDRESS[CHAIN_IDS["MAINNET"]])
 
     gauge_to_relative_weight_dict = {
         "0xB2Ac3382dA625eb41Fc803b57743f941a484e2a6": 7786,
@@ -34,18 +34,15 @@ def main():
         "0xB79B4fCF7cB4A1c4064Ff5b48F71A331880ab53a": 0,
     }
 
-    gauge_abi = [{
-        "stateMutability": "view",
-        "type": "function",
-        "name": "name",
-        "inputs": [],
-        "outputs": [
-                {
-                    "name": "",
-                    "type": "string"
-                }
-        ]
-    }]
+    gauge_abi = [
+        {
+            "stateMutability": "view",
+            "type": "function",
+            "name": "name",
+            "inputs": [],
+            "outputs": [{"name": "", "type": "string"}],
+        }
+    ]
 
     # print out details first to confirm the we are setting gauge weights correctly
     # separate printing and executing into 2 loops to avoid printing inbetween transaction logs
@@ -53,7 +50,8 @@ def main():
         gauge_contract = Contract.from_abi("LiqGaugeV5", gauge, gauge_abi)
         gauge_name = gauge_contract.name()
         print(
-            f"Setting {gauge_name}'s weight to {gauge_to_relative_weight_dict[gauge]}")
+            f"Setting {gauge_name}'s weight to {gauge_to_relative_weight_dict[gauge]}"
+        )
 
     # execute txs for setting gauge weights
     for gauge in gauge_to_relative_weight_dict:

@@ -2,7 +2,7 @@ from helpers import CHAIN_IDS, MULTISIG_ADDRESSES, GAUGE_CONTROLLER_ADDRESS
 from ape_safe import ApeSafe
 from brownie import Contract, accounts, network
 
-from scripts.utils import confirm_posting_transaction
+from scripts.utils import confirm_posting_transaction, fetch_current_nonce
 
 
 def main():
@@ -61,6 +61,7 @@ def main():
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
+    safe_tx.current_nonce = fetch_current_nonce(multisig)
     safe_tx.safe_nonce = 47
 
     # sign with private key
