@@ -1,4 +1,3 @@
-from black import assert_equivalent
 import click
 from ape_safe import ApeSafe
 from gnosis.safe.safe_tx import SafeTx
