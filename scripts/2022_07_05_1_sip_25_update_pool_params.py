@@ -14,7 +14,7 @@ def main():
 
     pools_to_future_a = {
         "0x13Cc34Aa8037f722405285AD2C82FE570bfa2bdc": 1000,  # fraxBPPool
-        "0xFB516cF3710fC6901F2266aAEB8834cF5e4E9558": 200,  # SaddleFraxalETHPool
+        "0xFB516cF3710fC6901F2266aAEB8834cF5e4E9558": 200,  # SaddleFraxalUSDPool
         "0x69baA0d7c2e864b74173922Ca069Ac79d3be1556": 200,  # SaddleFraxsUSDPool
         "0xC765Cd3d015626244AD63B5FB63a97c5634643b9": 200,  # SaddleFraxUSDTPool
     }
