@@ -35,6 +35,6 @@ def main():
 
     # sign with private key
     safe_tx.sign(deployer.private_key)
-    multisig.preview(safe_tx)
+    multisig.preview(safe_tx, False)
 
     confirm_posting_transaction(multisig, safe_tx)
