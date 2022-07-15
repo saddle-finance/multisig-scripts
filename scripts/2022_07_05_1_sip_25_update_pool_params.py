@@ -3,11 +3,11 @@ from ape_safe import ApeSafe
 from datetime import datetime, timedelta
 from brownie import accounts, network
 
-from scripts.utils import confirm_posting_transaction
+from scripts.utils import confirm_posting_transaction, fetch_current_nonce
 
 
 def main():
-    """Ramps A param for select pools as per SIP-10"""
+    """Ramps A param for select pools as per SIP-25"""
     print(f"You are using the '{network.show_active()}' network")
     deployer = accounts.load("deployer")
     multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
@@ -30,7 +30,8 @@ def main():
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
-    safe_tx.safe_nonce = 46
+    safe_tx.current_nonce = fetch_current_nonce(multisig)
+    safe_tx.safe_nonce = 50
 
     # sign with private key
     safe_tx.sign(deployer.private_key)
