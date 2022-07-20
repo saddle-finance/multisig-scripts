@@ -1,7 +1,9 @@
+from urllib.error import URLError
 import click
 from ape_safe import ApeSafe
 from gnosis.safe.safe_tx import SafeTx
-from brownie import Contract
+from brownie import network
+from helpers import GNOSIS_API_NETWORK_ID, MULTISIG_ADDRESSES
 import urllib.request
 import json
 
@@ -9,17 +11,21 @@ import json
 def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
     safe_nonce = safe_tx.safe_nonce
 
-    # fetch list of txs from gnosis api
-    url = "https://safe-transaction.mainnet.gnosis.io/api/v1/safes/0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE/multisig-transactions/"
-    response = urllib.request.urlopen(url)
-    data = json.load(response)
-
-    # find last executed tx and set 'curent_nonce' as last executed tx + 1
     current_nonce = 0
-    for result in data["results"]:
-        if result["isExecuted"] == True:
-            current_nonce = result["nonce"] + 1
-            break
+    try:
+        url = f"https://safe-transaction.{GNOSIS_API_NETWORK_ID[network.chain.id]}.gnosis.io/api/v1/safes/{MULTISIG_ADDRESSES[network.chain.id]}/multisig-transactions/"
+        # fetch list of txs from gnosis api
+        response = urllib.request.urlopen(url)
+        data = json.load(response)
+
+        # find last executed tx and set 'curent_nonce' as last executed tx + 1
+        for result in data["results"]:
+            if result["isExecuted"] == True:
+                current_nonce = result["nonce"] + 1
+                break
+    except (URLError, KeyError) as err:
+        console.log(f"Fetching txs from gnosis api failed with error: {err}")
+        current_nonce = input("Please input current nonce manually: ")
 
     pending_nonce = safe.pending_nonce()
 

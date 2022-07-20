@@ -12,6 +12,8 @@ CHAIN_IDS = {
 MULTISIG_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE",
     CHAIN_IDS["HARDHAT"]: "0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE",
+    CHAIN_IDS["ARBITRUM"]: "0x8e6e84DDab9d13A17806d34B097102605454D147",
+    CHAIN_IDS["EVMOS"]: "0x25e73a609751E3289EAE21A6Dae431ff1E6fE261",
 }
 
 SDL_ADDRESSES = {
@@ -72,11 +74,18 @@ MINTER = {
     CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
 }
 
+# officially supported networks: https://docs.gnosis-safe.io/backend/available-services
+GNOSIS_API_NETWORK_ID = {
+    CHAIN_IDS["MAINNET"]: "mainnet",
+    CHAIN_IDS["ARBITRUM"]: "arbitrum",
+    CHAIN_IDS["OPTIMISM"]: "optimism",
+}
+
 VESTING_ABI = [
     {
         "inputs": [],
         "name": "release",
-        "outputs": [],
+        "outputs":  [],
         "stateMutability": "nonpayable",
         "type": "function",
     },
