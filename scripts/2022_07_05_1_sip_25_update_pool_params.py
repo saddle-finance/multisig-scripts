@@ -19,7 +19,7 @@ def main():
         "0xC765Cd3d015626244AD63B5FB63a97c5634643b9": 200,  # SaddleFraxUSDTPool
     }
     now = datetime.now()
-    # @dev delta must be min 14 days. Add a couple days buffer for multisig to sign.
+    # @dev delta must be min 14 days. Add a week buffer for multisig to sign.
     now_plus_21_days = now + timedelta(days=21)
     now_plus_21_days_seconds = int(
         (now_plus_21_days - datetime(1970, 1, 1)).total_seconds()
