@@ -20,13 +20,13 @@ def main():
     }
     now = datetime.now()
     # @dev delta must be min 14 days. Add a couple days buffer for multisig to sign.
-    now_plus_17_days = now + timedelta(days=21)
-    now_plus_17_days_seconds = int(
-        (now_plus_17_days - datetime(1970, 1, 1)).total_seconds()
+    now_plus_21_days = now + timedelta(days=21)
+    now_plus_21_days_seconds = int(
+        (now_plus_21_days - datetime(1970, 1, 1)).total_seconds()
     )
     for pool_addr, A in pools_to_future_a.items():
         contract = multisig.contract(pool_addr)
-        contract.rampA(A, now_plus_17_days_seconds)
+        contract.rampA(A, now_plus_21_days_seconds)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
