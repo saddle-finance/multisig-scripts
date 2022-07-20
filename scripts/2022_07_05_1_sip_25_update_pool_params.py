@@ -20,7 +20,7 @@ def main():
     }
     now = datetime.now()
     # @dev delta must be min 14 days. Add a couple days buffer for multisig to sign.
-    now_plus_17_days = now + timedelta(days=17)
+    now_plus_17_days = now + timedelta(days=21)
     now_plus_17_days_seconds = int(
         (now_plus_17_days - datetime(1970, 1, 1)).total_seconds()
     )
