@@ -25,7 +25,7 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
             if result["isExecuted"] == True:
                 current_nonce = result["nonce"] + 1
                 break
-    except (URLError, KeyError) as err:
+    except (URLError) as err:
         console.log(f"Fetching txs from gnosis api failed with error: {err}")
         current_nonce = input("Please input current nonce manually: ")
 
