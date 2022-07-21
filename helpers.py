@@ -103,6 +103,87 @@ GAUGE_ABI = [
     }
 ]
 
+NOMAD_GATEWAY_ABI = [
+    {
+      "inputs":[
+         {
+            "internalType":"address",
+            "name":"_token",
+            "type":"address"
+         },
+         {
+            "internalType":"uint256",
+            "name":"_amount",
+            "type":"uint256"
+         },
+         {
+            "internalType":"uint32",
+            "name":"_destination",
+            "type":"uint32"
+         },
+         {
+            "internalType":"bytes32",
+            "name":"_recipient",
+            "type":"bytes32"
+         },
+         {
+            "internalType":"bool",
+            "name":"",
+            "type":"bool"
+         }
+      ],
+      "name":"send",
+      "outputs":[
+         
+      ],
+      "stateMutability":"nonpayable",
+      "type":"function"
+   },
+   {
+      "anonymous":False,
+      "inputs":[
+         {
+            "indexed":True,
+            "internalType":"address",
+            "name":"token",
+            "type":"address"
+         },
+         {
+            "indexed":True,
+            "internalType":"address",
+            "name":"from",
+            "type":"address"
+         },
+         {
+            "indexed":True,
+            "internalType":"uint32",
+            "name":"toDomain",
+            "type":"uint32"
+         },
+         {
+            "indexed":False,
+            "internalType":"bytes32",
+            "name":"toId",
+            "type":"bytes32"
+         },
+         {
+            "indexed":False,
+            "internalType":"uint256",
+            "name":"amount",
+            "type":"uint256"
+         },
+         {
+            "indexed":False,
+            "internalType":"bool",
+            "name":"fastLiquidityEnabled",
+            "type":"bool"
+         }
+      ],
+      "name":"Send",
+      "type":"event"
+   }
+]
+
 
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
