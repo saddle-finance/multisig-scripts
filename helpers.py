@@ -74,13 +74,6 @@ MINTER = {
     CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
 }
 
-# officially supported networks: https://docs.gnosis-safe.io/backend/available-services
-GNOSIS_API_NETWORK_ID = {
-    CHAIN_IDS["MAINNET"]: "mainnet",
-    CHAIN_IDS["ARBITRUM"]: "arbitrum",
-    CHAIN_IDS["OPTIMISM"]: "optimism",
-}
-
 VESTING_ABI = [
     {
         "inputs": [],

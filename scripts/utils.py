@@ -3,7 +3,7 @@ import click
 from ape_safe import ApeSafe
 from gnosis.safe.safe_tx import SafeTx
 from brownie import network
-from helpers import GNOSIS_API_NETWORK_ID, MULTISIG_ADDRESSES
+from helpers import MULTISIG_ADDRESSES
 import urllib.request
 import json
 
@@ -13,7 +13,9 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
 
     current_nonce = 0
     try:
-        url = f"https://safe-transaction.{GNOSIS_API_NETWORK_ID[network.chain.id]}.gnosis.io/api/v1/safes/{MULTISIG_ADDRESSES[network.chain.id]}/multisig-transactions/"
+        url = safe.base_url + \
+            f"/api/v1/safes/{safe.address}/multisig-transactions/"
+
         # fetch list of txs from gnosis api
         response = urllib.request.urlopen(url)
         data = json.load(response)
