@@ -55,7 +55,7 @@ live:
   - name: Avalanche
     networks:
       - chainid: 43114
-        explorer:  https://api.snowtrace.io/api
+        explorer: https://api.snowtrace.io/api
         host: https://api.avax.network/ext/bc/C/rpc
         id: avax-main
         name: Mainnet
@@ -75,6 +75,18 @@ live:
         id: bsc-main
         host: https://bsc-dataseed.binance.org
         explorer: https://api.bscscan.com/api
+  - name: Evmos
+    networks:
+      - name: Testnet
+        chainid: 9000
+        id: evmos-test
+        host: https://eth.bd.evmos.dev:8545
+        explorer: https://evm.evmos.dev/
+      - name: Mainnet
+        chainid: 9001
+        id: evmos-main
+        host: https://eth.bd.evmos.org:8545
+        explorer: https://evm.evmos.org/
   - name: Fantom Opera
     networks:
       - name: Testnet
@@ -237,3 +249,15 @@ development:
       evm_version: istanbul
       mnemonic: brownie
       fork: avax-main
+  - name: Ganache-CLI (Evmos-Mainnet Fork)
+    id: evmos-main-fork
+    cmd: ganache-cli
+    host: http://127.0.0.1
+    timeout: 120
+    cmd_settings:
+      port: 8545
+      gas_limit: 20000000
+      accounts: 10
+      evm_version: istanbul
+      mnemonic: brownie
+      fork: evmos-main
