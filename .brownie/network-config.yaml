@@ -84,7 +84,7 @@ live:
         explorer: https://evm.evmos.dev/
       - name: Mainnet
         chainid: 9001
-        id: evmos-mainnet
+        id: evmos-main
         host: https://eth.bd.evmos.org:8545
         explorer: https://evm.evmos.org/
   - name: Fantom Opera
@@ -260,4 +260,4 @@ development:
       accounts: 10
       evm_version: istanbul
       mnemonic: brownie
-      fork: avax-main
+      fork: evmos-main
