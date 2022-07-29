@@ -184,6 +184,7 @@ NOMAD_GATEWAY_ABI = [
    }
 ]
 
+SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
 
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
