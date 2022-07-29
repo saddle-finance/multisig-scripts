@@ -187,6 +187,7 @@ NOMAD_GATEWAY_ABI = [
     }
 ]
 
+# 59,300 SDL/day in seconds
 SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
 
 def assert_filename(file: str):
