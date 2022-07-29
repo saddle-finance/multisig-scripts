@@ -14,14 +14,16 @@ MULTISIG_ADDRESSES = {
     CHAIN_IDS["HARDHAT"]: "0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE",
     CHAIN_IDS["ARBITRUM"]: "0x8e6e84DDab9d13A17806d34B097102605454D147",
     CHAIN_IDS["EVMOS"]: "0x25e73a609751E3289EAE21A6Dae431ff1E6fE261",
+    CHAIN_IDS["OPTIMISM"]: "0x91804c72076aDd9fAB49b2c1e1A61A7503199599",
 }
 
 SDL_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0xf1Dc500FdE233A4055e25e5BbF516372BC4F6871",
+    CHAIN_IDS["OPTIMISM"]: "0xae31207ac34423c41576ff59bfb4e036150f9cf7",
 }
 
 SDL_MINTER_ADDRESS = {
-    CHAIN_IDS["MAINNET"]: "0x0",
+    CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
 }
 
 SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS = {
@@ -32,6 +34,7 @@ MINICHEF_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0x691ef79e40d909C715BE5e9e93738B3fF7D58534",
     CHAIN_IDS["ARBITRUM"]: "0x2069043d7556B1207a505eb459D18d908DF29b55",
     CHAIN_IDS["EVMOS"]: "0x0232e0b6df048c8CC4037c52Bc90cf943c9C8cC6",
+    CHAIN_IDS["OPTIMISM"]: "0x220d6bEedeA6a6317DaE19d39cd62EB7bb0ae5e4",
 }
 
 LP_MIGRATOR_ADDRESSES = {
@@ -105,85 +108,87 @@ GAUGE_ABI = [
 
 NOMAD_GATEWAY_ABI = [
     {
-      "inputs":[
-         {
-            "internalType":"address",
-            "name":"_token",
-            "type":"address"
-         },
-         {
-            "internalType":"uint256",
-            "name":"_amount",
-            "type":"uint256"
-         },
-         {
-            "internalType":"uint32",
-            "name":"_destination",
-            "type":"uint32"
-         },
-         {
-            "internalType":"bytes32",
-            "name":"_recipient",
-            "type":"bytes32"
-         },
-         {
-            "internalType":"bool",
-            "name":"",
-            "type":"bool"
-         }
-      ],
-      "name":"send",
-      "outputs":[
-         
-      ],
-      "stateMutability":"nonpayable",
-      "type":"function"
-   },
-   {
-      "anonymous":False,
-      "inputs":[
-         {
-            "indexed":True,
-            "internalType":"address",
-            "name":"token",
-            "type":"address"
-         },
-         {
-            "indexed":True,
-            "internalType":"address",
-            "name":"from",
-            "type":"address"
-         },
-         {
-            "indexed":True,
-            "internalType":"uint32",
-            "name":"toDomain",
-            "type":"uint32"
-         },
-         {
-            "indexed":False,
-            "internalType":"bytes32",
-            "name":"toId",
-            "type":"bytes32"
-         },
-         {
-            "indexed":False,
-            "internalType":"uint256",
-            "name":"amount",
-            "type":"uint256"
-         },
-         {
-            "indexed":False,
-            "internalType":"bool",
-            "name":"fastLiquidityEnabled",
-            "type":"bool"
-         }
-      ],
-      "name":"Send",
-      "type":"event"
-   }
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_token",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint32",
+                "name": "_destination",
+                "type": "uint32"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "_recipient",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "name": "send",
+        "outputs": [
+
+        ],
+        "stateMutability":"nonpayable",
+        "type":"function"
+    },
+    {
+        "anonymous": False,
+        "inputs": [
+            {
+                "indexed": True,
+                "internalType": "address",
+                "name": "token",
+                "type": "address"
+            },
+            {
+                "indexed": True,
+                "internalType": "address",
+                "name": "from",
+                "type": "address"
+            },
+            {
+                "indexed": True,
+                "internalType": "uint32",
+                "name": "toDomain",
+                "type": "uint32"
+            },
+            {
+                "indexed": False,
+                "internalType": "bytes32",
+                "name": "toId",
+                "type": "bytes32"
+            },
+            {
+                "indexed": False,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            },
+            {
+                "indexed": False,
+                "internalType": "bool",
+                "name": "fastLiquidityEnabled",
+                "type": "bool"
+            }
+        ],
+        "name": "Send",
+        "type": "event"
+    }
 ]
 
+# 59,300 SDL/day in seconds
+SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
 
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
