@@ -30,11 +30,56 @@ SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS = {
     CHAIN_IDS["MAINNET"]: "0x5DFbCeea7A5F6556356C7A66d2A43332755D68A5"
 }
 
+MAINNET_POOL_ADDRESS_TO_POOL_NAME = {
+    "0x13Cc34Aa8037f722405285AD2C82FE570bfa2bdc": "FRAXBP Pool",
+    "0x8cAEa59f3Bf1F341f89c51607E4919841131e47a": "Frax 3Pool",
+    "0xC69DDcd4DFeF25D8a793241834d4cc4b3668EAD6": "Saddle D4Pool",
+    "0x2bFf1B48CC01284416E681B099a0CDDCA0231d72": "Saddle USX Pool",
+    "0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2": "Saddle s/w/renBTCV2 Pool",
+    "0xFB516cF3710fC6901F2266aAEB8834cF5e4E9558": "alUSDFRAX Metapool",
+    "0x69baA0d7c2e864b74173922Ca069Ac79d3be1556": "sUSDFRAX Metapool",
+    "0xC765Cd3d015626244AD63B5FB63a97c5634643b9": "FRAXUSDT Metapool",
+    "0x4568727f50c7246ded8C39214Ed6FF3c157f080D": "Saddle sUSD Metapool",
+    "0x3F1d224557afA4365155ea77cE4BC32D5Dae2174": "WCUSD Metapool",
+    "0xaCb83E0633d6605c5001e2Ab59EF3C745547C8C7": "Saddle USD Pool",
+    "0xa6018520EAACC06C30fF2e1B3ee2c7c22e64196a": "Saddle alETH Pool",
+    "0xfa9ED0309Bf79Eb84C847819F0B3CB84F6d351Af": "Saddle TBTC Metapool",
+}
+
+ARBITRUM_POOL_ADDRESS_TO_POOL_NAME = {
+    "0xfeEa4D1BacB0519E8f952460A70719944fe56Ee0": "Arb USDV2 Pool",
+    "0x5dD186f8809147F96D3ffC4508F3C82694E58c9c": "Arb USDS Metapool",
+    "0x401AFbc31ad2A3Bc0eD8960d63eFcDEA749b4849": "Arb FRAXBP Pool",
+    "0xa5bD85ed9fA27ba23BfB702989e7218E44fd4706": "Arb FRAXBP/USDS Metapool",
+    "0xf8504e92428d65E56e495684A38f679C1B1DC30b": "Arb FRAXBP/USDT Metapool",
+}
+
+OPTIMISM_POOL_ADDRESS_TO_POOL_NAME = {
+    "0x5847f8177221268d279Cf377D0E01aB3FD993628": "Opt USD Pool",
+    "0xF6C2e0aDc659007Ba7c48446F5A4e4E94dfe08b5": "Opt FRAXBP Pool",
+    "0x250184dDDEC6d38E28ac12B481c9016867226E9D": "Opt FRAXBP/sUSD Metapool",
+    "0xa9a84238098Dc3d1529228E6c74dBE7EbdF117a5": "Opt FRAXBP/USDT Metapool",
+    "0xc55E8C79e5A6c3216D4023769559D06fa9A7732e": "Opt USD/FRAX Metapool",
+}
+
+EVMOS_POOL_ADDRESS_TO_POOL_NAME = {
+    "0x1275203FB58Fc25bC6963B13C2a1ED1541563aF0": "Evmos 3Pool",
+    "0x81272C5c573919eF0C719D6d63317a4629F161da": "Evmos 4Pool",
+    "0x7003102c75587E8D29c56124060463Ef319407D0": "Evmos BTC Pool",
+    "0x21d4365834B7c61447e142ef6bCf01136cBD01c6": "Evmos Frax3Pool",
+    "0xdb5c5A6162115Ce9a188E7D773C4D011F421BbE5": "Evmos tBTC Metapool",
+}
+
+KAVA_POOL_ADDRESS_TO_POOL_NAME = {
+    "0xA500b0e1360462eF777804BCAe6CE2BfB524dD2e": "Kava 3Pool",
+}
+
+
 MINICHEF_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0x691ef79e40d909C715BE5e9e93738B3fF7D58534",
     CHAIN_IDS["ARBITRUM"]: "0x2069043d7556B1207a505eb459D18d908DF29b55",
     CHAIN_IDS["EVMOS"]: "0x0232e0b6df048c8CC4037c52Bc90cf943c9C8cC6",
-    CHAIN_IDS["OPTIMISM"]: "0x220d6bEedeA6a6317DaE19d39cd62EB7bb0ae5e4",
+    CHAIN_IDS["OPTIMISM"]: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
 }
 
 LP_MIGRATOR_ADDRESSES = {
@@ -104,6 +149,47 @@ GAUGE_ABI = [
         "inputs": [],
         "outputs": [{"name": "", "type": "string"}],
     }
+]
+
+SWAP_ABI = [
+    {
+        "inputs": [],
+        "name": "withdrawAdminFees",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    }
+]
+
+ERC20_ABI = [
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "name",
+        "outputs": [
+            {
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "decimals",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
 ]
 
 NOMAD_GATEWAY_ABI = [
@@ -190,6 +276,7 @@ NOMAD_GATEWAY_ABI = [
 
 # 59,300 SDL/day in seconds
 SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
+
 
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
