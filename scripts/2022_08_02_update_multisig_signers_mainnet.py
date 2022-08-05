@@ -13,16 +13,8 @@ def main():
     deployer = accounts.load("deployer")  # prompts for password
     multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
 
-    # safe_contract = Contract.from_abi(
-    #     "Gnosis Safe",
-    #     MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]],
-    #     GNOSIS_SAFE_ABI,
-    #     multisig.account,
-    # )
     safe_contract = multisig.contract(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
-    # safe_contract = Contract.from_explorer(
-    #     MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]], {"from": deployer}
-    # )
+
     Kain_Warwick = "0x5b97680e165b4dbf5c45f4ff4241e85f418c66c2"
 
     # prev owner(pointer), old owner, new owner
