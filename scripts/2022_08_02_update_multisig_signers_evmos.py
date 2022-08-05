@@ -24,9 +24,6 @@ def main():
         base_url="https://transaction.safe.evmos.org/",
     )
 
-    # safe_contract = Contract.from_explorer(
-    #     MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
-    # )
     safe_contract = Contract.from_abi(
         "Gnosis Safe",
         MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
