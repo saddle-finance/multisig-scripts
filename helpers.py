@@ -95,6 +95,11 @@ WBTC_ADDRESSES = {
     CHAIN_IDS["EVMOS"]: "0xF80699Dc594e00aE7bA200c7533a07C1604A106D",
 }
 
+WCUSD_ADDRESSES = {
+    CHAIN_IDS["MAINNET"]: "0xad3e3fc59dff318beceaab7d00eb4f68b1ecf195",
+    CHAIN_IDS["EVMOS"]: "0xF80699Dc594e00aE7bA200c7533a07C1604A106D",
+}
+
 TBTC_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0x18084fbA666a33d37592fA2633fD49a74DD93a88",
     CHAIN_IDS["EVMOS"]: "0x8d395AfFC1767141387ffF45aF88a074614E7Ccf",
@@ -115,7 +120,7 @@ DISPERSE_APP_ADDRESSES = {
 
 ARBITRUM_L2_BRIDGE_ROUTER = {
     CHAIN_IDS["MAINNET"]: "0x72Ce9c846789fdB6fC1f34aC4AD25Dd9ef7031ef",
-    CHAIN_IDS["ARBITRUM"]: "0x72Ce9c846789fdB6fC1f34aC4AD25Dd9ef7031ef",
+    CHAIN_IDS["ARBITRUM"]: "0x5288c571Fd7aD117beA99bF60FE0846C4E84F933",
 }
 
 EVMOS_NOMAD_ERC20_BRIDGE_ROUTER = {
@@ -222,6 +227,68 @@ SWAP_ABI = [
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function",
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint8",
+                "name": "index",
+                "type": "uint8"
+            }
+        ],
+        "name": "getToken",
+        "outputs": [
+            {
+                "internalType": "contract IERC20",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "swapStorage",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "initialA",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "futureA",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "initialATime",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "futureATime",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "swapFee",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "adminFee",
+                "type": "uint256"
+            },
+            {
+                "internalType": "contract LPToken",
+                "name": "lpToken",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
     }
 ]
 
@@ -230,6 +297,20 @@ ERC20_ABI = [
         "constant": true,
         "inputs": [],
         "name": "name",
+        "outputs": [
+            {
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "symbol",
         "outputs": [
             {
                 "name": "",
@@ -254,6 +335,72 @@ ERC20_ABI = [
         "stateMutability": "view",
         "type": "function"
     },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "name": "_owner",
+                "type": "address"
+            }
+        ],
+        "name": "balanceOf",
+        "outputs": [
+            {
+                "name": "balance",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+]
+
+ARBITRUM_GATEWAY_ROUTER_ABI = [
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_token",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_maxGas",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_gasPriceBid",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes",
+                "name": "_data",
+                "type": "bytes"
+            }
+        ],
+        "name": "outboundTransfer",
+        "outputs": [
+            {
+                "internalType": "bytes",
+                "name": "",
+                "type": "bytes"
+            }
+        ],
+        "stateMutability": "payable",
+        "type": "function"
+    }
 ]
 
 NOMAD_GATEWAY_ABI = [
