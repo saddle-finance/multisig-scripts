@@ -37,6 +37,7 @@ MINICHEF_ADDRESSES = {
     CHAIN_IDS["OPTIMISM"]: "0x220d6bEedeA6a6317DaE19d39cd62EB7bb0ae5e4",
 }
 
+# TODO: upper+lower case addresses everywhere
 L1_TO_L2_ERC20_ADDRESSES = {
     "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": {  # USDC
         CHAIN_IDS["MAINNET"]: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -93,6 +94,14 @@ L1_TO_L2_ERC20_ADDRESSES = {
         CHAIN_IDS["MAINNET"]: "0x18084fbA666a33d37592fA2633fD49a74DD93a88",
         CHAIN_IDS["EVMOS"]: "0x8d395AfFC1767141387ffF45aF88a074614E7Ccf",
         CHAIN_IDS["OPTIMISM"]: "0x220d6bEedeA6a6317DaE19d39cd62EB7bb0ae5e4",
+    },
+    "0x1B84765dE8B7566e4cEAF4D0fD3c5aF52D3DdE4F": {  # NUSD
+        CHAIN_IDS["MAINNET"]: "0x1B84765dE8B7566e4cEAF4D0fD3c5aF52D3DdE4F",
+        CHAIN_IDS["ARBITRUM"]: "0x2913e812cf0dcca30fb28e6cac3d2dcff4497688",
+    },
+    "0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3": {  # MIM
+        CHAIN_IDS["MAINNET"]: "0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3",
+        CHAIN_IDS["ARBITRUM"]: "0xfea7a6a0b346362bf88a9e4a88416b77a57d6c2a",
     }
 }
 
@@ -154,6 +163,7 @@ MAINNET_POOL_ADDRESS_TO_POOL_NAME = {
 }
 
 ARBITRUM_POOL_ADDRESS_TO_POOL_NAME = {
+    "0xBea9F78090bDB9e662d8CB301A00ad09A5b756e9": "Arb USD Pool",
     "0xfeEa4D1BacB0519E8f952460A70719944fe56Ee0": "Arb USDV2 Pool",
     "0x5dD186f8809147F96D3ffC4508F3C82694E58c9c": "Arb USDS Metapool",
     "0x401AFbc31ad2A3Bc0eD8960d63eFcDEA749b4849": "Arb FRAXBP Pool",
@@ -279,10 +289,33 @@ SWAP_ABI = [
         ],
         "stateMutability": "view",
         "type": "function"
-    }
+    },
 ]
 
 ERC20_ABI = [
+    {
+        "constant": False,
+        "inputs": [
+            {
+                "name": "_spender",
+                "type": "address"
+            },
+            {
+                "name": "_value",
+                "type": "uint256"
+            }
+        ],
+        "name": "approve",
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "payable": False,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
     {
         "constant": True,
         "inputs": [],

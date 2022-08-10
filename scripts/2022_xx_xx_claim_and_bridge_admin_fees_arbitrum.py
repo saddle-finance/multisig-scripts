@@ -1,7 +1,7 @@
 import this
 from helpers import CHAIN_IDS, ERC20_ABI, ARBITRUM_L2_BRIDGE_ROUTER, MULTISIG_ADDRESSES, SWAP_ABI, ARBITRUM_POOL_ADDRESS_TO_POOL_NAME, L1_TO_L2_ERC20_ADDRESSES
 from ape_safe import ApeSafe
-from brownie import accounts, network
+from brownie import accounts, network, Contract
 from scripts.utils import confirm_posting_transaction
 
 
@@ -12,7 +12,7 @@ def main():
     """This script claims admin fees from all Arbitrum pools and sends them to Mainnet"""
 
     print(f"You are using the '{network.show_active()}' network")
-    assert(network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
+    assert (network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
         f"Not on {TARGET_NETWORK}"
     multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["ARBITRUM"]])
 
@@ -28,6 +28,8 @@ def main():
 
     # swap -> metaswapDeposit dict
     swap_to_deposit_dict = {
+        # Arb USD Pool
+        "0xBea9F78090bDB9e662d8CB301A00ad09A5b756e9": "",
         # Arb USDV2 Pool
         "0xfeEa4D1BacB0519E8f952460A70719944fe56Ee0": "",
         # Arb USDS Metapool
@@ -41,7 +43,7 @@ def main():
     }
 
     # comprehend set of underlying tokens used by pools on that chain
-    token_addresses = {}
+    token_addresses = set()
     for swap_address in swap_to_deposit_dict:
         swap_contract = Contract.from_abi("Swap", swap_address, SWAP_ABI)
         if swap_to_deposit_dict[swap_address] == "":  # base pool
@@ -55,20 +57,22 @@ def main():
             token_addresses.add(swap_contract.getToken(0))
 
     # log out unique set of tokens of all pools
-    token_symbols = {}
+    token_symbols = set()
     for token_address in token_addresses:
-        token_symbols.add(Contract.from_ABI(
+        token_symbols.add(Contract.from_abi(
             "ERC20", token_address, ERC20_ABI).symbol()
         )
-    Console.log(f"Found {len(token_symbols)} tokens: {token_symbols}")
+    print(f"Found {len(token_symbols)} tokens: {token_symbols}")
 
     # execute txs for claiming admin fees
     for swap_address in swap_to_deposit_dict:
         print(
+            # TODO: change this to LP token name
             f"Claiming admin fees from {ARBITRUM_POOL_ADDRESS_TO_POOL_NAME[swap_address]}"
         )
         pool = Contract.from_abi("Swap", swap_address, SWAP_ABI)
-        pool.withdrawAdminFees()
+        pool.withdrawAdminFees(
+            {"from": MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]})
 
     # find L1 addresses of tokens for bridging
     L2_to_L1_dict = {}
@@ -77,6 +81,9 @@ def main():
             L2_address = L1_TO_L2_ERC20_ADDRESSES[L1_address][L2_address_key]
             if L2_address in token_addresses:
                 L2_to_L1_dict[L2_address] = L1_address
+    print(
+        L2_to_L1_dict
+    )
 
     # bridge fees to mainnet
     for token_address in token_addresses:
@@ -97,7 +104,11 @@ def main():
         )
 
         # approve gateway
-        token_contract.approve(token_gateway_address, amount_to_bridge)
+        token_contract.approve(
+            token_gateway_address,
+            amount_to_bridge,
+            {"from": MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]}
+        )
 
         # send tx to bridge
         gateway_router.outboundTransfer(
@@ -106,15 +117,3 @@ def main():
             amount_to_bridge,
             "0x0".hex()
         )
-
-    # combine history into multisend txn
-    # TODO: set 'safe_nonce'
-    safe_tx = multisig.multisend_from_receipts()
-    safe_nonce = 0
-
-    safe_tx.safe_nonce = safe_nonce
-
-    # sign with private key
-    safe_tx.sign(accounts.load("deployer").private_key)  # prompts for password
-    multisig.preview(safe_tx)
-    confirm_posting_transaction(multisig, safe_tx)
