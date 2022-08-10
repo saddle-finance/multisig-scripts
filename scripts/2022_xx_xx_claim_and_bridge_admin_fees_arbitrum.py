@@ -67,7 +67,8 @@ def main():
     token_balances_before = {}
     for token_address in token_addresses:
         symbol = Contract.from_abi(
-            "ERC20", token_address, ERC20_ABI).symbol()
+            "ERC20", token_address, ERC20_ABI
+        ).symbol()
         token_balances_before[token_address] = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
         ).balanceOf(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
@@ -85,11 +86,12 @@ def main():
         pool.withdrawAdminFees(
             {"from": MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]})
 
-    # capture and log token balances of msig before after claiming
+    # capture and log token balances of msig after claiming
     token_balances_after = {}
     for token_address in token_addresses:
         symbol = Contract.from_abi(
-            "ERC20", token_address, ERC20_ABI).symbol()
+            "ERC20", token_address, ERC20_ABI
+        ).symbol()
         token_balances_after[token_address] = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
         ).balanceOf(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
@@ -97,9 +99,11 @@ def main():
             f"Balance of {symbol} after claiming: {token_balances_after[token_address]}"
         )
 
-    # log differences in token balances
-    print("\n")
+    # log claimed amounts
     for token_address in token_addresses:
+        symbol = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        ).symbol()
         print(
             f"Claimed {symbol}: {token_balances_after[token_address] - token_balances_before[token_address]}"
         )
@@ -125,7 +129,7 @@ def main():
         amount_to_bridge = token_balances_after[token_address] - \
             token_balances_before[token_address]
         print(
-            f"Bridging ${token_contract.symbol()} {amount_to_bridge / token_contract.decimals()} to mainnet"
+            f"Bridging ${token_contract.symbol()} {amount_to_bridge / (10 ** token_contract.decimals())} to mainnet"
         )
 
         # find gateway for token
@@ -145,7 +149,7 @@ def main():
             L2_to_L1_dict[token_address],
             MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]],
             amount_to_bridge,
-            "0x0"
+            "0x0"  # TODO: clarify what format this needs to have
         )
 
     # combine history into multisend txn
