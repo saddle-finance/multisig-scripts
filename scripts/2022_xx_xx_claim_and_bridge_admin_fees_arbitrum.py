@@ -1,11 +1,11 @@
 import this
-from helpers import CHAIN_IDS, ERC20_ABI, ARBITRUM_L2_BRIDGE_ROUTER, MULTISIG_ADDRESSES, SWAP_ABI, ARBITRUM_POOL_ADDRESS_TO_POOL_NAME, USDC_ADDRESSES, USDT_ADDRESSES
+from helpers import CHAIN_IDS, ERC20_ABI, ARBITRUM_L2_BRIDGE_ROUTER, MULTISIG_ADDRESSES, SWAP_ABI, ARBITRUM_POOL_ADDRESS_TO_POOL_NAME, L1_TO_L2_ERC20_ADDRESSES
 from ape_safe import ApeSafe
 from brownie import accounts, network
 from scripts.utils import confirm_posting_transaction
 
 
-TARGET_NETWORK = "MAINNET"
+TARGET_NETWORK = "ARBITRUM"
 
 
 def main():
@@ -21,12 +21,13 @@ def main():
 
     MAX_POOL_LENGTH = 32
 
+    # Arbitrum L2 gateway router
     gateway_router = multisig.contract(
         ARBITRUM_L2_BRIDGE_ROUTER[CHAIN_IDS["ARBITRUM"]]
     )
 
-    # swap, metaswap_deposit dict
-    swap_to_deposit = {
+    # swap -> metaswapDeposit dict
+    swap_to_deposit_dict = {
         # Arb USDV2 Pool
         "0xfeEa4D1BacB0519E8f952460A70719944fe56Ee0": "",
         # Arb USDS Metapool
@@ -39,40 +40,71 @@ def main():
         "0xf8504e92428d65E56e495684A38f679C1B1DC30b": "0xc8DFCFC329E19fDAF43a338aD6038dBA02a5079B",
     }
 
-    # comprehend set of underlying tokens of that chain
-    tokens = {}
-    for swap in swap_to_deposit:
-        swap_contract = Contract.from_abi("Swap", swap, SWAP_ABI)
-        if swap_to_deposit[swap] == "":  # base pool
+    # comprehend set of underlying tokens used by pools on that chain
+    token_addresses = {}
+    for swap_address in swap_to_deposit_dict:
+        swap_contract = Contract.from_abi("Swap", swap_address, SWAP_ABI)
+        if swap_to_deposit_dict[swap_address] == "":  # base pool
             for index in range(MAX_POOL_LENGTH):
                 try:
-                    tokens.add(swap_contract.getToken(index))
+                    token_addresses.add(swap_contract.getToken(index))
                 except:
                     break
         else:  # metapool
-            tokens.add(swap_contract.getToken(0))
+            # first token in metapool is non-base-pool token
+            token_addresses.add(swap_contract.getToken(0))
+
+    # log out unique set of tokens of all pools
+    token_symbols = {}
+    for token_address in token_addresses:
+        token_symbols.add(Contract.from_ABI(
+            "ERC20", token_address, ERC20_ABI).symbol()
+        )
+    Console.log(f"Found {len(token_symbols)} tokens: {token_symbols}")
 
     # execute txs for claiming admin fees
-    for swap in swap_to_deposit.values():
+    for swap_address in swap_to_deposit_dict:
         print(
-            f"Claiming admin fees from {ARBITRUM_POOL_ADDRESS_TO_POOL_NAME[pool_address]}")
-        pool = Contract.from_abi("Swap", pool_address, SWAP_ABI)
+            f"Claiming admin fees from {ARBITRUM_POOL_ADDRESS_TO_POOL_NAME[swap_address]}"
+        )
+        pool = Contract.from_abi("Swap", swap_address, SWAP_ABI)
         pool.withdrawAdminFees()
 
-    # bridge admin fees to mainnet
-    # TODO: approve gateway, correct _data argument
-    for token_address in tokens:
-        token = Contract.from_abi("Token", token_address, ERC20_ABI)
-        amount_to_bridge = token.balanceOf(
-            MULTISIG_ADDRESSES[CHAIN_IDS["ARBITRUM"]])
+    # find L1 addresses of tokens for bridging
+    L2_to_L1_dict = {}
+    for L1_address in L1_TO_L2_ERC20_ADDRESSES:
+        for L2_address_key in L1_TO_L2_ERC20_ADDRESSES[L1_address]:
+            L2_address = L1_TO_L2_ERC20_ADDRESSES[L1_address][L2_address_key]
+            if L2_address in token_addresses:
+                L2_to_L1_dict[L2_address] = L1_address
+
+    # bridge fees to mainnet
+    for token_address in token_addresses:
+        # the token to be bridged
+        token_contract = Contract.from_abi("ERC20", token_address, ERC20_ABI)
+
+        # bridge all available balance
+        amount_to_bridge = token_contract.balanceOf(
+            MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
+        )
         print(
-            f"Bridging ${token.symbol()} {amount_to_bridge / token.decimals()} to mainnet")
-        # TODO: approve gateway here
+            f"Bridging ${token_contract.symbol()} {amount_to_bridge / token_contract.decimals()} to mainnet"
+        )
+
+        # find gateway for token
+        token_gateway_address = gateway_router.getGateway(
+            token_contract.address
+        )
+
+        # approve gateway
+        token_contract.approve(token_gateway_address, amount_to_bridge)
+
+        # send tx to bridge
         gateway_router.outboundTransfer(
-            token_address,
+            L2_to_L1_dict[token_address],
             MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]],
             amount_to_bridge,
-            "0x0".hex()  # TODO: correct _data argument
+            "0x0".hex()
         )
 
     # combine history into multisend txn

@@ -37,73 +37,63 @@ MINICHEF_ADDRESSES = {
     CHAIN_IDS["OPTIMISM"]: "0x220d6bEedeA6a6317DaE19d39cd62EB7bb0ae5e4",
 }
 
-USDC_ADDRESSES = {
-    CHAIN_IDS["MAINNET"]: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-    CHAIN_IDS["ARBITRUM"]: "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-    CHAIN_IDS["EVMOS"]: "0x51e44FfaD5C2B122C8b635671FCC8139dc636E82",
-    CHAIN_IDS["OPTIMISM"]: "0x7f5c764cbc14f9669b88837ca1490cca17c31607",
-}
-
-USDT_ADDRESSES = {
-    CHAIN_IDS["MAINNET"]: "0xdac17f958d2ee523a2206206994597c13d831ec7",
-    CHAIN_IDS["ARBITRUM"]: "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
-    CHAIN_IDS["EVMOS"]: "0x7FF4a56B32ee13D7D4D405887E0eA37d61Ed919e",
-    CHAIN_IDS["OPTIMISM"]: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
-}
-
-FRAX_ADDRESSES = {
-    CHAIN_IDS["MAINNET"]: "0x853d955aCEf822Db058eb8505911ED77F175b99e",
-    CHAIN_IDS["ARBITRUM"]: "0x17FC002b466eEc40DaE837Fc4bE5c67993ddBd6F",
-    CHAIN_IDS["EVMOS"]: "0xE03494D0033687543a80c9B1ca7D6237F2EA8BD8",
-    CHAIN_IDS["OPTIMISM"]: "0x2E3D870790dC77A83DD1d18184Acc7439A53f475",
-}
-
-DAI_ADDRESSES = {
-    CHAIN_IDS["MAINNET"]: "0x6b175474e89094c44da98b954eedeac495271d0f",
-    CHAIN_IDS["EVMOS"]: "0x63743ACF2c7cfee65A5E356A4C4A005b586fC7AA",
-    CHAIN_IDS["OPTIMISM"]: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
-}
-
-LUSD_ADDRESSES = {
-    CHAIN_IDS["MAINNET"]: "0x5f98805A4E8be255a32880FDeC7F6728C6568bA0",
-}
-
-SUSD_ADDRESSES = {
-    CHAIN_IDS["MAINNET"]: "0x57Ab1ec28D129707052df4dF418D58a2D46d5f51",
-    CHAIN_IDS["OPTIMISM"]: "0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9",
-}
-
-USDS_ADDRESSES = {
-    CHAIN_IDS["ARBITRUM"]: "0xd74f5255d557944cf7dd0e45ff521520002d5748",
-}
-
-SBTC_ADDRESSES = {
-    CHAIN_IDS["MAINNET"]: "0xfe18be6b3bd88a2d2a7f928d00292e7a9963cfc6",
-}
-
-ALETH_ADDRESSES = {
-    CHAIN_IDS["MAINNET"]: "0x0100546F2cD4C9D97f798fFC9755E47865FF7Ee6",
-}
-
-RENBTC_ADDRESSES = {
-    CHAIN_IDS["MAINNET"]: "0xeb4c2781e4eba804ce9a9803c67d0893436bb27d",
-    CHAIN_IDS["EVMOS"]: "0xb1a8C961385B01C3aA782fba73E151465445D319",
-}
-
-WBTC_ADDRESSES = {
-    CHAIN_IDS["MAINNET"]: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
-    CHAIN_IDS["EVMOS"]: "0xF80699Dc594e00aE7bA200c7533a07C1604A106D",
-}
-
-WCUSD_ADDRESSES = {
-    CHAIN_IDS["MAINNET"]: "0xad3e3fc59dff318beceaab7d00eb4f68b1ecf195",
-    CHAIN_IDS["EVMOS"]: "0xF80699Dc594e00aE7bA200c7533a07C1604A106D",
-}
-
-TBTC_ADDRESSES = {
-    CHAIN_IDS["MAINNET"]: "0x18084fbA666a33d37592fA2633fD49a74DD93a88",
-    CHAIN_IDS["EVMOS"]: "0x8d395AfFC1767141387ffF45aF88a074614E7Ccf",
-    CHAIN_IDS["OPTIMISM"]: "0x220d6bEedeA6a6317DaE19d39cd62EB7bb0ae5e4",
+L1_TO_L2_ERC20_ADDRESSES = {
+    "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": {  # USDC
+        CHAIN_IDS["MAINNET"]: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        CHAIN_IDS["ARBITRUM"]: "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+        CHAIN_IDS["EVMOS"]: "0x51e44FfaD5C2B122C8b635671FCC8139dc636E82",
+        CHAIN_IDS["OPTIMISM"]: "0x7f5c764cbc14f9669b88837ca1490cca17c31607",
+    },
+    "0xdac17f958d2ee523a2206206994597c13d831ec7": {  # USDT
+        CHAIN_IDS["MAINNET"]: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        CHAIN_IDS["ARBITRUM"]: "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+        CHAIN_IDS["EVMOS"]: "0x7FF4a56B32ee13D7D4D405887E0eA37d61Ed919e",
+        CHAIN_IDS["OPTIMISM"]: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+    },
+    "0x853d955aCEf822Db058eb8505911ED77F175b99e": {  # FRAX
+        CHAIN_IDS["MAINNET"]: "0x853d955aCEf822Db058eb8505911ED77F175b99e",
+        CHAIN_IDS["ARBITRUM"]: "0x17FC002b466eEc40DaE837Fc4bE5c67993ddBd6F",
+        CHAIN_IDS["EVMOS"]: "0xE03494D0033687543a80c9B1ca7D6237F2EA8BD8",
+        CHAIN_IDS["OPTIMISM"]: "0x2E3D870790dC77A83DD1d18184Acc7439A53f475",
+    },
+    "0x6b175474e89094c44da98b954eedeac495271d0f": {  # DAI
+        CHAIN_IDS["MAINNET"]: "0x6b175474e89094c44da98b954eedeac495271d0f",
+        CHAIN_IDS["EVMOS"]: "0x63743ACF2c7cfee65A5E356A4C4A005b586fC7AA",
+        CHAIN_IDS["OPTIMISM"]: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+    },
+    "0x5f98805A4E8be255a32880FDeC7F6728C6568bA0": {  # LUSD
+        CHAIN_IDS["MAINNET"]: "0x5f98805A4E8be255a32880FDeC7F6728C6568bA0",
+    },
+    "0x57Ab1ec28D129707052df4dF418D58a2D46d5f51": {  # SUSD
+        CHAIN_IDS["MAINNET"]: "0x57Ab1ec28D129707052df4dF418D58a2D46d5f51",
+        CHAIN_IDS["OPTIMISM"]: "0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9",
+    },
+    "0xd74f5255d557944cf7dd0e45ff521520002d5748": {  # USDS
+        CHAIN_IDS["ARBITRUM"]: "0xd74f5255d557944cf7dd0e45ff521520002d5748",
+    },
+    "0xfe18be6b3bd88a2d2a7f928d00292e7a9963cfc6": {  # SBTC
+        CHAIN_IDS["MAINNET"]: "0xfe18be6b3bd88a2d2a7f928d00292e7a9963cfc6",
+    },
+    "0x0100546F2cD4C9D97f798fFC9755E47865FF7Ee6": {  # ALETH
+        CHAIN_IDS["MAINNET"]: "0x0100546F2cD4C9D97f798fFC9755E47865FF7Ee6",
+    },
+    "0xeb4c2781e4eba804ce9a9803c67d0893436bb27d": {  # RENBTC
+        CHAIN_IDS["MAINNET"]: "0xeb4c2781e4eba804ce9a9803c67d0893436bb27d",
+        CHAIN_IDS["EVMOS"]: "0xb1a8C961385B01C3aA782fba73E151465445D319",
+    },
+    "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599": {  # WBTC
+        CHAIN_IDS["MAINNET"]: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+        CHAIN_IDS["EVMOS"]: "0xF80699Dc594e00aE7bA200c7533a07C1604A106D",
+    },
+    "0xad3e3fc59dff318beceaab7d00eb4f68b1ecf195": {  # WCUSD
+        CHAIN_IDS["MAINNET"]: "0xad3e3fc59dff318beceaab7d00eb4f68b1ecf195",
+        CHAIN_IDS["EVMOS"]: "0xF80699Dc594e00aE7bA200c7533a07C1604A106D",
+    },
+    "0x18084fbA666a33d37592fA2633fD49a74DD93a88": {  # TBTC
+        CHAIN_IDS["MAINNET"]: "0x18084fbA666a33d37592fA2633fD49a74DD93a88",
+        CHAIN_IDS["EVMOS"]: "0x8d395AfFC1767141387ffF45aF88a074614E7Ccf",
+        CHAIN_IDS["OPTIMISM"]: "0x220d6bEedeA6a6317DaE19d39cd62EB7bb0ae5e4",
+    }
 }
 
 LP_MIGRATOR_ADDRESSES = {
@@ -294,7 +284,7 @@ SWAP_ABI = [
 
 ERC20_ABI = [
     {
-        "constant": true,
+        "constant": True,
         "inputs": [],
         "name": "name",
         "outputs": [
@@ -303,12 +293,12 @@ ERC20_ABI = [
                 "type": "string"
             }
         ],
-        "payable": false,
+        "payable": False,
         "stateMutability": "view",
         "type": "function"
     },
     {
-        "constant": true,
+        "constant": True,
         "inputs": [],
         "name": "symbol",
         "outputs": [
@@ -317,12 +307,12 @@ ERC20_ABI = [
                 "type": "string"
             }
         ],
-        "payable": false,
+        "payable": False,
         "stateMutability": "view",
         "type": "function"
     },
     {
-        "constant": true,
+        "constant": True,
         "inputs": [],
         "name": "decimals",
         "outputs": [
@@ -331,12 +321,12 @@ ERC20_ABI = [
                 "type": "uint8"
             }
         ],
-        "payable": false,
+        "payable": False,
         "stateMutability": "view",
         "type": "function"
     },
     {
-        "constant": true,
+        "constant": True,
         "inputs": [
             {
                 "name": "_owner",
@@ -350,7 +340,7 @@ ERC20_ABI = [
                 "type": "uint256"
             }
         ],
-        "payable": false,
+        "payable": False,
         "stateMutability": "view",
         "type": "function"
     },
