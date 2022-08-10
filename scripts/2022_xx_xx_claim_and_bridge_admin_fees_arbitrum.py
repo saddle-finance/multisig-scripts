@@ -1,5 +1,12 @@
-import this
-from helpers import CHAIN_IDS, ERC20_ABI, ARBITRUM_L2_BRIDGE_ROUTER, MULTISIG_ADDRESSES, SWAP_ABI, ARBITRUM_POOL_ADDRESS_TO_POOL_NAME, L1_TO_L2_ERC20_ADDRESSES
+from helpers import (
+    CHAIN_IDS,
+    ERC20_ABI,
+    ARBITRUM_L2_BRIDGE_ROUTER,
+    MULTISIG_ADDRESSES,
+    SWAP_ABI,
+    ARBITRUM_POOL_ADDRESS_TO_POOL_NAME,
+    L1_TO_L2_ERC20_ADDRESSES
+)
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract
 from scripts.utils import confirm_posting_transaction
@@ -17,7 +24,7 @@ def main():
     multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["ARBITRUM"]])
 
     # Run any pending transactions before simulating any more transactions
-    multisig.preview_pending()
+    # multisig.preview_pending()
 
     MAX_POOL_LENGTH = 32
 
@@ -56,13 +63,17 @@ def main():
             # first token in metapool is non-base-pool token
             token_addresses.add(swap_contract.getToken(0))
 
-    # log out unique set of tokens of all pools
-    token_symbols = set()
+    # capture and log token balances of msig before claiming
+    token_balances_before = {}
     for token_address in token_addresses:
-        token_symbols.add(Contract.from_abi(
+        symbol = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI).symbol()
+        token_balances_before[token_address] = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        ).balanceOf(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
+        print(
+            f"Balance of {symbol} before claiming: {token_balances_before[token_address]}"
         )
-    print(f"Found {len(token_symbols)} tokens: {token_symbols}")
 
     # execute txs for claiming admin fees
     for swap_address in swap_to_deposit_dict:
@@ -74,6 +85,25 @@ def main():
         pool.withdrawAdminFees(
             {"from": MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]})
 
+    # capture and log token balances of msig before after claiming
+    token_balances_after = {}
+    for token_address in token_addresses:
+        symbol = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI).symbol()
+        token_balances_after[token_address] = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        ).balanceOf(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
+        print(
+            f"Balance of {symbol} after claiming: {token_balances_after[token_address]}"
+        )
+
+    # log differences in token balances
+    print("\n")
+    for token_address in token_addresses:
+        print(
+            f"Claimed {symbol}: {token_balances_after[token_address] - token_balances_before[token_address]}"
+        )
+
     # find L1 addresses of tokens for bridging
     L2_to_L1_dict = {}
     for L1_address in L1_TO_L2_ERC20_ADDRESSES:
@@ -81,6 +111,7 @@ def main():
             L2_address = L1_TO_L2_ERC20_ADDRESSES[L1_address][L2_address_key]
             if L2_address in token_addresses:
                 L2_to_L1_dict[L2_address] = L1_address
+    # debug. TODO: remove this
     print(
         L2_to_L1_dict
     )
@@ -90,10 +121,9 @@ def main():
         # the token to be bridged
         token_contract = Contract.from_abi("ERC20", token_address, ERC20_ABI)
 
-        # bridge all available balance
-        amount_to_bridge = token_contract.balanceOf(
-            MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
-        )
+        # bridge difference between before and after claiming
+        amount_to_bridge = token_balances_after[token_address] - \
+            token_balances_before[token_address]
         print(
             f"Bridging ${token_contract.symbol()} {amount_to_bridge / token_contract.decimals()} to mainnet"
         )
@@ -115,5 +145,17 @@ def main():
             L2_to_L1_dict[token_address],
             MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]],
             amount_to_bridge,
-            "0x0".hex()
+            "0x0"
         )
+
+    # combine history into multisend txn
+    # TODO: set 'safe_nonce'
+    safe_tx = multisig.multisend_from_receipts()
+    safe_nonce = 0
+
+    safe_tx.safe_nonce = safe_nonce
+
+    # sign with private key
+    safe_tx.sign(accounts.load("deployer").private_key)  # prompts for password
+    multisig.preview(safe_tx)
+    confirm_posting_transaction(multisig, safe_tx)
