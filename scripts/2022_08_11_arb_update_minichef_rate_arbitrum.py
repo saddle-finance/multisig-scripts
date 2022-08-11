@@ -59,16 +59,6 @@ def main():
 
     assert(minichef.saddlePerSecond() == new_rate)
 
-    ##### Update multisig signers #####
-    Kain_Warwick = "0x5b97680e165b4dbf5c45f4ff4241e85f418c66c2"
-
-    # prev owner(pointer), old owner, new owner
-    safe_contract.swapOwner(OWNERS[4], Kain_Warwick, OWNERS[5])
-
-    # new owner, threshold
-    safe_contract.addOwnerWithThreshold(OWNERS[0], 3)
-    assert safe_contract.getOwners() == OWNERS
-
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
     safe_tx.safe_nonce = 4
