@@ -10,6 +10,8 @@ def main():
     """
     Updates Arbitrum pool and minichef parameters on Arbitrum network
     https://snapshot.org/#/saddlefinance.eth/proposal/0xe32db5de6b40e46617ea2e39552d8a1f1485bc86eeb2fa7bc89205f2156c0939
+
+    and updates Multisig signers - removing Kain
     """
 
     TARGET_NETWORK = "ARBITRUM"
@@ -20,6 +22,8 @@ def main():
 
     deployer = accounts.load("deployer")  # prompts for password
     multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
+
+    ##### Update Minichef weights #####
 
     minichef = multisig.contract(MINICHEF_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
@@ -54,6 +58,16 @@ def main():
     minichef.setSaddlePerSecond(new_rate)
 
     assert(minichef.saddlePerSecond() == new_rate)
+
+    ##### Update multisig signers #####
+    Kain_Warwick = "0x5b97680e165b4dbf5c45f4ff4241e85f418c66c2"
+
+    # prev owner(pointer), old owner, new owner
+    safe_contract.swapOwner(OWNERS[4], Kain_Warwick, OWNERS[5])
+
+    # new owner, threshold
+    safe_contract.addOwnerWithThreshold(OWNERS[0], 3)
+    assert safe_contract.getOwners() == OWNERS
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
