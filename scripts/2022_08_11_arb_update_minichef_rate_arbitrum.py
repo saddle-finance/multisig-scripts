@@ -43,7 +43,7 @@ def main():
     minichef.add(
         32, "0x1e491122f3C096392b40a4EA27aa1a29360d38a1", ZERO_ADDRESS)
 
-    # 0.32% for ArbUSD
+    # 0.32% for ArbUSDV2
     minichef.add(
         32, "0x0a20c2FFa10cD43F67D06170422505b7D6fC0953", ZERO_ADDRESS)
 
