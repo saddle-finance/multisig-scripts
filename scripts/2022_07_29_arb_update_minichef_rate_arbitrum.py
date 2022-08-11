@@ -24,10 +24,10 @@ def main():
     minichef = multisig.contract(MINICHEF_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
     # 37.51% for Arbitrum: FraxBP
-    assert(minichef.lpToken(3) == "0x896935b02d3cbeb152192774e4f1991bb1d2ed3f")
+    assert(minichef.lpToken(3) == "0x896935B02D3cBEb152192774e4F1991bb1D2ED3f")
     minichef.set(3, 3751, ZERO_ADDRESS, False)
     # 5.00% for Arbitrum: FraxBP-USDT
-    assert(minichef.lpToken(4) == "0x166680852ae9dec3d63374c5ebf89e974448bfe9")
+    assert(minichef.lpToken(4) == "0x166680852ae9Dec3d63374c5eBf89E974448BFE9")
     minichef.set(4, 500, ZERO_ADDRESS, False)
     # 5.00% for Arbitrum: FraxBP-USDs
     minichef.add(
