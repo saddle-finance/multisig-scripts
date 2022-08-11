@@ -1,10 +1,9 @@
 from helpers import (
     CHAIN_IDS,
     ERC20_ABI,
-    ARBITRUM_L2_BRIDGE_ROUTER,
     MULTISIG_ADDRESSES,
     SWAP_ABI,
-    ARBITRUM_POOL_ADDRESS_TO_POOL_NAME,
+    OPTIMISM_STANDARD_BRIDGE,
     L1_TO_L2_ERC20_ADDRESSES
 )
 from ape_safe import ApeSafe
@@ -12,11 +11,11 @@ from brownie import accounts, network, Contract
 from scripts.utils import confirm_posting_transaction
 
 
-TARGET_NETWORK = "ARBITRUM"
+TARGET_NETWORK = "OPTIMISM"
 
 
 def main():
-    """This script claims admin fees from all Arbitrum pools and sends them to Mainnet"""
+    """This script claims admin fees from all Optimism pools and sends them to Mainnet"""
 
     print(f"You are using the '{network.show_active()}' network")
     assert (network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
@@ -28,25 +27,23 @@ def main():
 
     MAX_POOL_LENGTH = 32
 
-    # Arbitrum L2 gateway router
-    gateway_router = multisig.contract(
-        ARBITRUM_L2_BRIDGE_ROUTER[CHAIN_IDS[TARGET_NETWORK]]
+    # Optimism L2 Standard Bridge
+    standard_bridge = multisig.contract(
+        OPTIMISM_STANDARD_BRIDGE[CHAIN_IDS[TARGET_NETWORK]]
     )
 
     # swap -> metaswapDeposit dict
     swap_to_deposit_dict = {
-        # Arb USD Pool
-        "0xBea9F78090bDB9e662d8CB301A00ad09A5b756e9": "",
-        # Arb USDV2 Pool
-        "0xfeEa4D1BacB0519E8f952460A70719944fe56Ee0": "",
-        # Arb USDS Metapool
-        "0x5dD186f8809147F96D3ffC4508F3C82694E58c9c": "0xDCA5b16A96f984ffb2A3022cfF339eb049126101",
-        # Arb FRAXBP Pool
-        "0x401AFbc31ad2A3Bc0eD8960d63eFcDEA749b4849": "",
-        # Arb FRAXBP/USDS Metapool
-        "0xa5bD85ed9fA27ba23BfB702989e7218E44fd4706": "0x1D434f50acf16BA013BE3536e9A3CDb5D7d4e694",
-        # Arb FRAXBP/USDT Metapool
-        "0xf8504e92428d65E56e495684A38f679C1B1DC30b": "0xc8DFCFC329E19fDAF43a338aD6038dBA02a5079B",
+        # Opt USD Pool
+        "0x5847f8177221268d279Cf377D0E01aB3FD993628": "",
+        # Opt FRAXBP Pool
+        "0xF6C2e0aDc659007Ba7c48446F5A4e4E94dfe08b5": "",
+        # Opt FRAXBP/sUSD Metapool
+        "0x250184dDDEC6d38E28ac12B481c9016867226E9D": "0xdf815Ea6b066Ac9f3107d8863a6c19aA2a5d24d3",
+        # Opt FRAXBP/USDT Metapool
+        "0xa9a84238098Dc3d1529228E6c74dBE7EbdF117a5": "0x3F1d224557afA4365155ea77cE4BC32D5Dae2174",
+        # Opt USD/FRAX Metapool
+        "0xc55E8C79e5A6c3216D4023769559D06fa9A7732e": "0x88Cc4aA0dd6Cf126b00C012dDa9f6F4fd9388b17",
     }
 
     # comprehend set of underlying tokens used by pools on that chain
