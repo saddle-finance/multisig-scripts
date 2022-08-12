@@ -33,7 +33,7 @@ def main():
 
     # 0.32% USDs-saddleArbUSDv2
     assert(minichef.lpToken(2) == "0xa815b134294580692482E321dD1A191aC1454192")
-    minichef.set(2, 32, ZERO_ADDRESS, False)
+    minichef.set(2, 32, "0x1e35ebF875f8A2185EDf22da02e7dBCa0F5558aB", True)
 
     # 35.89% saddleFraxBP
     assert(minichef.lpToken(3) == "0x896935B02D3cBEb152192774e4F1991bb1D2ED3f")
