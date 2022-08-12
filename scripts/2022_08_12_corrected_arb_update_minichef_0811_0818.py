@@ -45,7 +45,7 @@ def main():
 
     # 5.03% saddleFraxUSDs
     assert(minichef.lpToken(5) == "0x1e491122f3C096392b40a4EA27aa1a29360d38a1")
-    minichef.set(5, 503, ZERO_ADDRESS, False)
+    minichef.set(5, 503, "0x1e35ebF875f8A2185EDf22da02e7dBCa0F5558aB", True)
 
     # 0.00% saddleArbUSD (resetting to 0, because duplicate)
     assert(minichef.lpToken(6) == "0xc969dD0A7AB0F8a0C5A69C0839dB39b6C928bC08")
