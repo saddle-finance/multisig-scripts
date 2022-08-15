@@ -12,7 +12,10 @@ from scripts.utils import confirm_posting_transaction
 
 
 def main():
-    """Update a vesting contract's ownership to company multisig"""
+    """
+    Updates owners of the multisig (removing Kain and adding Weston and Sam),
+    Updates rewarder contract of the FRAXBP-USDs pool in minichef
+    """
 
     TARGET_NETWORK = "ARBITRUM"
 
@@ -26,8 +29,6 @@ def main():
 
     safe_contract = multisig.contract(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
     minichef = multisig.contract(MINICHEF_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
-    print(safe_contract.getOwners())
-    print(OWNERS)
 
     Kain_Warwick = "0x5b97680e165b4dbf5c45f4ff4241e85f418c66c2"
 
