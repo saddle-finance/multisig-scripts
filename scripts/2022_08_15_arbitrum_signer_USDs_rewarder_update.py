@@ -45,7 +45,7 @@ def main():
     SimpleRewarder_SPA2 = "0x492ebE7816B6934cc55f3001E1Ac165A6c5AfaB0"
     FraxBP_USDs = "0x1e491122f3c096392b40a4ea27aa1a29360d38a1"
     assert minichef.lpToken(5) == FraxBP_USDs  # FRAXBP-USDs Metapool
-    minichef.set(5, 105, SimpleRewarder_SPA2, True)
+    minichef.set(5, 503, SimpleRewarder_SPA2, True)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
