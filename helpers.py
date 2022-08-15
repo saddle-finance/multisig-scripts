@@ -77,11 +77,23 @@ MINTER = {
     CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
 }
 
+# Multisig owners
+OWNERS = [
+    "0xD131F1BcDd547e067Af447dD3C36C99d6be9FdEB",  # Weston_Nelson
+    "0xf872703F1C8f93fA186869Bac83BAC5A0c87C3c8",  # Scoopy Trooples
+    "0x0AF91FA049A7e1894F480bFE5bBa20142C6c29a9",  # aurelius0x.eth
+    "0xa83838221278f22ee5bAe3E523f34D42b066D67D",  # Damir Bandalo
+    "0x0Cec743b8CE4Ef8802cAc0e5df18a180ed8402A7",  # yfi.milkyklim.eth
+    "0x17e06ce6914E3969f7BD37D8b2a563890cA1c96e",  # Sam Kazemain
+    "0x6F2A8Ee9452ba7d336b3fba03caC27f7818AeAD6",  # Mariano Conti
+    "0x4E60bE84870FE6AE350B563A121042396Abe1eaF",  # DegenSpartan
+]
+
 VESTING_ABI = [
     {
         "inputs": [],
         "name": "release",
-        "outputs":  [],
+        "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function",
     },
@@ -109,38 +121,16 @@ GAUGE_ABI = [
 NOMAD_GATEWAY_ABI = [
     {
         "inputs": [
-            {
-                "internalType": "address",
-                "name": "_token",
-                "type": "address"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_amount",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint32",
-                "name": "_destination",
-                "type": "uint32"
-            },
-            {
-                "internalType": "bytes32",
-                "name": "_recipient",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "bool",
-                "name": "",
-                "type": "bool"
-            }
+            {"internalType": "address", "name": "_token", "type": "address"},
+            {"internalType": "uint256", "name": "_amount", "type": "uint256"},
+            {"internalType": "uint32", "name": "_destination", "type": "uint32"},
+            {"internalType": "bytes32", "name": "_recipient", "type": "bytes32"},
+            {"internalType": "bool", "name": "", "type": "bool"},
         ],
         "name": "send",
-        "outputs": [
-
-        ],
-        "stateMutability":"nonpayable",
-        "type":"function"
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function",
     },
     {
         "anonymous": False,
@@ -149,47 +139,48 @@ NOMAD_GATEWAY_ABI = [
                 "indexed": True,
                 "internalType": "address",
                 "name": "token",
-                "type": "address"
+                "type": "address",
             },
             {
                 "indexed": True,
                 "internalType": "address",
                 "name": "from",
-                "type": "address"
+                "type": "address",
             },
             {
                 "indexed": True,
                 "internalType": "uint32",
                 "name": "toDomain",
-                "type": "uint32"
+                "type": "uint32",
             },
             {
                 "indexed": False,
                 "internalType": "bytes32",
                 "name": "toId",
-                "type": "bytes32"
+                "type": "bytes32",
             },
             {
                 "indexed": False,
                 "internalType": "uint256",
                 "name": "amount",
-                "type": "uint256"
+                "type": "uint256",
             },
             {
                 "indexed": False,
                 "internalType": "bool",
                 "name": "fastLiquidityEnabled",
-                "type": "bool"
-            }
+                "type": "bool",
+            },
         ],
         "name": "Send",
-        "type": "event"
-    }
+        "type": "event",
+    },
 ]
 
 
 # 59,300 SDL/day in seconds
 SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
+
 
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
@@ -204,3 +195,11 @@ def assert_filename(file: str):
     assert chain.id == int(
         chain_id
     ), f"Expected script to be run on network {chain_id}, but it was run on network {chain.id}"
+
+
+# Needed since different chains have different order of owner addrs
+def intersection(lst1, lst2):
+
+    temp = set(lst2)
+    lst3 = [value for value in lst1 if value not in temp]
+    return lst3
