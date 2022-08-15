@@ -21,6 +21,7 @@ def main():
         network.chain.id == CHAIN_IDS[TARGET_NETWORK]
     ), f"Not on {TARGET_NETWORK} network"
 
+    deployer = accounts.load("deployer")  # prompts for password
     multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
     safe_contract = multisig.contract(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
@@ -40,17 +41,16 @@ def main():
     assert len(intersection(new_owners, OWNERS)) == 0
 
     # FRAXBP-USDs rewarder update
-    assert (
-        minichef.lpToken(5) == "0x1e491122f3C096392b40a4EA27aa1a29360d38a1"
-    )  # FRAXBP-USDs Metapool
-    minichef.set(5, 105, "<SimpleRewarder_SPA2>", True)
+    SimpleRewarder_SPA2 = "0x492ebE7816B6934cc55f3001E1Ac165A6c5AfaB0"
+    FraxBP_USDs = "0x1e491122f3c096392b40a4ea27aa1a29360d38a1"
+    assert minichef.lpToken(5) == FraxBP_USDs  # FRAXBP-USDs Metapool
+    minichef.set(5, 105, SimpleRewarder_SPA2, True)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
     safe_tx.safe_nonce = 6
 
     # sign with private key
-    deployer = accounts.load("deployer")  # prompts for password
     safe_tx.sign(deployer.private_key)
     multisig.preview(safe_tx)
 
