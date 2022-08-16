@@ -35,7 +35,7 @@ def main():
         ARBITRUM_L2_BRIDGE_ROUTER[CHAIN_IDS[TARGET_NETWORK]]
     )
 
-    # token -> swap/metaswap dict , which pool to use for swapping which
+    # token -> swap/metaswap dict , which pool to use for swapping which token
     token_to_swap_dict = {
         # USDC : Arb USD Pool
         "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8": "0xBea9F78090bDB9e662d8CB301A00ad09A5b756e9",
