@@ -27,9 +27,9 @@ def main():
         OPTIMISM_STANDARD_BRIDGE[CHAIN_IDS[TARGET_NETWORK]]
     )
 
-    # ~184.7k SDL
-    # amount_to_send = 184672878613986966513520
-    amount_to_send = 1000  # testing
+    # ~184.7k SDL (-1000 that was used for the test transaction)
+    amount_to_send = 184672878613986966513520 - 1000
+    # amount_to_send = 1000  # testing
     assert (sdl.balanceOf(deployer.address) >= amount_to_send)
 
     # approve bridge
