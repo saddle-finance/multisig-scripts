@@ -42,6 +42,7 @@ def main():
     # gas limit required to complete the deposit on L2
     l2gas = "0x1e8480"  # 2,000,000
 
+    # Optimism bride code https://etherscan.io/address/0x40e0c049f4671846e9cff93aaed88f2b48e527bb#code
     # send to Optimism minichef
     optimism_L1_standard_bridge.depositERC20To(
         SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],   # _l1token
