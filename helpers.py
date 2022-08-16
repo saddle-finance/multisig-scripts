@@ -37,7 +37,6 @@ MINICHEF_ADDRESSES = {
     CHAIN_IDS["OPTIMISM"]: "0x220d6bEedeA6a6317DaE19d39cd62EB7bb0ae5e4",
 }
 
-# TODO: upper+lower case addresses everywhere
 L1_TO_L2_ERC20_ADDRESSES = {
     "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": {  # USDC
         CHAIN_IDS["MAINNET"]: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -250,6 +249,171 @@ SWAP_ABI = [
         "stateMutability": "view",
         "type": "function"
     },
+    {
+        "inputs": [
+            {
+                "internalType": "uint8",
+                "name": "tokenIndexFrom",
+                "type": "uint8"
+            },
+            {
+                "internalType": "uint8",
+                "name": "tokenIndexTo",
+                "type": "uint8"
+            },
+            {
+                "internalType": "uint256",
+                "name": "dx",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "minDy",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "deadline",
+                "type": "uint256"
+            }
+        ],
+        "name": "swap",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "tokenAddress",
+                "type": "address"
+            }
+        ],
+        "name": "getTokenIndex",
+        "outputs": [
+            {
+                "internalType": "uint8",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getVirtualPrice",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint8",
+                "name": "tokenIndexFrom",
+                "type": "uint8"
+            },
+            {
+                "internalType": "uint8",
+                "name": "tokenIndexTo",
+                "type": "uint8"
+            },
+            {
+                "internalType": "uint256",
+                "name": "dx",
+                "type": "uint256"
+            }
+        ],
+        "name": "calculateSwap",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint8",
+                "name": "tokenIndexFrom",
+                "type": "uint8"
+            },
+            {
+                "internalType": "uint8",
+                "name": "tokenIndexTo",
+                "type": "uint8"
+            },
+            {
+                "internalType": "uint256",
+                "name": "dx",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "minDy",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "deadline",
+                "type": "uint256"
+            }
+        ],
+        "name": "swap",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+]
+
+META_SWAP_ABI = [
+    {
+        "inputs": [],
+        "name": "metaSwapStorage",
+        "outputs": [
+            {
+                "internalType": "contract ISwap",
+                "name": "baseSwap",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "baseVirtualPrice",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "baseCacheLastUpdated",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
 ]
 
 ERC20_ABI = [
@@ -337,6 +501,9 @@ ERC20_ABI = [
         "stateMutability": "view",
         "type": "function"
     },
+
+
+
 ]
 
 ARBITRUM_GATEWAY_ROUTER_ABI = [
