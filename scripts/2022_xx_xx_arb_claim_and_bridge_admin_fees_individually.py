@@ -16,7 +16,8 @@ TARGET_NETWORK = "ARBITRUM"
 
 
 def main():
-    """This script claims admin fees from all Arbitrum pools and sends them to Mainnet"""
+    """[WIP]: Doesn't convert claimed LP tokens into underlyings
+    This script claims admin fees from all Arbitrum pools and sends them to Mainnet"""
 
     print(f"You are using the '{network.show_active()}' network")
     assert (network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
