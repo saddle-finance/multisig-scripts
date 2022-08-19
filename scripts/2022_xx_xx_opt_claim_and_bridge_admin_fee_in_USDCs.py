@@ -6,7 +6,8 @@ from helpers import (
     META_SWAP_DEPOSIT_ABI,
     MULTISIG_ADDRESSES,
     SWAP_ABI,
-    META_SWAP_ABI
+    META_SWAP_ABI,
+    OPTIMISM_L2_STANDARD_BRIDGE_ABI
 )
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract, chain
@@ -22,18 +23,22 @@ def main():
     print(f"You are using the '{network.show_active()}' network")
     assert (network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
         f"Not on {TARGET_NETWORK}"
-    multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
+    multisig = ApeSafe(
+        MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
+        base_url='https://safe-transaction.optimism.gnosis.io/'
+    )
 
     # Run any pending transactions before simulating any more transactions
     # multisig.preview_pending()
 
     MAX_POOL_LENGTH = 32
-    USDC_OPTIMISM = "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"
-    USDC_MAINNET = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+    USDC_OPTIMISM = "0x7F5c764cBc14f9669B88837ca1490cCa17c31607"
 
     # Optimism L2 Standard Bridge
-    standard_bridge = multisig.contract(
-        OPTIMISM_STANDARD_BRIDGE[CHAIN_IDS[TARGET_NETWORK]]
+    standard_bridge = Contract.from_abi(
+        "L2StandardBridge",
+        OPTIMISM_STANDARD_BRIDGE[CHAIN_IDS[TARGET_NETWORK]],
+        OPTIMISM_L2_STANDARD_BRIDGE_ABI
     )
 
     # token -> swap/metaswap dict , which pool to use for swapping which token
@@ -131,7 +136,7 @@ def main():
                 )
                 # approve amount to swap
                 print(
-                    f"Approving for {base_pool_LP_contract.symbol()} {LP_balance}"
+                    f"Approving base pool for {base_pool_LP_contract.symbol()} {LP_balance}"
                 )
                 base_pool_LP_contract.approve(
                     base_swap,
@@ -230,7 +235,7 @@ def main():
                 "ERC20", token_address, ERC20_ABI
             )
             print(
-                f"Approving for ${token_contract.symbol()} {amount_to_swap}"
+                f"Approving swap for ${token_contract.symbol()} {amount_to_swap}"
             )
             token_contract.approve(
                 swap_address,
@@ -260,24 +265,26 @@ def main():
     ) - token_balances_before[USDC_OPTIMISM]
 
     print(
-        f"Bridging ${USDC.symbol()} {amount_to_bridge / (10 ** USDC.decimals())} to mainnet"
+        f"Approving bridge for ${USDC.symbol()} {amount_to_bridge / (10 ** USDC.decimals())}"
     )
-
-
-"""
     # approve gateway
     USDC.approve(
-        token_gateway_address,
+        standard_bridge,
         amount_to_bridge,
-        {"from": MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]}
+        {"from": multisig.address}
     )
 
     # send tx to bridge
-    gateway_router.outboundTransfer(
-        USDC_MAINNET,
-        MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]],
-        amount_to_bridge,
-        "0x"  # TODO: clarify what format this needs to have
+    print(
+        f"Bridging ${USDC.symbol()} {amount_to_bridge / (10 ** USDC.decimals())} to mainnet"
+    )
+    standard_bridge.withdrawTo(
+        USDC_OPTIMISM,                              # _l2token
+        MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]],   # _to
+        amount_to_bridge,                           # _amount
+        0,                                          # _l1Gas   TODO: check if 0 is viable
+        "",                                         # _data
+        {"from": multisig.address}
     )
 
     # combine history into multisend txn
@@ -291,4 +298,3 @@ def main():
     safe_tx.sign(accounts.load("deployer").private_key)  # prompts for password
     multisig.preview(safe_tx)
     confirm_posting_transaction(multisig, safe_tx)
-"""

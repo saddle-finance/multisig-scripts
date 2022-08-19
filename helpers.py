@@ -724,6 +724,36 @@ ARBITRUM_GATEWAY_ROUTER_ABI = [
     }
 ]
 
+OPTIMISM_L2_STANDARD_BRIDGE_ABI = [
+    {
+        'inputs': [
+            {
+                'internalType': 'address',
+                'name': '_l2Token',
+                'type': 'address'
+            },
+            {
+                'internalType': 'address',
+                'name': '_to', 'type': 'address'},
+            {
+                'internalType': 'uint256', 'name': '_amount',
+                'type': 'uint256'},
+            {
+                'internalType': 'uint32',
+                'name': '_l1Gas', 'type': 'uint32'},
+            {
+                'internalType': 'bytes',
+                'name': '_data',
+                'type': 'bytes'
+            }
+        ],
+        'name': 'withdrawTo',
+        'outputs': [],
+        'stateMutability': 'nonpayable',
+        'type': 'function',
+    }
+]
+
 NOMAD_GATEWAY_ABI = [
     {
         "inputs": [
