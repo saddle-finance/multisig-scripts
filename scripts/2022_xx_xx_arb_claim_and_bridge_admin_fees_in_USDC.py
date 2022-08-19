@@ -3,6 +3,7 @@ from helpers import (
     CHAIN_IDS,
     ERC20_ABI,
     ARBITRUM_L2_BRIDGE_ROUTER,
+    META_SWAP_DEPOSIT_ABI,
     MULTISIG_ADDRESSES,
     SWAP_ABI,
     META_SWAP_ABI
@@ -69,6 +70,7 @@ def main():
 
     # comprehend set of underlying tokens used by pools on that chain
     token_addresses = set()
+    base_LP_addresses = set()
     for swap_address in swap_to_deposit_dict:
         swap_contract = Contract.from_abi("Swap", swap_address, SWAP_ABI)
         if swap_to_deposit_dict[swap_address] == "":  # base pool
@@ -80,6 +82,7 @@ def main():
         else:  # metapool
             # first token in metapool is non-base-pool token
             token_addresses.add(swap_contract.getToken(0))
+            base_LP_addresses.add(swap_contract.getToken(1))
 
     # capture and log token balances of msig before claiming
     token_balances_before = {}
@@ -89,7 +92,7 @@ def main():
         ).symbol()
         token_balances_before[token_address] = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
-        ).balanceOf(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
+        ).balanceOf(multisig.address)
         print(
             f"Balance of {symbol} before claiming: {token_balances_before[token_address]}"
         )
@@ -99,13 +102,59 @@ def main():
         lp_token_address = Contract.from_abi(
             "Swap", swap_address, SWAP_ABI).swapStorage()[6]
         lp_token_name = Contract.from_abi(
-            "LPtoken", lp_token_address, ERC20_ABI).name()
+            "LPToken", lp_token_address, ERC20_ABI).name()
         print(
             f"Claiming admin fees from {lp_token_name}"
         )
         pool = Contract.from_abi("Swap", swap_address, SWAP_ABI)
         pool.withdrawAdminFees(
-            {"from": MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]})
+            {"from": multisig.address})
+
+    # burn LP tokens of base pools gained from claiming for USDC
+    for swap_address in swap_to_deposit_dict:
+        metaswap_deposit_address = swap_to_deposit_dict[swap_address]
+        if metaswap_deposit_address != "":
+            metaswap_contract = Contract.from_abi(
+                "MetaSwap", swap_address, META_SWAP_ABI
+            )
+            metaswap_deposit_contract = Contract.from_abi(
+                "MetaSwapDeposit", metaswap_deposit_address, META_SWAP_DEPOSIT_ABI
+            )
+            base_pool_LP_address = metaswap_contract.getToken(1)
+            base_pool_LP_contract = Contract.from_abi(
+                "LPToken", base_pool_LP_address, ERC20_ABI
+            )
+            LP_balance = base_pool_LP_contract.balanceOf(multisig.address)
+            if LP_balance > 0:
+                base_swap_address = metaswap_deposit_contract.baseSwap()
+                base_swap = Contract.from_abi(
+                    "BaseSwap", base_swap_address, SWAP_ABI
+                )
+                token_index_USDC = base_swap.getTokenIndex(USDC_ARBITRUM)
+                min_amount = base_swap.calculateRemoveLiquidityOneToken(
+                    LP_balance,
+                    token_index_USDC
+                )
+                # approve amount to swap
+                print(
+                    f"Approving for {base_pool_LP_contract.symbol()} {LP_balance}"
+                )
+                base_pool_LP_contract.approve(
+                    base_swap,
+                    LP_balance,
+                    {"from": multisig.address}
+                )
+                print(
+                    f"Burning {LP_balance} {base_pool_LP_contract.symbol()} for USDC"
+                )
+                deadline = chain[chain.height].timestamp + 10 * 60
+                base_swap.removeLiquidityOneToken(
+                    LP_balance,
+                    token_index_USDC,
+                    min_amount,
+                    deadline,
+                    {"from": multisig.address}
+                )
 
     # capture and log token balances of msig after claiming
     token_balances_after = {}
@@ -115,7 +164,7 @@ def main():
         ).symbol()
         token_balances_after[token_address] = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
-        ).balanceOf(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
+        ).balanceOf(multisig.address)
         print(
             f"Balance of {symbol} after claiming: {token_balances_after[token_address]}"
         )
@@ -142,7 +191,6 @@ def main():
         # skip if no fees were claimed
         if amount_to_swap > 0:
             # get swap and token indices
-
             # if base pool, use base pool for swapping
             if swap_to_deposit_dict[token_to_swap_dict[token_address]] == "":
                 swap_address = token_to_swap_dict[token_address]
@@ -187,10 +235,13 @@ def main():
             token_contract = Contract.from_abi(
                 "ERC20", token_address, ERC20_ABI
             )
+            print(
+                f"Approving for {token_contract.symbol()} {LP_balance}"
+            )
             token_contract.approve(
                 swap_address,
                 amount_to_swap,
-                {"from": MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]}
+                {"from": multisig.address}
             )
 
             # perform swap
@@ -203,7 +254,7 @@ def main():
                 amount_to_swap,
                 min_amount,
                 deadline,
-                {"from": MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]}
+                {"from": multisig.address}
             )
 
     # bridging USDC to mainnet
@@ -211,7 +262,7 @@ def main():
 
     # bridge difference between balance before and after claiming + converting
     amount_to_bridge = USDC.balanceOf(
-        MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
+        multisig.address
     ) - token_balances_before[USDC_ARBITRUM]
 
     print(
@@ -235,7 +286,7 @@ def main():
         USDC_MAINNET,
         MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]],
         amount_to_bridge,
-        "0x0"  # TODO: clarify what format this needs to have
+        "0x"  # TODO: clarify what format this needs to have
     )
 
     # combine history into multisend txn
