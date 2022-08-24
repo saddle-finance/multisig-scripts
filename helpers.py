@@ -1,4 +1,6 @@
+from webbrowser import get
 from brownie.network.state import Chain
+import json
 
 CHAIN_IDS = {
     "MAINNET": 1,
@@ -11,15 +13,19 @@ CHAIN_IDS = {
 
 MULTISIG_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE",
+    # https://gnosis-safe.io/app/eth:0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE/home
     CHAIN_IDS["HARDHAT"]: "0x3F8E527aF4e0c6e763e8f368AC679c44C45626aE",
     CHAIN_IDS["ARBITRUM"]: "0x8e6e84DDab9d13A17806d34B097102605454D147",
+    # https://gnosis-safe.io/app/arb1:0x8e6e84DDab9d13A17806d34B097102605454D147/home
     CHAIN_IDS["EVMOS"]: "0x25e73a609751E3289EAE21A6Dae431ff1E6fE261",
+    # https://safe.evmos.org/evmos:0x25e73a609751E3289EAE21A6Dae431ff1E6fE261/balances
     CHAIN_IDS["OPTIMISM"]: "0x91804c72076aDd9fAB49b2c1e1A61A7503199599",
+    # https://gnosis-safe.io/app/oeth:0x91804c72076aDd9fAB49b2c1e1A61A7503199599/home
 }
 
 SDL_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0xf1Dc500FdE233A4055e25e5BbF516372BC4F6871",
-    CHAIN_IDS["OPTIMISM"]: "0xae31207ac34423c41576ff59bfb4e036150f9cf7",
+    CHAIN_IDS["OPTIMISM"]: "0xAe31207aC34423C41576Ff59BFB4E036150f9cF7",
 }
 
 SDL_MINTER_ADDRESS = {
@@ -89,98 +95,13 @@ OWNERS = [
     "0x4E60bE84870FE6AE350B563A121042396Abe1eaF",  # DegenSpartan
 ]
 
-VESTING_ABI = [
-    {
-        "inputs": [],
-        "name": "release",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function",
-    },
-    {
-        "inputs": [
-            {"internalType": "address", "name": "newBeneficiary", "type": "address"}
-        ],
-        "name": "changeBeneficiary",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function",
-    },
-]
-
-GAUGE_ABI = [
-    {
-        "stateMutability": "view",
-        "type": "function",
-        "name": "name",
-        "inputs": [],
-        "outputs": [{"name": "", "type": "string"}],
-    }
-]
-
-NOMAD_GATEWAY_ABI = [
-    {
-        "inputs": [
-            {"internalType": "address", "name": "_token", "type": "address"},
-            {"internalType": "uint256", "name": "_amount", "type": "uint256"},
-            {"internalType": "uint32", "name": "_destination", "type": "uint32"},
-            {"internalType": "bytes32", "name": "_recipient", "type": "bytes32"},
-            {"internalType": "bool", "name": "", "type": "bool"},
-        ],
-        "name": "send",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function",
-    },
-    {
-        "anonymous": False,
-        "inputs": [
-            {
-                "indexed": True,
-                "internalType": "address",
-                "name": "token",
-                "type": "address",
-            },
-            {
-                "indexed": True,
-                "internalType": "address",
-                "name": "from",
-                "type": "address",
-            },
-            {
-                "indexed": True,
-                "internalType": "uint32",
-                "name": "toDomain",
-                "type": "uint32",
-            },
-            {
-                "indexed": False,
-                "internalType": "bytes32",
-                "name": "toId",
-                "type": "bytes32",
-            },
-            {
-                "indexed": False,
-                "internalType": "uint256",
-                "name": "amount",
-                "type": "uint256",
-            },
-            {
-                "indexed": False,
-                "internalType": "bool",
-                "name": "fastLiquidityEnabled",
-                "type": "bool",
-            },
-        ],
-        "name": "Send",
-        "type": "event",
-    },
-]
-
+OPTIMISM_STANDARD_BRIDGE = {
+    CHAIN_IDS["MAINNET"]: "0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1",
+    CHAIN_IDS["OPTIMISM"]: "0x4200000000000000000000000000000000000010",
+}
 
 # 59,300 SDL/day in seconds
 SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
-
 
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
@@ -197,9 +118,21 @@ def assert_filename(file: str):
     ), f"Expected script to be run on network {chain_id}, but it was run on network {chain.id}"
 
 
+def get_abi(file: str):
+    """Attempts to load the ABI with given name from abis folder"""
+    with open(f"abis/{file}.json") as f:
+        abi = json.load(f)
+        return abi
+
+
 # Needed since different chains have different order of owner addrs
 def intersection(lst1, lst2):
 
     temp = set(lst2)
     lst3 = [value for value in lst1 if value not in temp]
     return lst3
+
+VESTING_ABI = get_abi("Vesting")
+GAUGE_ABI = get_abi("Gauge")
+NOMAD_GATEWAY_ABI = get_abi("NomadRouterImpl")
+GNOSIS_SAFE_ABI = get_abi("GnosisSafeImpl")

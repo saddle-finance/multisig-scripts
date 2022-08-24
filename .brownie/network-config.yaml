@@ -132,7 +132,30 @@ live:
         id: xdai-test
         host: https://sokol.poa.network
         explorer: https://blockscout.com/poa/sokol/api
-
+  - name: Optimism
+    networks:
+      - name: Mainnet
+        chainid: 10
+        id: optimism-main
+        host: https://mainnet.optimism.io
+        explorer: https://api-optimistic.etherscan.io
+      - name: Testnet
+        chainid: 69
+        id: optimism-test
+        host: https://kovan.optimism.io
+        explorer: https://kovan-optimistic.etherscan.io/
+  - name: Evmos
+    networks:
+      - name: Mainnet
+        chainid: 9001
+        id: evmos-main
+        host: https://eth.bd.evmos.org:8545
+        explorer: https://evm.evmos.org
+      - name: Testnet
+        chainid: 9000
+        id: evmos-test
+        host: https://eth.bd.evmos.dev:8545
+        explorer: https://evm.evmos.dev/
 development:
   - name: Ganache-CLI
     id: development
@@ -249,15 +272,3 @@ development:
       evm_version: istanbul
       mnemonic: brownie
       fork: avax-main
-  - name: Ganache-CLI (Evmos-Mainnet Fork)
-    id: evmos-main-fork
-    cmd: ganache-cli
-    host: http://127.0.0.1
-    timeout: 120
-    cmd_settings:
-      port: 8545
-      gas_limit: 20000000
-      accounts: 10
-      evm_version: istanbul
-      mnemonic: brownie
-      fork: evmos-main
