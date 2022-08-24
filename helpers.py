@@ -101,6 +101,9 @@ L1_TO_L2_ERC20_ADDRESSES = {
     "0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3": {  # MIM
         CHAIN_IDS["MAINNET"]: "0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3",
         CHAIN_IDS["ARBITRUM"]: "0xFEa7a6a0B346362BF88A9e4A88416B77a57D6c2A",
+    },
+    "0x0a5E677a6A24b2F1A2Bf4F3bFfC443231d2fDEc8": {  # USX
+        CHAIN_IDS["MAINNET"]: "0x0a5E677a6A24b2F1A2Bf4F3bFfC443231d2fDEc8",
     }
 }
 
@@ -169,6 +172,112 @@ VESTING_ABI = [
     },
 ]
 
+UNIV3_ROUTER_ABI = [
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "tokenIn",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "tokenOut",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint24",
+                        "name": "fee",
+                        "type": "uint24"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "recipient",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "deadline",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amountIn",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amountOutMinimum",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint160",
+                        "name": "sqrtPriceLimitX96",
+                        "type": "uint160"
+                    }
+                ],
+                "internalType": "struct ISwapRouter.ExactInputSingleParams",
+                "name": "params",
+                "type": "tuple"
+            }
+        ],
+        "name": "exactInputSingle",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "amountOut",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+]
+
+UNIV3_QUOTER_ABI = [
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "tokenIn",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "tokenOut",
+                "type": "address"
+            },
+            {
+                "internalType": "uint24",
+                "name": "fee",
+                "type": "uint24"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountIn",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint160",
+                "name": "sqrtPriceLimitX96",
+                "type": "uint160"
+            }
+        ],
+        "name": "quoteExactInputSingle",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "amountOut",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]
+
 GAUGE_ABI = [
     {
         "stateMutability": "view",
@@ -186,6 +295,54 @@ SWAP_ABI = [
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function",
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256[]",
+                "name": "minAmounts",
+                "type": "uint256[]"
+            },
+            {
+                "internalType": "uint256",
+                "name": "deadline",
+                "type": "uint256"
+            }
+        ],
+        "name": "removeLiquidity",
+        "outputs": [
+            {
+                "internalType": "uint256[]",
+                "name": "",
+                "type": "uint256[]"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "calculateRemoveLiquidity",
+        "outputs": [
+            {
+                "internalType": "uint256[]",
+                "name": "",
+                "type": "uint256[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
     },
     {
         "inputs": [
