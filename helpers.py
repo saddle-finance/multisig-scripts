@@ -83,14 +83,6 @@ MINTER = {
     CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
 }
 
-OPTIMISM_STANDARD_BRIDGE = {
-    CHAIN_IDS["MAINNET"]: "0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1",
-    CHAIN_IDS["OPTIMISM"]: "0x4200000000000000000000000000000000000010",
-}
-
-# 59,300 SDL/day in seconds
-SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
-
 # Multisig owners
 OWNERS = [
     "0xD131F1BcDd547e067Af447dD3C36C99d6be9FdEB",  # Weston_Nelson
@@ -102,6 +94,14 @@ OWNERS = [
     "0x6F2A8Ee9452ba7d336b3fba03caC27f7818AeAD6",  # Mariano Conti
     "0x4E60bE84870FE6AE350B563A121042396Abe1eaF",  # DegenSpartan
 ]
+
+OPTIMISM_STANDARD_BRIDGE = {
+    CHAIN_IDS["MAINNET"]: "0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1",
+    CHAIN_IDS["OPTIMISM"]: "0x4200000000000000000000000000000000000010",
+}
+
+# 59,300 SDL/day in seconds
+SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
 
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
@@ -117,11 +117,13 @@ def assert_filename(file: str):
         chain_id
     ), f"Expected script to be run on network {chain_id}, but it was run on network {chain.id}"
 
+
 def get_abi(file: str):
     """Attempts to load the ABI with given name from abis folder"""
     with open(f"abis/{file}.json") as f:
         abi = json.load(f)
         return abi
+
 
 # Needed since different chains have different order of owner addrs
 def intersection(lst1, lst2):
