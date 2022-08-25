@@ -44,11 +44,9 @@ def main():
     minichef.set(1, 3833, ZERO_ADDRESS, False, {"from": deployer})
     assert minichef.poolInfo(1)[2] == 3833
 
-    # 4.93% for Optimism: Frax-optUSD
-    # also needs to be added to minichef
-    assert minichef.lpToken(6) == "0xc55E8C79e5A6c3216D4023769559D06fa9A7732e"
-    minichef.set(6, 493, ZERO_ADDRESS, False, {"from": deployer})
-    assert minichef.poolInfo(6)[2] == 493
+    # Should always be 0.00% for pid 6
+    minichef.set(6, 0, ZERO_ADDRESS, False, {"from": deployer})
+    assert minichef.poolInfo(6)[2] == 0
 
     # 4.93% for Optimism: Frax-USDT
     assert minichef.lpToken(3) == "0xb63d7B0D835ca6eFf89ab774498ed6dD0D71e93e"
@@ -65,10 +63,10 @@ def main():
     minichef.set(5, 2, ZERO_ADDRESS, False, {"from": deployer})
     assert minichef.poolInfo(5)[2] == 2
 
-    # 0.00% for Optimism: optSaddle3pool - FRAX
+    # 4.93% for Optimism: optSaddle3pool - FRAX
     assert minichef.lpToken(2) == "0xfF5fa61Eb9b5cDD63bdFa16EF029d5313457925A"
-    minichef.set(2, 0, ZERO_ADDRESS, False, {"from": deployer})
-    assert minichef.poolInfo(2)[2] == 0
+    minichef.set(2, 493, ZERO_ADDRESS, False, {"from": deployer})
+    assert minichef.poolInfo(2)[2] == 493
 
     # Total allocation is 53.14% for Arbitrum
 
