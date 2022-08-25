@@ -45,6 +45,7 @@ def main():
     assert minichef.poolInfo(1)[2] == 3833
 
     # Should always be 0.00% for pid 6
+    assert minichef.lpToken(6) == "0xc55E8C79e5A6c3216D4023769559D06fa9A7732e"
     minichef.set(6, 0, ZERO_ADDRESS, False, {"from": deployer})
     assert minichef.poolInfo(6)[2] == 0
 
