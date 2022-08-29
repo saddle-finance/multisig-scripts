@@ -29,7 +29,8 @@ def main():
     # 500k SDL ~= 16 days worth of emissions at 59.3k per day for side chains
     # and 53% of that for Optimism
     amount_to_send = 500_000 * 1e18
-    assert (sdl.balanceOf(multisig.address) >= amount_to_send)
+    starting_balance = sdl.balanceOf(multisig.address)
+    assert (starting_balance >= amount_to_send)
 
     # approve bridge
     sdl.approve(
@@ -50,6 +51,7 @@ def main():
         l2gas,                                      # _l2gas
         "0x",                                       # _data
     )
+    assert(sdl.balanceOf(multisig.address) == starting_balance - amount_to_send), "SDL was not sent"
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
