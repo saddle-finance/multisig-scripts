@@ -4,7 +4,8 @@ from helpers import (
     MINICHEF_ADDRESSES,
     MULTISIG_ADDRESSES,
     SDL_ADDRESSES,
-    OPTIMISM_STANDARD_BRIDGE
+    OPTIMISM_STANDARD_BRIDGE,
+    SDL_MINTER_ADDRESS
 )
 from ape_safe import ApeSafe
 from brownie import accounts, network
@@ -15,7 +16,7 @@ TARGET_NETWORK = "MAINNET"
 
 
 def main():
-    """Sends one week worth of emissions of SDL to Optimism minichef """
+    """Sends 500k SDL to Optimism minichef and 5kk SDL to minter """
 
     print(f"You are using the '{network.show_active()}' network")
     assert network.chain.id == CHAIN_IDS[TARGET_NETWORK], f"Not on {TARGET_NETWORK}"
@@ -25,6 +26,8 @@ def main():
     optimism_L1_standard_bridge = multisig.contract(
         OPTIMISM_STANDARD_BRIDGE[CHAIN_IDS[TARGET_NETWORK]]
     )
+
+    ##### Send 500k SDL to Optimism Minichef #####
 
     # 500k SDL ~= 16 days worth of emissions at 59.3k per day for side chains
     # and 53% of that for Optimism
@@ -51,7 +54,24 @@ def main():
         l2gas,                                      # _l2gas
         "0x",                                       # _data
     )
-    assert(sdl.balanceOf(multisig.address) == starting_balance - amount_to_send), "SDL was not sent"
+    assert (sdl.balanceOf(multisig.address) ==
+            starting_balance - amount_to_send), "SDL was not sent"
+
+    ##### Send 5kk SDL to Minter #####
+
+    # Target address
+    minter_address = SDL_MINTER_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
+
+    # The amount to send to minter
+    amount_to_send = 5_000_000 * 1e18
+    starting_balance = sdl.balanceOf(multisig.address)
+    assert (starting_balance >= amount_to_send)
+
+    # Send sdl to minter
+    sdl.transfer(minter_address, amount_to_send)
+
+    assert (sdl.balanceOf(multisig.address) ==
+            starting_balance - amount_to_send), "SDL was not sent"
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
