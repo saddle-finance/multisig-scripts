@@ -248,9 +248,10 @@ def main():
     # capture and log token balances of msig after claiming and burning
     token_balances_after = {}
     for token_address in token_addresses:
-        symbol = Contract.from_abi(
+        token_contract = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
-        ).symbol()
+        )
+        symbol = token_contract.symbol()
         token_balances_after[token_address] = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
         ).balanceOf(multisig.address)
@@ -357,10 +358,11 @@ def main():
             token_balances_before[token_from]
         sqrt_price_limit_X96 = 0
 
-        # getting min amounts
         token_contract = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
         )
+
+        # getting min amounts
         print(
             f"Getting quote for ${token_contract.symbol()}"
         )
@@ -376,6 +378,7 @@ def main():
             f"Quote for ${token_contract.symbol()}: {amount_out_min / (10 ** token_contract.decimals())}"
         )
 
+        # input struct for univ3 swap
         params = (
             token_from,
             token_to,
@@ -427,7 +430,7 @@ def main():
 
     # TODO: Buy ETH + SDL with USDC
     # TODO: LP in Sushi pool
-    # TODO: Send SLP to multisig
+    # TODO: Send SLP to fee distributor
 
     # combine history into multisend txn
     # TODO: set 'safe_nonce'
