@@ -255,7 +255,7 @@ def main():
             "ERC20", token_address, ERC20_ABI
         ).balanceOf(multisig.address)
         print(
-            f"Balance of {symbol} after claiming: {token_balances_after[token_address]}"
+            f"Balance of {symbol} after claiming: {token_balances_after[token_address] / (10 ** token_contract.decimals())}"
         )
 
     # log claimed amounts
@@ -325,7 +325,7 @@ def main():
                 "ERC20", token_address, ERC20_ABI
             )
             print(
-                f"Approving swap for ${token_contract.symbol()} {amount_to_swap}"
+                f"Approving swap for ${token_contract.symbol()} {amount_to_swap / (10 ** token_contract.decimals())}"
             )
             token_contract.approve(
                 swap_address,
@@ -335,7 +335,7 @@ def main():
 
             # perform swap
             print(
-                f"Swapping {amount_to_swap / (10 ** token_contract.decimals())} {token_contract.symbol()} to USDC"
+                f"Swapping {amount_to_swap / (10 ** token_contract.decimals())} ${token_contract.symbol()} to $USDC"
             )
             swap.swap(
                 token_index_from,
@@ -357,6 +357,13 @@ def main():
             token_balances_before[token_from]
         sqrt_price_limit_X96 = 0
 
+        # getting min amounts
+        token_contract = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        )
+        print(
+            f"Getting quote for ${token_contract.symbol()}"
+        )
         amount_out_min = univ3_quoter.quoteExactInputSingle(
             token_from,
             token_to,
@@ -364,6 +371,9 @@ def main():
             amount_in,
             sqrt_price_limit_X96,
             {"from": multisig.address}
+        ).return_value
+        print(
+            f"Quote for ${token_contract.symbol()}: {amount_out_min / (10 ** token_contract.decimals())}"
         )
 
         params = (
@@ -378,6 +388,9 @@ def main():
         )
 
         # approve Univ3 router
+        print(
+            f"Approve UniV3 router for ${token_contract.symbol()} {amount_in / (10 ** token_contract.decimals())}"
+        )
         token_contract = Contract.from_abi("ERC20", token_address, ERC20_ABI)
         token_contract.approve(
             UNIV3_ROUTER,
@@ -386,6 +399,9 @@ def main():
         )
 
         # swap using univ3
+        print(
+            f"Swap {amount_in / (10 ** token_contract.decimals())} ${token_contract.symbol()} for $USDC on UniV3"
+        )
         univ3_router.exactInputSingle(
             params,
             {"from": multisig.address}
