@@ -2,7 +2,7 @@ import math
 
 from ape_safe import ApeSafe
 from brownie import Contract, accounts, network
-from helpers import CHAIN_IDS, GAUGE_ABI, GAUGE_CONTROLLER_ADDRESS, MULTISIG_ADDRESSES
+from helpers import CHAIN_IDS, DEPLOYER_ADDRESS, GAUGE_ABI, GAUGE_CONTROLLER_ADDRESS, MINICHEF_ADDRESSES, MULTISIG_ADDRESSES, OPTIMISM_STANDARD_BRIDGE, SDL_ADDRESSES, SDL_MINTER_ADDRESS
 
 from scripts.utils import confirm_posting_transaction
 
@@ -11,6 +11,7 @@ def main():
     """
     Set Gauge weights for week 09_01_2022 -> 09_08_2022 from results of snapshot vote
     Vote: https://snapshot.org/#/saddlefinance.eth/proposal/0x9c10d4850750b2aa1e377502fa9e6cfbc276ca7dfa5da18190d4bc7f9f7328d9
+    Sends SDL to minter for gauge emissions and deployer for Optimism's minichef emissions
     """
     TARGET_NETWORK = "MAINNET"
 
@@ -63,6 +64,36 @@ def main():
     assert (
         9999 <= total_weight <= 10000
     ), f"Total weight must be 10000 but is {total_weight}"
+
+    ##### Send 500k SDL to Optimism Minichef #####
+
+    sdl = multisig.contract(SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
+
+    # 500k SDL ~= 16 days worth of emissions at 59.3k per day for side chains
+    # and 53% of that for Optimism
+    amount_to_send_to_deployer = 500_000 * 1e18
+    starting_balance = sdl.balanceOf(multisig.address)
+    assert (starting_balance >= amount_to_send_to_deployer)
+
+    sdl.transfer(DEPLOYER_ADDRESS, amount_to_send_to_deployer)
+    assert (sdl.balanceOf(multisig.address) ==
+            starting_balance - amount_to_send_to_deployer), "SDL was not sent"
+
+    ##### Send 5kk SDL to Minter #####
+
+    # Target address
+    minter_address = SDL_MINTER_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
+
+    # The amount to send to minter
+    amount_to_send_to_minter = 5_000_000 * 1e18
+    starting_balance = sdl.balanceOf(multisig.address)
+    assert (starting_balance >= amount_to_send_to_minter)
+
+    # Send sdl to minter
+    sdl.transfer(minter_address, amount_to_send_to_minter)
+
+    assert (sdl.balanceOf(multisig.address) ==
+            starting_balance - amount_to_send_to_minter), "SDL was not sent"
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
