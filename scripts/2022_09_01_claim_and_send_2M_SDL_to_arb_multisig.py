@@ -1,7 +1,7 @@
 import eth_abi
 from ape_safe import ApeSafe
 from brownie import Contract, accounts, network
-from helpers import (ARBITRUM_L2_BRIDGE_ROUTER, CHAIN_IDS, MULTISIG_ADDRESSES,
+from helpers import (ARBITRUM_L2_BRIDGE_ROUTER, CHAIN_IDS, DEPLOYER_ADDRESS, MULTISIG_ADDRESSES,
                      SDL_ADDRESSES, SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS)
 
 from scripts.utils import confirm_posting_transaction
@@ -21,51 +21,19 @@ def main():
     sdl_vesting_contract_proxy = multisig.contract(
         SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
     )
-    arbitrum_l2_bridge_router = multisig.contract(
-        ARBITRUM_L2_BRIDGE_ROUTER[CHAIN_IDS[TARGET_NETWORK]])
 
-    # release vested tokens to multisig account
+    # Release vested tokens to multisig account
     sdl_vesting_contract_proxy.release()
+ 
+    # Send 2M SDL to deployer to bridge to arbitrum multisig
+    sdl_contract.transfer(DEPLOYER_ADDRESS, 2_000_000 * 1e18)
+    assert(sdl_contract.balanceOf(DEPLOYER_ADDRESS) == 2_000_000 * 1e18)
 
-    # bridge some to arbitrum multisig
-    amount_to_arb_multisig = 1 * 1e18
-    gas_limit_l2 = 1000000
-    gas_price_l2 = 990000000
-    max_submisstion_cost_l2 = 10000000000000
-
-    # Using msg.value that is less or more will cause the tx to revert
-    value = gas_limit_l2 * gas_price_l2 + max_submisstion_cost_l2
-
-    # get multisig address on arbitrum network
-    arb_multisig_address = MULTISIG_ADDRESSES[CHAIN_IDS["ARBITRUM"]]
-    sdl_gateway_address = arbitrum_l2_bridge_router.getGateway(sdl_contract.address)
-
-    # Approve SDL to be taken by the gateway for SDL
-    sdl_contract.approve(sdl_gateway_address, amount_to_arb_multisig)
-
-    # Encode data
-    arb_encoded = (
-        "0x"
-        + eth_abi.encode_abi(["uint256", "bytes32[]"],
-                             [max_submisstion_cost_l2, []]).hex()
-    )
-
-    # Bridge to arbitrum
-    arbitrum_l2_bridge_router.outboundTransfer(
-        sdl_contract.address,
-        arb_multisig_address,
-        amount_to_arb_multisig,
-        gas_limit_l2,
-        gas_price_l2,
-        arb_encoded,
-        {"value": value},
-    )
-
-    # combine history into multisend txn
+    # Combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
     safe_tx.safe_nonce = 59
 
-    # sign with private key
+    # Sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)
     multisig.preview(safe_tx)
 
