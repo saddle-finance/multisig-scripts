@@ -76,23 +76,26 @@ def main():
         "0xEB4C2781e4ebA804CE9a9803C67d0893436bB27D": (WBTC_MAINNET, "0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2"),
         # sBTC : wBTC
         "0xfE18be6b3Bd88A2D2A7f928d00292E7a9963CfC6": (WBTC_MAINNET, "0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2"),
-
-        # Excluded:
-        # alETH
-        # sETH
+        # tBTC : wBTC
+        "0x18084fbA666a33d37592fA2633fD49a74DD93a88": (WBTC_MAINNET, "0xfa9ED0309Bf79Eb84C847819F0B3CB84F6d351Af"),
+        # alETH : WETH
+        "0x0100546F2cD4C9D97f798fFC9755E47865FF7Ee6": (WETH_MAINNET, "0xa6018520EAACC06C30fF2e1B3ee2c7c22e64196a"),
+        # sETH : WETH
+        "0x5e74C9036fb86BD7eCdcb084a0673EFc32eA31cb": (WETH_MAINNET, "0xa6018520EAACC06C30fF2e1B3ee2c7c22e64196a"),
     }
 
     # token_from -> token_to dict, for using UniswapV3
     token_to_token_univ3_dict = {
         # LUSD : USDC
         "0x5f98805A4E8be255a32880FDeC7F6728C6568bA0": USDC_MAINNET,
-        # FEI : USDC
-        "0x956F47F50A910163D8BF957Cf5846D573E7f87CA": USDC_MAINNET,
         # WBTC : USDC
         WBTC_MAINNET: USDC_MAINNET,
         # WETH : USDC
         WETH_MAINNET: USDC_MAINNET,
+        # FEI : USDC (skipped temporarily due to not getting a quote from UniV3)
+        # "0x956F47F50A910163D8BF957Cf5846D573E7f87CA": USDC_MAINNET,
     }
+
     # swap -> metaswapDeposit dict
     swap_to_deposit_dict = {
         # FraxBP Pool
@@ -127,7 +130,7 @@ def main():
 
     # comprehend set of underlying tokens used by pools on that chain
     token_addresses = set()
-    base_LP_addresses = set()
+    #base_LP_addresses = set()
     for swap_address in swap_to_deposit_dict:
         swap_contract = Contract.from_abi("Swap", swap_address, SWAP_ABI)
         if swap_to_deposit_dict[swap_address] == "":  # base pool
@@ -139,19 +142,21 @@ def main():
         else:  # metapool
             # first token in metapool is non-base-pool token
             token_addresses.add(swap_contract.getToken(0))
-            base_LP_addresses.add(swap_contract.getToken(1))
+            # base_LP_addresses.add(swap_contract.getToken(1))
 
     # capture and log token balances of msig before claiming
     token_balances_before = {}
     for token_address in token_addresses:
-        symbol = Contract.from_abi(
+        token_contract = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
-        ).symbol()
-        token_balances_before[token_address] = Contract.from_abi(
-            "ERC20", token_address, ERC20_ABI
-        ).balanceOf(multisig.address)
+        )
+        symbol = token_contract.symbol()
+        token_balances_before[token_address] = token_contract.balanceOf(
+            multisig.address
+        )
+        decimals = token_contract.decimals()
         print(
-            f"Balance of {symbol} before claiming: {token_balances_before[token_address]}"
+            f"Balance of {symbol} before claiming: {token_balances_before[token_address] / 10**decimals}"
         )
 
     # execute txs for claiming admin fees
@@ -188,38 +193,6 @@ def main():
                 base_swap = Contract.from_abi(
                     "BaseSwap", base_swap_address, SWAP_ABI
                 )
-                # make exception for alETH pool, due to low liq of underlyings.
-                # burn 100% liq for WETH
-                if base_pool_LP_contract.symbol() == "saddlealETH":
-                    # burn to WETH
-                    token_index_to = base_swap.getTokenIndex(WETH_MAINNET)
-                    # calculate min amounts to receive
-                    min_amount = base_swap.calculateRemoveLiquidityOneToken(
-                        LP_balance,
-                        token_index_to
-                    )
-                    # approve amount to burn
-                    print(
-                        f"Approving base pool for {base_pool_LP_contract.symbol()} {LP_balance}"
-                    )
-                    base_pool_LP_contract.approve(
-                        base_swap,
-                        LP_balance,
-                        {"from": multisig.address}
-                    )
-                    # burn LP token
-                    print(
-                        f"Burning {LP_balance} {base_pool_LP_contract.symbol()} for WETH"
-                    )
-                    deadline = chain[chain.height].timestamp + 10 * 60
-                    base_swap.removeLiquidityOneToken(
-                        LP_balance,
-                        token_index_to,
-                        min_amount,
-                        deadline,
-                        {"from": multisig.address}
-                    )
-                    continue
                 # calculate min amounts to receive
                 min_amounts = base_swap.calculateRemoveLiquidity(
                     LP_balance
@@ -246,17 +219,20 @@ def main():
                 )
 
     # capture and log token balances of msig after claiming and burning
-    token_balances_after = {}
+    print(
+        f"Balances of tokens after claiming and burning:"
+    )
+    token_balances_after_claim_burn = {}
     for token_address in token_addresses:
         token_contract = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
         )
         symbol = token_contract.symbol()
-        token_balances_after[token_address] = Contract.from_abi(
+        token_balances_after_claim_burn[token_address] = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
         ).balanceOf(multisig.address)
         print(
-            f"Balance of {symbol} after claiming: {token_balances_after[token_address] / (10 ** token_contract.decimals())}"
+            f"Balance of {symbol}: {token_balances_after_claim_burn[token_address] / (10 ** token_contract.decimals())}"
         )
 
     # log claimed amounts
@@ -265,13 +241,13 @@ def main():
             "ERC20", token_address, ERC20_ABI
         ).symbol()
         print(
-            f"Claimed {symbol}: {(token_balances_after[token_address] - token_balances_before[token_address])}"
+            f"Claimed {symbol}: {(token_balances_after_claim_burn[token_address] - token_balances_before[token_address])}"
         )
 
-    # swap all tokens that a are swappable via Saddle to USDC
+    # swap all tokens that a are swappable via Saddle to USDC/WBTC/WETH
     for token_address in token_to_swap_dict_saddle.keys():
         # amount to swap
-        amount_to_swap = token_balances_after[token_address] - \
+        amount_to_swap = token_balances_after_claim_burn[token_address] - \
             token_balances_before[token_address]
 
         # skip if no fees were claimed
@@ -336,7 +312,7 @@ def main():
 
             # perform swap
             print(
-                f"Swapping {amount_to_swap / (10 ** token_contract.decimals())} ${token_contract.symbol()} to $USDC"
+                f"Swapping {amount_to_swap / (10 ** token_contract.decimals())} ${token_contract.symbol()} to $USDC (or wBTC or wETH)"
             )
             swap.swap(
                 token_index_from,
@@ -347,6 +323,24 @@ def main():
                 {"from": multisig.address}
             )
 
+    # capture and log token balances of msig
+    # after claiming, burning and swapping via saddle
+    print(
+        f"Balances of tokens after claiming, burning, swapping via saddle"
+    )
+    token_balances_after_saddle_swap = {}
+    for token_address in token_addresses:
+        token_contract = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        )
+        symbol = token_contract.symbol()
+        token_balances_after_saddle_swap[token_address] = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        ).balanceOf(multisig.address)
+        print(
+            f"Balance of {symbol}: {token_balances_after_saddle_swap[token_address] / (10 ** token_contract.decimals())}"
+        )
+
     # swap all remaining tokens that are not USDC into USDC via UniswapV3
     for token_address in token_to_token_univ3_dict.keys():
         token_from = token_address
@@ -354,7 +348,7 @@ def main():
         fee = 500
         recipient = multisig.address
         deadline = chain[chain.height].timestamp + 10 * 60
-        amount_in = token_balances_after[token_from] - \
+        amount_in = token_balances_after_saddle_swap[token_from] - \
             token_balances_before[token_from]
         sqrt_price_limit_X96 = 0
 
@@ -412,7 +406,7 @@ def main():
 
     # capture and log token balances of msig after claiming and burning
     print(
-        f"Final balances after claiming, burning, swapping"
+        f"Final balances of tokens after claiming, burning, swapping via saddle and UniswapV3:"
     )
     token_balances_final = {}
     for token_address in token_addresses:
