@@ -63,7 +63,7 @@ def main():
     minichef.set(5, 0, ZERO_ADDRESS, False, {"from": deployer})
     assert minichef.poolInfo(5)[2] == 0
 
-    # 5.27% for Optimism: optSaddle3pool - FRAX
+    # 5.27% for Optimism: optUSD - FRAX
     assert minichef.lpToken(2) == "0xfF5fa61Eb9b5cDD63bdFa16EF029d5313457925A"
     minichef.set(2, 527, ZERO_ADDRESS, False, {"from": deployer})
     assert minichef.poolInfo(2)[2] == 527
