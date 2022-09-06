@@ -65,6 +65,13 @@ def main():
         9999 <= total_weight <= 10000
     ), f"Total weight must be 10000 but is {total_weight}"
 
+    """
+    Sends 2,600,000 SDL for institutional marketing support
+    """
+
+    sdl = multisig.contract(SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
+    sdl.transfer("0x17a069f6e16d8155568594e9539b0d8136c8a4ae", 2_600_000 * 1e18)
+
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
     safe_tx.safe_nonce = 60
