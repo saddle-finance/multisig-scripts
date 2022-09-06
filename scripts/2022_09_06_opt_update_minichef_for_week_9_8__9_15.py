@@ -12,16 +12,15 @@ from brownie import ZERO_ADDRESS, Contract, accounts, network
 
 # from scripts.utils import confirm_posting_transaction
 
+TARGET_NETWORK = "OPTIMISM"
+
 
 def main():
     """
-    Updates Arbitrum pool and minichef parameters on Arbitrum network
-    https://snapshot.org/#/saddlefinance.eth/proposal/0xe32db5de6b40e46617ea2e39552d8a1f1485bc86eeb2fa7bc89205f2156c0939
+    Updates Optimism pool and minichef parameters on Optimism network for week 9/8 - 9/15
+    https://snapshot.org/#/saddlefinance.eth/proposal/0xef72a1f21f2d9235f85d2b9724c193cd671c8583290b19387d6407608392f2d6
 
     """
-
-    TARGET_NETWORK = "OPTIMISM"
-
     print(f"You are using the '{network.show_active()}' network")
     assert (
         network.chain.id == CHAIN_IDS[TARGET_NETWORK]
