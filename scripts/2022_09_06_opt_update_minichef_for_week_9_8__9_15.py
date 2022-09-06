@@ -38,7 +38,7 @@ def main():
 
     # minichef = Contract.from_abi(MINICHEF_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
-    # 38.33% for Optimism: FraxBP
+    # 37.20% for Optimism: FraxBP
     assert minichef.lpToken(1) == "0xf74ebe6e5586275dc4CeD78F5DBEF31B1EfbE7a5"
     minichef.set(1, 3720, ZERO_ADDRESS, False, {"from": deployer})
     assert minichef.poolInfo(1)[2] == 3720
@@ -48,27 +48,27 @@ def main():
     minichef.set(6, 0, ZERO_ADDRESS, False, {"from": deployer})
     assert minichef.poolInfo(6)[2] == 0
 
-    # 4.93% for Optimism: Frax-USDT
+    # 4.89% for Optimism: Frax-USDT
     assert minichef.lpToken(3) == "0xb63d7B0D835ca6eFf89ab774498ed6dD0D71e93e"
     minichef.set(3, 489, ZERO_ADDRESS, False, {"from": deployer})
     assert minichef.poolInfo(3)[2] == 489
 
-    # 4.93% for Optimism: Frax-SUSD
+    # 4.89% for Optimism: Frax-SUSD
     assert minichef.lpToken(4) == "0x205c9B8c1fCa803B779b1eB4B887Aa0E00FE629F"
     minichef.set(4, 489, ZERO_ADDRESS, False, {"from": deployer})
     assert minichef.poolInfo(4)[2] == 489
 
-    # 0.02% for Optimism: optUSD
+    # 0.00% for Optimism: optUSD
     assert minichef.lpToken(5) == "0xcCf860874cbF2d615192a4C4455580B4d622D3B9"
     minichef.set(5, 0, ZERO_ADDRESS, False, {"from": deployer})
     assert minichef.poolInfo(5)[2] == 0
 
-    # 4.93% for Optimism: optSaddle3pool - FRAX
+    # 5.27% for Optimism: optSaddle3pool - FRAX
     assert minichef.lpToken(2) == "0xfF5fa61Eb9b5cDD63bdFa16EF029d5313457925A"
     minichef.set(2, 527, ZERO_ADDRESS, False, {"from": deployer})
     assert minichef.poolInfo(2)[2] == 527
 
-    # Total allocation is 53.14% for Arbitrum
+    # Total allocation is 52.25% for Arbitrum
 
     assert minichef.totalAllocPoint() == 5225
 
