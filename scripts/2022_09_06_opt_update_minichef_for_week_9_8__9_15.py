@@ -40,7 +40,7 @@ def main():
 
     # mass update pools to checkpoint existing stakers
     pids = [1, 2, 3, 4, 5]
-    minichef.massUpdatePools(pids)
+    minichef.massUpdatePools(pids, {"from": deployer})
 
     # 37.20% for Optimism: FraxBP
     assert minichef.lpToken(1) == "0xf74ebe6e5586275dc4CeD78F5DBEF31B1EfbE7a5"
