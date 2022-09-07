@@ -63,7 +63,7 @@ def main():
     assert minichef.lpToken(7) == "0x0a20c2FFa10cD43F67D06170422505b7D6fC0953"
     minichef.set(7, 0, ZERO_ADDRESS, False)
 
-    # Total allocation is 46.85% for Arbitrum
+    # Total allocation is 47.76% for Arbitrum
     assert minichef.totalAllocPoint() == 4776
 
     new_rate = math.floor(SIDECHAIN_TOTAL_EMISSION_RATE * 4776 / 10000)
