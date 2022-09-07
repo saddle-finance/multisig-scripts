@@ -38,6 +38,10 @@ def main():
 
     # minichef = Contract.from_abi(MINICHEF_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
+    # mass update pools to checkpoint existing stakers
+    pids = [1, 2, 3, 4, 5]
+    minichef.massUpdatePools(pids)
+
     # 37.20% for Optimism: FraxBP
     assert minichef.lpToken(1) == "0xf74ebe6e5586275dc4CeD78F5DBEF31B1EfbE7a5"
     minichef.set(1, 3720, ZERO_ADDRESS, False, {"from": deployer})

@@ -31,6 +31,10 @@ def main():
 
     minichef = multisig.contract(MINICHEF_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
+    # mass update pools to checkpoint existing stakers
+    pids = [1, 2, 3, 4, 5, 6, 7]
+    minichef.massUpdatePools(pids)
+
     # 0.00% for saddleArbUSD
     assert minichef.lpToken(1) == "0xc969dD0A7AB0F8a0C5A69C0839dB39b6C928bC08"
     minichef.set(1, 0, ZERO_ADDRESS, False)
