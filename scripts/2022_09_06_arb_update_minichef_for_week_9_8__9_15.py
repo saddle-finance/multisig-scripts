@@ -43,15 +43,15 @@ def main():
     assert minichef.lpToken(2) == "0xa815b134294580692482E321dD1A191aC1454192"
     minichef.set(2, 0, ZERO_ADDRESS, False)
 
-    # 36.99% saddleFraxBP
+    # 37.22% saddleFraxBP
     assert minichef.lpToken(3) == "0x896935B02D3cBEb152192774e4F1991bb1D2ED3f"
     minichef.set(3, 3722, ZERO_ADDRESS, False)
 
-    # 4.93% saddleFraxUSDT
+    # 5.27% saddleFraxUSDT
     assert minichef.lpToken(4) == "0x166680852ae9Dec3d63374c5eBf89E974448BFE9"
     minichef.set(4, 527, ZERO_ADDRESS, False)
 
-    # 4.93% saddleFraxUSDs
+    # 5.27% saddleFraxUSDs
     assert minichef.lpToken(5) == "0x1e491122f3C096392b40a4EA27aa1a29360d38a1"
     minichef.set(5, 527, ZERO_ADDRESS, False)
 
