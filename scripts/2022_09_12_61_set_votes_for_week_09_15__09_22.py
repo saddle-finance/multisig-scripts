@@ -11,6 +11,7 @@ from helpers import (
     MULTISIG_ADDRESSES,
     OPTIMISM_STANDARD_BRIDGE,
     SDL_ADDRESSES,
+    SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS,
     SDL_MINTER_ADDRESS,
 )
 
@@ -30,7 +31,54 @@ def main():
     multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
     gauge_controller = multisig.contract(GAUGE_CONTROLLER_ADDRESS[CHAIN_IDS["MAINNET"]])
+    sdl = multisig.contract(SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
+    optimism_L1_standard_bridge = multisig.contract(
+        OPTIMISM_STANDARD_BRIDGE[CHAIN_IDS[TARGET_NETWORK]]
+    )
 
+    sdl_vesting_contract_proxy = multisig.contract(
+        SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
+    )
+
+    # 1M SDL to sent to optimism & abritrum minichef
+    # Current emmission rate is ~ 59.3k SDL per day
+    # assuming current gauge weights distributed around 50% for both networks this will fund around 33 days of emmissions
+    amount_to_send = 1_000_000 * 1e18
+
+    # Release vested tokens to multisig account
+    sdl_vesting_contract_proxy.release()
+
+    # Send 1M SDL to deployer to bridge to arbitrum multisig
+    sdl.transfer(DEPLOYER_ADDRESS, 1_000_000 * 1e18)
+    assert sdl.balanceOf(DEPLOYER_ADDRESS) >= 1_000_000 * 1e18
+
+    starting_balance = sdl.balanceOf(DEPLOYER_ADDRESS)
+    assert starting_balance >= amount_to_send
+
+    # approve bridge
+    deployer = accounts.load("deployer")  # prompts for password
+    sdl.approve(optimism_L1_standard_bridge.address, amount_to_send, {"from": deployer})
+
+    # gas limit required to complete the deposit on L2
+    l2gas = "0x1e8480"  # 2,000,000
+
+    # Optimism bride code https://etherscan.io/address/0x40e0c049f4671846e9cff93aaed88f2b48e527bb#code
+    # send to Optimism minichef
+    optimism_L1_standard_bridge.depositERC20To(
+        SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],  # _l1token
+        SDL_ADDRESSES[CHAIN_IDS["OPTIMISM"]],  # _l2token
+        MINICHEF_ADDRESSES[CHAIN_IDS["OPTIMISM"]],  # _to
+        amount_to_send,  # _amount
+        l2gas,  # _l2gas
+        "0x",  # _data
+        {"from": deployer},
+    )
+
+    assert (
+        sdl.balanceOf(deployer.address) == starting_balance - amount_to_send
+    ), "SDL was not sent"
+
+    # update gauge weights accordin to snapshot
     gauge_to_relative_weight_dict = {
         "0xB2Ac3382dA625eb41Fc803b57743f941a484e2a6": 7017,  # FRAXBP Pool
         "0xc64F8A9fe7BabecA66D3997C9d15558BF4817bE3": 977,  # Sushi SDL/WETH
@@ -71,15 +119,15 @@ def main():
 
     total_weight = gauge_controller.get_total_weight() // 1e18
     assert (
-        9999 <= total_weight <= 10000
+        9999 <= total_weight <= 10001
     ), f"Total weight must be 10000 but is {total_weight}"
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
-    safe_tx.safe_nonce = 60
+    safe_tx.safe_nonce = 61
 
     # sign with private key
-    safe_tx.sign(accounts.load("deployer").private_key)
+    safe_tx.sign(deployer.private_key)
     multisig.preview(safe_tx)
 
     confirm_posting_transaction(multisig, safe_tx)
