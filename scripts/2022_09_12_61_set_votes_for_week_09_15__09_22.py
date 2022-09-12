@@ -41,12 +41,12 @@ def main():
     # 1M SDL to sent to optimism & abritrum minichef
     # Current emission rate is ~ 59.3k SDL per day
     # assuming current gauge weights distributed around 50% for both networks this will fund around 16-17 days of emissions
-    amount_to_send = 2_000_000 * 1e18
+    amount_to_send = 1_000_000 * 1e18
 
     # Release vested tokens to multisig account
     sdl_vesting_contract_proxy.release()
 
-    # Send 2M SDL to deployer to bridge to optimism & arbitrum multisig
+    # Send 1M SDL to deployer to bridge to optimism & arbitrum multisig
     sdl.transfer(DEPLOYER_ADDRESS, amount_to_send)
     assert sdl.balanceOf(DEPLOYER_ADDRESS) >= amount_to_send
 

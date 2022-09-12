@@ -15,7 +15,7 @@ TARGET_NETWORK = "MAINNET"
 
 
 def main():
-    """Sends one week worth of emissions of SDL to Optimism minichef"""
+    """Sends 500k of SDL to Optimism minichef"""
 
     print(f"You are using the '{network.show_active()}' network")
 
@@ -27,8 +27,8 @@ def main():
         OPTIMISM_STANDARD_BRIDGE[CHAIN_IDS[TARGET_NETWORK]]
     )
 
-    # 1M SDL
-    amount_to_send = 1_000_000 * 1e18
+    # 500k SDL
+    amount_to_send = 500_000 * 1e18
 
     starting_balance = sdl.balanceOf(deployer.address)
     assert starting_balance >= amount_to_send
