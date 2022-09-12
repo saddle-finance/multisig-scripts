@@ -51,7 +51,7 @@ def main():
 
     total_weight = sum(gauge_to_relative_weight_dict.values())
     assert (
-        9999 <= total_weight <= 10000
+        9999 <= total_weight <= 10001
     ), f"Total weight must be 10000 but is {total_weight}"
 
     # print out details first to confirm the we are setting gauge weights correctly
