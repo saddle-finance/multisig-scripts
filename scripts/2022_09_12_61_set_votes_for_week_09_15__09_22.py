@@ -24,6 +24,7 @@ def main():
     """
     Set Gauge weights for week 09_08_2022 -> 09_15_2022 from results of snapshot vote
     Vote: https://snapshot.org/#/saddlefinance.eth/proposal/0xbd02291deb8b2156d0642b27049902f8e884b76b697202bd9f5bce5ac02c3f3b
+    Claim vesting rewards and sent to optimism multisig and deployer account to bridge to arbitrum multisig
     """
 
     print(f"You are using the '{network.show_active()}' network")
@@ -42,15 +43,15 @@ def main():
 
     # 1M SDL to sent to optimism & abritrum minichef
     # Current emission rate is ~ 59.3k SDL per day
-    # assuming current gauge weights distributed around 50% for both networks this will fund around 33 days of emissions
+    # assuming current gauge weights distributed around 50% for both networks this will fund around 16-17 days of emissions
     amount_to_send = 1_000_000 * 1e18
 
     # Release vested tokens to multisig account
     sdl_vesting_contract_proxy.release()
 
     # Send 1M SDL to deployer to bridge to arbitrum multisig
-    sdl.transfer(DEPLOYER_ADDRESS, 1_000_000 * 1e18)
-    assert sdl.balanceOf(DEPLOYER_ADDRESS) >= 1_000_000 * 1e18
+    sdl.transfer(DEPLOYER_ADDRESS, amount_to_send)
+    assert sdl.balanceOf(DEPLOYER_ADDRESS) >= amount_to_send
 
     starting_balance = sdl.balanceOf(DEPLOYER_ADDRESS)
     assert starting_balance >= amount_to_send
