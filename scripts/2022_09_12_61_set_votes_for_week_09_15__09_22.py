@@ -33,9 +33,6 @@ def main():
 
     gauge_controller = multisig.contract(GAUGE_CONTROLLER_ADDRESS[CHAIN_IDS["MAINNET"]])
     sdl = multisig.contract(SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
-    optimism_L1_standard_bridge = multisig.contract(
-        OPTIMISM_STANDARD_BRIDGE[CHAIN_IDS[TARGET_NETWORK]]
-    )
 
     sdl_vesting_contract_proxy = multisig.contract(
         SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
@@ -44,40 +41,14 @@ def main():
     # 1M SDL to sent to optimism & abritrum minichef
     # Current emission rate is ~ 59.3k SDL per day
     # assuming current gauge weights distributed around 50% for both networks this will fund around 16-17 days of emissions
-    amount_to_send = 1_000_000 * 1e18
+    amount_to_send = 2_000_000 * 1e18
 
     # Release vested tokens to multisig account
     sdl_vesting_contract_proxy.release()
 
-    # Send 1M SDL to deployer to bridge to arbitrum multisig
+    # Send 2M SDL to deployer to bridge to optimism & arbitrum multisig
     sdl.transfer(DEPLOYER_ADDRESS, amount_to_send)
     assert sdl.balanceOf(DEPLOYER_ADDRESS) >= amount_to_send
-
-    starting_balance = sdl.balanceOf(DEPLOYER_ADDRESS)
-    assert starting_balance >= amount_to_send
-
-    # approve bridge
-    deployer = accounts.load("deployer")  # prompts for password
-    sdl.approve(optimism_L1_standard_bridge.address, amount_to_send, {"from": deployer})
-
-    # gas limit required to complete the deposit on L2
-    l2gas = "0x1e8480"  # 2,000,000
-
-    # Optimism bride code https://etherscan.io/address/0x40e0c049f4671846e9cff93aaed88f2b48e527bb#code
-    # send to Optimism minichef
-    optimism_L1_standard_bridge.depositERC20To(
-        SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],  # _l1token
-        SDL_ADDRESSES[CHAIN_IDS["OPTIMISM"]],  # _l2token
-        MINICHEF_ADDRESSES[CHAIN_IDS["OPTIMISM"]],  # _to
-        amount_to_send,  # _amount
-        l2gas,  # _l2gas
-        "0x",  # _data
-        {"from": deployer},
-    )
-
-    assert (
-        sdl.balanceOf(deployer.address) == starting_balance - amount_to_send
-    ), "SDL was not sent"
 
     # update gauge weights accordin to snapshot
     gauge_to_relative_weight_dict = {
@@ -128,7 +99,7 @@ def main():
     safe_tx.safe_nonce = 61
 
     # sign with private key
-    safe_tx.sign(deployer.private_key)
+    safe_tx.sign(accounts.load("deployer").private_key)
     multisig.preview(safe_tx)
 
     confirm_posting_transaction(multisig, safe_tx)
