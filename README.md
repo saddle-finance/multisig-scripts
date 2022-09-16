@@ -41,3 +41,14 @@ assert_filename(__file__)
 [ApeSafe](https://github.com/banteg/ape-safe)
 
 [Etherscan Cache](https://github.com/banteg/etherscan-cache) (optional)
+
+
+## Troubleshooting
+Blow up all deps and try again
+```sh
+git checkout origin/master requirements.txt
+pip uninstall -y -r <(pip freeze)
+pip install --no-deps -r requirements.txt
+npm uninstall ganache --global
+npm install ganache-cli --global
+```
