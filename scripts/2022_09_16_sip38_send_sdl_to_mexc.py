@@ -6,7 +6,7 @@ from scripts.utils import confirm_posting_transaction
 
 TARGET_NETWORK = "MAINNET"
 def main():
-    """Send 2.6m SDL to address for 'marketing'"""
+    """Send 1.5m SDL to address for 'marketing'"""
 
     print(f"You are using the '{network.show_active()}' network")
     assert(network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
@@ -18,8 +18,8 @@ def main():
 
     sdl_contract = multisig.contract(SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
     
-    # SIP38: Send 2.6M SDL to MEXC for marketing
-    sdl_contract.transfer("0xae8f210fd506d0b2b11cee452d42087b1dac9798", 2_600_000 * 1e18)
+    # SIP38: Send 1.5M SDL to MEXC for marketing
+    sdl_contract.transfer("0xae8f210fd506d0b2b11cee452d42087b1dac9798", 1_500_000 * 1e18)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
