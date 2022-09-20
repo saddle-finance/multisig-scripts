@@ -9,3 +9,5 @@ tests
 **/.DS_Store
 .env
 .hypothesis
+
+node_modules/
