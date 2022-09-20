@@ -1,9 +1,0 @@
-{
-  "devDependencies": {
-    "hardhat": "2.11.2",
-    "patch-package": "^6.4.7"
-  },
-  "scripts": {
-    "postinstall": "patch-package"
-  }
-}

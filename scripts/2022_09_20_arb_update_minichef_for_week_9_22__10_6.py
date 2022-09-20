@@ -20,12 +20,12 @@ def main():
     """
 
     print(f"You are using the '{network.show_active()}' network")
-    # assert (
-    #     network.chain.id == CHAIN_IDS[TARGET_NETWORK]
-    # ), f"Not on {TARGET_NETWORK} network"
+    assert (
+        network.chain.id == CHAIN_IDS[TARGET_NETWORK]
+    ), f"Not on {TARGET_NETWORK} network"
 
-    # Need to specify the base URL since hardhat chain ID cannot be changed from CLI
-    multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]], 'https://safe-transaction.arbitrum.gnosis.io')
+    deployer = accounts.load("deployer")  # prompts for password
+    multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
     ##### Update Minichef weights #####
 
@@ -67,7 +67,6 @@ def main():
     assert minichef.totalAllocPoint() == 3920
 
     new_rate = math.floor(SIDECHAIN_TOTAL_EMISSION_RATE * 3920 / 10000)
-    print(new_rate)
     minichef.setSaddlePerSecond(new_rate)
 
     assert minichef.saddlePerSecond() == new_rate
@@ -77,7 +76,7 @@ def main():
     safe_tx.safe_nonce = 10
 
     # sign with private key
-    safe_tx.sign(accounts.load("deployer").private_key)
+    safe_tx.sign(deployer.private_key)
     multisig.preview(safe_tx)
 
     confirm_posting_transaction(multisig, safe_tx)

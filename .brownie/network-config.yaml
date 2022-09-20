@@ -6,6 +6,7 @@ live:
         id: mainnet
         host: https://eth-mainnet.alchemyapi.io/v2/$ALCHEMY_KEY
         explorer: https://api.etherscan.io/api
+        # explorer: "http://localhost:9000/etherscan/api" # cache me outside
         multicall2: "0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696"
       - name: Ropsten (Infura)
         chainid: 3
@@ -47,14 +48,14 @@ live:
     networks:
       - name: Mainnet
         chainid: 42161
-        id: arb-main
-        host: https://rpc.ankr.com/arbitrum
+        id: arbitrum-main
+        host: https://arb1.arbitrum.io/rpc
         explorer: https://api.arbiscan.io/api
         multicall2: "0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858"
   - name: Avalanche
     networks:
       - chainid: 43114
-        explorer:  https://api.snowtrace.io/api
+        explorer: https://api.snowtrace.io/api
         host: https://api.avax.network/ext/bc/C/rpc
         id: avax-main
         name: Mainnet
@@ -74,6 +75,18 @@ live:
         id: bsc-main
         host: https://bsc-dataseed.binance.org
         explorer: https://api.bscscan.com/api
+  - name: Evmos
+    networks:
+      - name: Testnet
+        chainid: 9000
+        id: evmos-test
+        host: https://eth.bd.evmos.dev:8545
+        explorer: https://evm.evmos.dev/
+      - name: Mainnet
+        chainid: 9001
+        id: evmos-main
+        host: https://eth.bd.evmos.org:8545
+        explorer: https://evm.evmos.org/
   - name: Fantom Opera
     networks:
       - name: Testnet
@@ -119,20 +132,30 @@ live:
         id: xdai-test
         host: https://sokol.poa.network
         explorer: https://blockscout.com/poa/sokol/api
+  - name: Optimism
+    networks:
+      - name: Mainnet
+        chainid: 10
+        id: optimism-main
+        host: https://mainnet.optimism.io
+        explorer: https://api-optimistic.etherscan.io
+      - name: Testnet
+        chainid: 69
+        id: optimism-test
+        host: https://kovan.optimism.io
+        explorer: https://kovan-optimistic.etherscan.io/
   - name: Evmos
     networks:
       - name: Mainnet
         chainid: 9001
         id: evmos-main
         host: https://eth.bd.evmos.org:8545
-        explorer: https://evm.evmos.org/api
-        multicall2: "0x3A0c2A793a8DB779e0293699D0Ce77c77617FE0f"
+        explorer: https://evm.evmos.org
       - name: Testnet
         chainid: 9000
         id: evmos-test
         host: https://eth.bd.evmos.dev:8545
-        explorer: https://evm.evmos.dev/api
-
+        explorer: https://evm.evmos.dev/
 development:
   - name: Ganache-CLI
     id: development
@@ -165,15 +188,6 @@ development:
     cmd_settings:
       port: 8545
       fork: mainnet
-  - name: Hardhat (Arbitrum Mainnet Fork)
-    id: hardhat-arb-fork
-    chain_id: 1
-    cmd: npx hardhat node --fork-ignore-unknown-tx-type true
-    host: http://localhost
-    timeout: 120
-    cmd_settings:
-      port: 8545
-      fork: arb-main 
   - name: Ganache-CLI (Mainnet Fork)
     id: mainnet-fork
     cmd: ganache-cli
@@ -184,7 +198,7 @@ development:
       gas_limit: 12000000
       accounts: 10
       evm_version: istanbul
-      mnemonic: brownie
+      mnemonic: brownie2
       fork: mainnet
   - name: Ganache-CLI (BSC-Mainnet Fork)
     id: bsc-main-fork
@@ -211,7 +225,7 @@ development:
       mnemonic: brownie
       fork: ftm-main
   - name: Ganache-CLI (Arbitrum-Mainnet Fork)
-    id: arb-main-fork
+    id: arbitrum-main-fork
     cmd: ganache-cli
     host: http://127.0.0.1
     timeout: 120
@@ -221,7 +235,7 @@ development:
       accounts: 10
       evm_version: istanbul
       mnemonic: brownie
-      fork: arb-main
+      fork: arbitrum-main
   - name: Ganache-CLI (Polygon-Mainnet Fork)
     id: polygon-main-fork
     cmd: ganache-cli
@@ -258,15 +272,3 @@ development:
       evm_version: istanbul
       mnemonic: brownie
       fork: avax-main
-  - name: Ganache-CLI (Evmos-Mainnet Fork)
-    id: evmos-main-fork
-    cmd: ganache-cli
-    host: http://127.0.0.1
-    timeout: 120
-    cmd_settings:
-      port: 8545
-      gas_limit: 20000000
-      accounts: 10
-      evm_version: istanbul
-      mnemonic: brownie
-      fork: evmos-main
