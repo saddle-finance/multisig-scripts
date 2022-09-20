@@ -72,7 +72,7 @@ def main():
     minichef.set(2, 390, ZERO_ADDRESS, False, {"from": deployer})
     assert minichef.poolInfo(2)[2] == 390
 
-    # Total allocation is 52.25% for Arbitrum
+    # Total allocation is 60.78% for Arbitrum
 
     assert minichef.totalAllocPoint() == 6078
 
