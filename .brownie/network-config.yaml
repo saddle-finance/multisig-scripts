@@ -119,6 +119,18 @@ live:
         id: xdai-test
         host: https://sokol.poa.network
         explorer: https://blockscout.com/poa/sokol/api
+  - name: Optimism
+    networks:
+      - name: Mainnet
+        chainid: 10
+        id: optimism-main
+        host: https://mainnet.optimism.io
+        explorer: https://api-optimistic.etherscan.io/api
+      - name: Testnet
+        chainid: 69
+        id: optimism-test
+        host: https://kovan.optimism.io
+        explorer: https://kovan-optimistic.etherscan.io/api
   - name: Evmos
     networks:
       - name: Mainnet
