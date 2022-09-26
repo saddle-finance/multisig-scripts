@@ -9,6 +9,7 @@ CHAIN_IDS = {
     "HARDHAT": 31337,
     "ARBITRUM": 42161,
     "EVMOS": 9001,
+    "KAVA": 2222
 }
 
 DEPLOYER_ADDRESS = "0x5bdb37d0ddea3a90f233c7b7f6b9394b6b2eef34"
@@ -105,6 +106,7 @@ OPTIMISM_STANDARD_BRIDGE = {
 # 59,300 SDL/day in seconds
 SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
 
+
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
     filename = file.rsplit("/", 1)[1].split(".")[0]
@@ -134,7 +136,11 @@ def intersection(lst1, lst2):
     lst3 = [value for value in lst1 if value not in temp]
     return lst3
 
+
 VESTING_ABI = get_abi("Vesting")
 GAUGE_ABI = get_abi("Gauge")
 NOMAD_GATEWAY_ABI = get_abi("NomadRouterImpl")
 GNOSIS_SAFE_ABI = get_abi("GnosisSafeImpl")
+POOL_REGISTRY_ABI = get_abi("PoolRegistry")
+MINICHEF_ABI = get_abi("MiniChefV2")
+SWAP_FLASH_LOAN_ABI = get_abi("SwapFlashLoan")

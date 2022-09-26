@@ -144,6 +144,18 @@ live:
         id: evmos-test
         host: https://eth.bd.evmos.dev:8545
         explorer: https://evm.evmos.dev/api
+  - name: Kava
+    networks:
+      - name: Mainnet
+        chainid: 2222
+        id: kava-main
+        host: https://evm.kava.io
+        explorer: https://explorer.kava.io/api
+      - name: Testnet
+        chainid: 2221
+        id: kava-test
+        host: https://evm.testnet.kava.io
+        explorer: https://explorer.testnet.kava.io/api
 
 development:
   - name: Ganache-CLI
@@ -282,3 +294,15 @@ development:
       evm_version: istanbul
       mnemonic: brownie
       fork: evmos-main
+  - name: Ganache-CLI (Kava-Mainnet Fork)
+    id: kava-main-fork
+    cmd: ganache-cli
+    host: http://127.0.0.1
+    timeout: 120
+    cmd_settings:
+      port: 8545
+      gas_limit: 20000000
+      accounts: 10
+      evm_version: istanbul
+      mnemonic: brownie
+      fork: kava-main
