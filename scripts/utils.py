@@ -4,7 +4,7 @@ from pytest import console_main
 from ape_safe import ApeSafe
 from gnosis.safe.safe_tx import SafeTx
 from brownie import network
-from helpers import MULTISIG_ADDRESSES
+from helpers import ARB_BRIDGE_INBOX, ARB_GATEWAY_ROUTER, CHAIN_IDS, MULTISIG_ADDRESSES
 import urllib.request
 import json
 
@@ -78,3 +78,28 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
             should_post = click.confirm(
                 f"Post this gnosis safe transaction to {safe.address} on {safe.base_url}?"
             )
+
+
+def bridge_to_arbitrum(safe: ApeSafe, token_address: str, amount: int):
+    # bridge to arbitrum
+    token = safe.contract(token_address)
+
+    # Find the the gate way for the token
+    gateway_router = safe.contract(ARB_GATEWAY_ROUTER[CHAIN_IDS["MAINNET"]])
+    gateway_address = gateway_router.getGateway(token.address)
+
+    # Find the approval amount
+    approval_amount = token.allowance(safe.address, gateway_address)
+
+    # Approve more tokens to the gateway if needed
+    if (approval_amount < amount):
+        token.approve(gateway_address, amount - approval_amount)
+
+    # Calcualte the outbound call data
+    outbound_calldata = gateway_router.getOutboundCalldata(token_address, MULTISIG_ADDRESSES["ARBITRUM"], amount, b"")
+
+    # Calculate retryable submission fee
+    inbox = safe.contract(ARB_BRIDGE_INBOX[CHAIN_IDS["MAINNET"]])
+    inbox.calculateRetryableSubmissionFee(outbound_calldata + 256, )
+    
+    # TODO: Use the retryable submission fee as msg.value
