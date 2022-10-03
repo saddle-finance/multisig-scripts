@@ -19,8 +19,8 @@ TARGET_NETWORK = "MAINNET"
 
 def main():
     """
-    Set Gauge weights for week 09_29_2022 -> 10_06_2022 from results of snapshot vote
-    Vote: https://snapshot.org/#/saddlefinance.eth/proposal/0xe72e59f14f4b58777587dbba098aa8ade99f265d4ed34c75d6b83d97bc705998
+    Set Gauge weights for week 10_06_2022 -> 10_20_2022 from results of snapshot vote
+    Vote: https://snapshot.org/#/saddlefinance.eth/proposal/0xf6f188d0b96a7db164c82bc946f26247888dc7464927c025d43dc0aa0bd5074b
     """
 
     print(f"You are using the '{network.show_active()}' network")
@@ -30,6 +30,7 @@ def main():
     sdl_vesting_contract_proxy = multisig.contract(
         SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
     )
+    deployer = accounts.load("deployer")  # prompts for password
 
     # Release vested tokens to multisig account
     sdl_vesting_contract_proxy.release()
@@ -119,7 +120,7 @@ def main():
     safe_tx.safe_nonce = 67
 
     # sign with private key
-    safe_tx.sign(accounts.load("deployer").private_key)
+    safe_tx.sign(deployer.private_key)
     multisig.preview(safe_tx)
 
     confirm_posting_transaction(multisig, safe_tx)
