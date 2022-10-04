@@ -1,6 +1,4 @@
 import math
-
-# from ape_safe import ApeSafe
 from brownie import ZERO_ADDRESS, Contract, accounts, history, network
 from helpers import (CHAIN_IDS, MINICHEF_ADDRESSES,
                      SIDECHAIN_TOTAL_EMISSION_RATE)
