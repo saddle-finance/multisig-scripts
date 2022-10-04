@@ -1,7 +1,7 @@
 import math
 
 # from ape_safe import ApeSafe
-from brownie import ZERO_ADDRESS, Contract, accounts, network
+from brownie import ZERO_ADDRESS, Contract, accounts, history, network
 from helpers import (CHAIN_IDS, MINICHEF_ADDRESSES,
                      SIDECHAIN_TOTAL_EMISSION_RATE)
 
@@ -74,4 +74,7 @@ def main():
 
     print(
         f"New MiniChef rate on {TARGET_NETWORK} is {applied_saddle_per_second}")
+
+    for tx in history:
+        tx.info()
     return
