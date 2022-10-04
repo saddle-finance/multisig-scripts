@@ -1,13 +1,9 @@
 import math
 
 from ape_safe import ApeSafe
-from brownie import ZERO_ADDRESS, Contract, accounts, network
-from helpers import (
-    CHAIN_IDS,
-    MINICHEF_ADDRESSES,
-    MULTISIG_ADDRESSES,
-    SIDECHAIN_TOTAL_EMISSION_RATE,
-)
+from brownie import ZERO_ADDRESS, accounts, network
+from helpers import (CHAIN_IDS, MINICHEF_ADDRESSES, MULTISIG_ADDRESSES,
+                     SIDECHAIN_TOTAL_EMISSION_RATE)
 
 from scripts.utils import confirm_posting_transaction
 
@@ -16,8 +12,8 @@ TARGET_NETWORK = "ARBITRUM"
 
 def main():
     """
-    Updates Arbitrum minichef parameters on Arbitrum network for week 9/22 - 10/6
-    Vote: https://snapshot.org/#/saddlefinance.eth/proposal/0xd424d467ac93c89f9a856abce690577b22bc89f6472445a6f60143f16ce75ba1
+    Updates Arbitrum minichef parameters on Arbitrum network for week 10/6 - 10/20
+    Vote: https://snapshot.org/#/saddlefinance.eth/proposal/0xeb336a2ff3ff2fdafe65b469a0ef1a5eb6e617f925d934ff5f4937ffc50627a3
     """
 
     print(f"You are using the '{network.show_active()}' network")
