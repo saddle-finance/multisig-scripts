@@ -54,7 +54,7 @@ live:
   - name: Avalanche
     networks:
       - chainid: 43114
-        explorer:  https://api.snowtrace.io/api
+        explorer: https://api.snowtrace.io/api
         host: https://api.avax.network/ext/bc/C/rpc
         id: avax-main
         name: Mainnet
@@ -182,7 +182,6 @@ development:
       port: 8545
   - name: Hardhat (Mainnet Fork)
     id: hardhat-fork
-    chain_id: 1
     cmd: npx hardhat node
     host: http://localhost
     timeout: 120
@@ -191,13 +190,12 @@ development:
       fork: mainnet
   - name: Hardhat (Arbitrum Mainnet Fork)
     id: hardhat-arb-fork
-    chain_id: 1
     cmd: npx hardhat node --fork-ignore-unknown-tx-type true
     host: http://localhost
     timeout: 120
     cmd_settings:
       port: 8545
-      fork: arb-main 
+      fork: arb-main
   - name: Ganache-CLI (Mainnet Fork)
     id: mainnet-fork
     cmd: ganache-cli
