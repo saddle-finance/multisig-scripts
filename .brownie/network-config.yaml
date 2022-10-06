@@ -54,7 +54,7 @@ live:
   - name: Avalanche
     networks:
       - chainid: 43114
-        explorer:  https://api.snowtrace.io/api
+        explorer: https://api.snowtrace.io/api
         host: https://api.avax.network/ext/bc/C/rpc
         id: avax-main
         name: Mainnet
@@ -124,7 +124,7 @@ live:
       - name: Mainnet
         chainid: 10
         id: optimism-main
-        host: https://mainnet.optimism.io
+        host: https://opt-mainnet.g.alchemy.com/v2/$ALCHEMY_KEY
         explorer: https://api-optimistic.etherscan.io/api
       - name: Testnet
         chainid: 69
@@ -182,7 +182,6 @@ development:
       port: 8545
   - name: Hardhat (Mainnet Fork)
     id: hardhat-fork
-    chain_id: 1
     cmd: npx hardhat node
     host: http://localhost
     timeout: 120
@@ -191,13 +190,12 @@ development:
       fork: mainnet
   - name: Hardhat (Arbitrum Mainnet Fork)
     id: hardhat-arb-fork
-    chain_id: 1
     cmd: npx hardhat node --fork-ignore-unknown-tx-type true
     host: http://localhost
     timeout: 120
     cmd_settings:
       port: 8545
-      fork: arb-main 
+      fork: arb-main
   - name: Ganache-CLI (Mainnet Fork)
     id: mainnet-fork
     cmd: ganache-cli
@@ -306,3 +304,15 @@ development:
       evm_version: istanbul
       mnemonic: brownie
       fork: kava-main
+  - name: Ganache-CLI (Opt-Mainnet Fork)
+    id: opt-main-fork
+    cmd: ganache-cli
+    host: http://127.0.0.1
+    timeout: 120
+    cmd_settings:
+      port: 8545
+      gas_limit: 20000000
+      accounts: 10
+      evm_version: istanbul
+      mnemonic: brownie
+      fork: optimism-main

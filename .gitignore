@@ -9,5 +9,6 @@ tests
 **/.DS_Store
 .env
 .hypothesis
+.vscode/
 
 node_modules/
