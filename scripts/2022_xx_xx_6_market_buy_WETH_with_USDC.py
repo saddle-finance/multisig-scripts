@@ -18,16 +18,7 @@ TARGET_NETWORK = "MAINNET"
 
 
 def main():
-    """This script claims admin fees from all Mainnet pools, 
-    then converts them to SDL/ETH SLP and sends it to the fee distrbutor
-    Steps are:
-    1. Claim admin fees on all pools
-    2. Burn claimed LPs to get underlyings
-    3. Swap assets into USDC, WBTC, WETH using Saddle, if possible
-    4. Swap remaining assets into USDC, using UniswapV3
-    5. Buy SDL+ETH 50/50 and LP in Sushi pool
-    6. Send SDL/ETH SLP to fee distributor
-    """
+    """This script buys WETH with half of the multisig's USDC balance"""
 
     print(f"You are using the '{network.show_active()}' network")
     assert (network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
