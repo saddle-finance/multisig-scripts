@@ -114,7 +114,7 @@ def main():
     ), f"Total weight must be 10000 but is {total_weight}"
 
     # Send 500k SDL to deployer for manual bridging to Arbitrum Minichef to refill rewards
-    sdl_contract.transfer(DEPLOYER_ADDRESS, 500_000 * 1e18)
+    sdl_contract.transfer(DEPLOYER_ADDRESS, 4_360_921 * 1e18)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
