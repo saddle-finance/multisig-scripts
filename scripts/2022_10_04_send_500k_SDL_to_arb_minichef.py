@@ -26,9 +26,8 @@ def main():
     sdl = multisig.contract(SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
     # 500k SDL
-    amount_to_send = 1 * 1e18
+    amount_to_send = 500_000 * 1e18
 
-    print(sdl.balanceOf(deployer.address) / 1e18)
     starting_balance = sdl.balanceOf(deployer.address)
     assert starting_balance >= amount_to_send
 

@@ -132,14 +132,12 @@ def bridge_to_arbitrum_minichef(safe: ApeSafe, token_address: str, amount: int):
     )
     print(f"Outbound call data: {outbound_calldata}")
 
-    # Get current block and base fee
-    block = chain.height
-    # TODO: is this correct?
-    # base_fee = chain.base_fee
-    print(chain[block])
-    # base_fee = chain[block].baseFeePerGas #TODO: does not work
-    base_fee = 47211945345
-    # print("basefee", base_fee)
+    # Get current block and base fee (does not work when forking)
+    if network.show_active() == "mainnet-fork":
+        base_fee = 47211945345
+    else:
+        block = chain.height
+        base_fee = chain[block].baseFeePerGas
 
     # Calculate retryable submission fee
     print("Attempting to get retryable submission fee")
@@ -161,7 +159,7 @@ def bridge_to_arbitrum_minichef(safe: ApeSafe, token_address: str, amount: int):
 
     print("Submitting retryable transfer to Arbitrum L1 Router")
     # Submit the retryable transaction
-    print(
+    gateway_router.outboundTransferCustomRefund(
         token_address,  # L1 token
         DEPLOYER_ADDRESS,  # L1 owner (receier of gas refund)
         MULTISIG_ADDRESSES[CHAIN_IDS["ARBITRUM"]],  # to
@@ -169,17 +167,8 @@ def bridge_to_arbitrum_minichef(safe: ApeSafe, token_address: str, amount: int):
         gasLimitL2,
         gasPriceL2,
         "0x" + eth_abi.encode_abi(["uint256", "bytes32[]"], [retryableFee, []]).hex(),
+        {"value": gasLimitL2 * gasPriceL2 + retryableFee},
     )
-    # gateway_router.outboundTransferCustomRefund(
-    #     token_address,  # L1 token
-    #     DEPLOYER_ADDRESS,  # L1 owner (receier of gas refund)
-    #     MULTISIG_ADDRESSES["ARBITRUM"],  # to
-    #     amount,
-    #     gasLimitL2,
-    #     gasPriceL2,
-    #     "0x" + eth_abi.encode_abi(["uint256", "bytes32[]"], [retryableFee, []]).hex(),
-    #     {"value": gasLimitL2 * gasPriceL2 + retryableFee},
-    # )
 
 
 def bridge_to_optimism(safe: ApeSafe, token_address: str, amount: int):
