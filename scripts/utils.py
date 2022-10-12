@@ -5,7 +5,7 @@ from urllib.error import URLError
 import click
 import eth_abi
 from ape_safe import ApeSafe
-from brownie import Contract, chain
+from brownie import Contract, chain, network
 from gnosis.safe.safe_tx import SafeTx
 from helpers import (
     ARBITRUM_BRIDGE_INBOX,
