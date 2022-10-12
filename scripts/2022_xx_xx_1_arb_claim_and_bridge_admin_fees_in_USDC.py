@@ -2,7 +2,7 @@ import this
 from helpers import (
     CHAIN_IDS,
     ERC20_ABI,
-    ARBITRUM_L2_BRIDGE_ROUTER,
+    ARB_GATEWAY_ROUTER,
     META_SWAP_DEPOSIT_ABI,
     MULTISIG_ADDRESSES,
     SWAP_ABI,
@@ -33,7 +33,7 @@ def main():
 
     # Arbitrum L2 gateway router
     gateway_router = multisig.contract(
-        ARBITRUM_L2_BRIDGE_ROUTER[CHAIN_IDS[TARGET_NETWORK]]
+        ARB_GATEWAY_ROUTER[CHAIN_IDS[TARGET_NETWORK]]
     )
 
     # token -> swap/metaswap dict , which pool to use for swapping which token

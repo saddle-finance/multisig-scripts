@@ -1,0 +1,44 @@
+[
+    {
+        "inputs": [],
+        "name": "metaSwapStorage",
+        "outputs": [
+            {
+                "internalType": "contract ISwap",
+                "name": "baseSwap",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "baseVirtualPrice",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "baseCacheLastUpdated",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint8",
+                "name": "index",
+                "type": "uint8"
+            }
+        ],
+        "name": "getToken",
+        "outputs": [
+            {
+                "internalType": "contract IERC20",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+]

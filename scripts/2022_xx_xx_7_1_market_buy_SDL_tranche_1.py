@@ -2,8 +2,10 @@ import this
 from helpers import (
     CHAIN_IDS,
     ERC20_ABI,
+    SUSHISWAP_ROUTER_ABI,
     MULTISIG_ADDRESSES,
-    SDL_ADDRESSES
+    SDL_ADDRESSES,
+    SUSHISWAP_ROUTER_ADDRESS
 )
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract, chain
@@ -14,7 +16,7 @@ TARGET_NETWORK = "MAINNET"
 
 
 def main():
-    """Buys one tranche of SDL tokens from FraxSwap"""
+    """Buys first tranche of SDL tokens from SushiSwap"""
 
     print(f"You are using the '{network.show_active()}' network")
     assert (network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
@@ -27,28 +29,69 @@ def main():
     # Run any pending transactions before simulating any more transactions
     # multisig.preview_pending()
 
-    USDC_MAINNET = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
-    FRAXSWAP_ROUTER = "0x1C6cA5DEe97C8C368Ca559892CCce2454c8C35C7"
+    USDC_MAINNET_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+    WETH_MAINNET_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 
-    # fraxswap_router = Contract.from_abi(
-    #    "UniV3Router", UNIV3_ROUTER, FRAXSWAP_ROUTER_ABI
-    # )
+    sushiswap_router = Contract.from_abi(
+        "SushiSwapRouter",
+        SUSHISWAP_ROUTER_ADDRESS[CHAIN_IDS[TARGET_NETWORK]],
+        SUSHISWAP_ROUTER_ABI
+    )
 
     SDL_contract = Contract.from_abi(
-        "ERC20", SDL_ADDRESSES[TARGET_NETWORK], ERC20_ABI
+        "SDL", SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]], ERC20_ABI
     )
     USDC_contract = Contract.from_abi(
-        "ERC20", USDC_MAINNET, ERC20_ABI
+        "USDC", USDC_MAINNET_ADDRESS, ERC20_ABI
     )
     USDC_decimals = USDC_contract.decimals()
     SDL_decimals = SDL_contract.decimals()
 
-    # TODO: Swap 1/3 or multisigs USDC for SDL using FraxSwap
+    print(
+        "Balances before swap:\n"
+        f"USDC: {USDC_contract.balanceOf(multisig.address)/ (10 ** USDC_decimals)}\n" +
+        f"SDL: {SDL_contract.balanceOf(multisig.address)/ (10 ** SDL_decimals)}"
+    )
+
+    # approve the router to spend the multisig's USDC
+    USDC_contract.approve(
+        SUSHISWAP_ROUTER_ADDRESS[CHAIN_IDS[TARGET_NETWORK]],
+        2 ** 256 - 1,
+        {"from": multisig.address}
+    )
+
+    # swap 1/4 of multisig's USDC balance to SDL
+    amount_in = USDC_contract.balanceOf(multisig.address) / 4
+
+    # path to use for swapping
+    path = [USDC_MAINNET_ADDRESS,
+            WETH_MAINNET_ADDRESS,
+            SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
+            ]
+
+    # min amount of SDL to receive
+    amount_out_min = sushiswap_router.getAmountsOut(
+        amount_in,
+        path
+    )[2]
+
+    to = multisig.address
+    deadline = chain[-1].timestamp + 3600
+
+    # perform swap
+    sushiswap_router.swapExactTokensForTokens(
+        amount_in,
+        amount_out_min,
+        path,
+        to,
+        deadline,
+        {"from": multisig.address}
+    )
 
     print(
         "Balances after swap:\n"
         f"USDC: {USDC_contract.balanceOf(multisig.address)/ (10 ** USDC_decimals)}\n" +
-        f"WETH: {SDL_contract.balanceOf(multisig.address)/ (10 ** WETH_decimals)}"
+        f"SDL: {SDL_contract.balanceOf(multisig.address)/ (10 ** SDL_decimals)}"
     )
 
     # TODO: set 'safe_nonce'

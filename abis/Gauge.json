@@ -1,0 +1,14 @@
+[
+    {
+        "stateMutability": "view",
+        "type": "function",
+        "name": "name",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "string"
+            }
+        ]
+    }
+]

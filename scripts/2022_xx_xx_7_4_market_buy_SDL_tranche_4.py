@@ -16,7 +16,7 @@ TARGET_NETWORK = "MAINNET"
 
 
 def main():
-    """Buys second tranche of SDL tokens from SushiSwap"""
+    """Buys fourth tranche of SDL tokens from SushiSwap"""
 
     print(f"You are using the '{network.show_active()}' network")
     assert (network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
@@ -60,8 +60,8 @@ def main():
         {"from": multisig.address}
     )
 
-    # swap 1/4 of *initial* multisig's USDC balance to SDL (which is 1/3 now)
-    amount_in = USDC_contract.balanceOf(multisig.address) / 3
+    # swap 1/4 of *initial* multisig's USDC balance to SDL (which is total balance now)
+    amount_in = USDC_contract.balanceOf(multisig.address)
 
     # path to use for swapping
     path = [USDC_MAINNET_ADDRESS,

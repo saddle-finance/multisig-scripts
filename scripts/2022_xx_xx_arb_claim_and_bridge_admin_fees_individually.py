@@ -1,10 +1,12 @@
 from helpers import (
     CHAIN_IDS,
     ERC20_ABI,
-    ARBITRUM_L2_BRIDGE_ROUTER,
+    ARB_GATEWAY_ROUTER,
     MULTISIG_ADDRESSES,
     SWAP_ABI,
-    ARBITRUM_POOL_ADDRESS_TO_POOL_NAME,
+    L1_TO_L2_ERC20_ADDRESSES
+)
+from fee_distro_helpers import (
     L1_TO_L2_ERC20_ADDRESSES
 )
 from ape_safe import ApeSafe
@@ -31,7 +33,7 @@ def main():
 
     # Arbitrum L2 gateway router
     gateway_router = multisig.contract(
-        ARBITRUM_L2_BRIDGE_ROUTER[CHAIN_IDS[TARGET_NETWORK]]
+        ARB_GATEWAY_ROUTER[CHAIN_IDS[TARGET_NETWORK]]
     )
 
     # swap/metaswap -> metaswapDeposit dict

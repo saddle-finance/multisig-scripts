@@ -1,0 +1,22 @@
+[
+    {
+        "inputs": [],
+        "name": "release",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "newBeneficiary",
+                "type": "address"
+            }
+        ],
+        "name": "changeBeneficiary",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]
