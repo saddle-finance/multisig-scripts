@@ -92,7 +92,7 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
             )
 
 
-def bridge_to_arbitrum(safe: ApeSafe, token_address: str, amount: int):
+def bridge_to_arbitrum_minichef(safe: ApeSafe, token_address: str, amount: int):
     print(f"Attempting to bridge tokens at {token_address} to Arbitrum")
 
     # Solidity code:
@@ -100,6 +100,13 @@ def bridge_to_arbitrum(safe: ApeSafe, token_address: str, amount: int):
 
     # bridge to arbitrum
     token = safe.contract(token_address)
+    abi = json.load(open("abis/ArbitrumL2BridgeRouter.json"))
+    gateway_router = Contract.from_abi(
+        "GateWayRouter",
+        ARBITRUM_L2_BRIDGE_ROUTER[CHAIN_IDS["MAINNET"]],
+        abi,
+        owner=DEPLOYER_ADDRESS,
+    )
 
     # Find the the gate way for the token
     gateway_router = safe.contract(ARBITRUM_L2_BRIDGE_ROUTER[CHAIN_IDS["MAINNET"]])
@@ -156,7 +163,7 @@ def bridge_to_arbitrum(safe: ApeSafe, token_address: str, amount: int):
     print(
         token_address,  # L1 token
         DEPLOYER_ADDRESS,  # L1 owner (receier of gas refund)
-        MULTISIG_ADDRESSES["ARBITRUM"],  # to
+        MULTISIG_ADDRESSES[CHAIN_IDS["ARBITRUM"]],  # to
         amount,
         gasLimitL2,
         gasPriceL2,
