@@ -10,6 +10,7 @@ from gnosis.safe.safe_tx import SafeTx
 from helpers import (
     ARBITRUM_BRIDGE_INBOX,
     ARBITRUM_BRIDGE_INBOX_ABI,
+    ARBITRUM_BRIDGE_ROUTER_ABI,
     ARBITRUM_L2_BRIDGE_ROUTER,
     CHAIN_IDS,
     DEPLOYER_ADDRESS,
@@ -100,11 +101,11 @@ def bridge_to_arbitrum_minichef(safe: ApeSafe, token_address: str, amount: int):
 
     # bridge to arbitrum
     token = safe.contract(token_address)
-    abi = json.load(open("abis/ArbitrumL2BridgeRouter.json"))
+
     gateway_router = Contract.from_abi(
         "GateWayRouter",
         ARBITRUM_L2_BRIDGE_ROUTER[CHAIN_IDS["MAINNET"]],
-        abi,
+        ARBITRUM_BRIDGE_ROUTER_ABI,
         owner=DEPLOYER_ADDRESS,
     )
 
