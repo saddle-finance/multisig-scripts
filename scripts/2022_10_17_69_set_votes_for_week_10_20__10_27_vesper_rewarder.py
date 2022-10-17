@@ -10,7 +10,6 @@ from helpers import (
     MULTISIG_ADDRESSES,
     SDL_ADDRESSES,
     SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS,
-    SDL_MINTER_ADDRESS,
 )
 
 from scripts.utils import confirm_posting_transaction
@@ -89,6 +88,9 @@ def main():
     fraxbp_vesperfrax_gauge.add_reward(
         fraxbp_vesperfrax_reward_token, fraxbp_vesperfrax_reward_forwarder
     )
+
+    # Send 4_045_257 SDL to deployer to refill owed rewards on arbitrum
+    sdl_contract.transfer(DEPLOYER_ADDRESS, 4_045_257 * 1e18)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
