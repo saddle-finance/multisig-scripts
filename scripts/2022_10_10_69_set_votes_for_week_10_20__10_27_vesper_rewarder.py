@@ -37,22 +37,22 @@ def main():
     """
 
     gauge_to_relative_weight_dict = {
-        "0xB2Ac3382dA625eb41Fc803b57743f941a484e2a6": 5765,  # FRAXBP Pool
-        "0xc64F8A9fe7BabecA66D3997C9d15558BF4817bE3": 2170,  # Sushi SDL/WETH
-        "0x953693DCB2E9DDC0c1398C1b540b81b63ceA5e16": 362,  # FraxBP-alUSD Metapool
-        "0x104F44551386d603217450822443456229F73aE4": 360,  # FraxBP-sUSD Metapool
-        "0x6EC5DD7D8E396973588f0dEFD79dCA04F844d57C": 72,  # FraxBP-USDT Metapool
-        "0x13Ba45c2B686c6db7C2E28BD3a9E8EDd24B894eD": 72,  # Frax 3Pool
-        "0x9585a54297beAa83F044866678b13d388D0180bf": 362,  # FraxBP-USX Metapool
-        "0x702c1b8Ec3A77009D5898e18DA8F8959B6dF2093": 827,  # Saddle D4Pool
-        "0x50d745c2a2918A47A363A2d32becd6BBC1A53ece": 2,  # Saddle USX Pool
+        "0xB2Ac3382dA625eb41Fc803b57743f941a484e2a6": 6270,  # FRAXBP Pool
+        "0xc64F8A9fe7BabecA66D3997C9d15558BF4817bE3": 2184,  # Sushi SDL/WETH
+        "0x953693DCB2E9DDC0c1398C1b540b81b63ceA5e16": 376,  # FraxBP-alUSD Metapool
+        "0x104F44551386d603217450822443456229F73aE4": 376,  # FraxBP-sUSD Metapool
+        "0x6EC5DD7D8E396973588f0dEFD79dCA04F844d57C": 75,  # FraxBP-USDT Metapool
+        "0x13Ba45c2B686c6db7C2E28BD3a9E8EDd24B894eD": 85,  # Frax 3Pool
+        "0x9585a54297beAa83F044866678b13d388D0180bf": 376,  # FraxBP-USX Metapool
+        "0x702c1b8Ec3A77009D5898e18DA8F8959B6dF2093": 258,  # Saddle D4Pool
+        "0x50d745c2a2918A47A363A2d32becd6BBC1A53ece": 0,  # Saddle USX Pool
         "0x2683190e31e8ce47467c98ff1DBc018aCDD43C2f": 0,  # Saddle sUSD Metapool
         "0x17Bde8EBf1E9FDA85b9Bd1a104266b394E9Db33e": 0,  # Saddle s/w/renBTCV2 Pool
         "0x3dC88ee38db8C7b6DCEB447E4348e51bd87ced93": 0,  # WCUSD Metapool
         "0x7B2025Bf8c5ee8Baad9da8C3E3Ee45E96ed8b8EA": 0,  # Saddle USD Pool
-        "0x8B701e9B3a1887fE9b0C7936a8233b39408e69f6": 2,  # Saddle alETH Pool
+        "0x8B701e9B3a1887fE9b0C7936a8233b39408e69f6": 0,  # Saddle alETH Pool
         "0xB79B4fCF7cB4A1c4064Ff5b48F71A331880ab53a": 0,  # Saddle TBTC Metapool
-        "0x9980C9b35844946cF3451cC0B43D9b6501F4a96E": 5,  # Saddle FraxBP-VesperFrax Metapool
+        "0x9980C9b35844946cF3451cC0B43D9b6501F4a96E": 0,  # Saddle FraxBP-VesperFrax Metapool
     }
 
     total_weight = sum(gauge_to_relative_weight_dict.values())
