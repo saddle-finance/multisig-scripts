@@ -84,10 +84,10 @@ def main():
     fraxbp_vesperfrax_gauge = multisig.contract(
         "0x9980C9b35844946cF3451cC0B43D9b6501F4a96E"
     )
-    fraxbp_vesperfrax_reward_forwarder = "0x748Ce52e85c4bBd42dA63D8e03a2E0527714D108"
+    fraxbp_vesperfrax_reward_forwarder = "0x811b699C69ff0AbfF98091919E637fEDCD5DffaC"
     fraxbp_vesperfrax_reward_token = "0x1b40183EFB4Dd766f11bDa7A7c3AD8982e998421"
     fraxbp_vesperfrax_gauge.add_reward(
-        fraxbp_vesperfrax_reward_forwarder, fraxbp_vesperfrax_reward_token
+        fraxbp_vesperfrax_reward_token, fraxbp_vesperfrax_reward_forwarder
     )
 
     # combine history into multisend txn
