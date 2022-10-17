@@ -32,10 +32,6 @@ def main():
 
     minichef = multisig.contract(MINICHEF_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
-    # add saddleArbUSX-FRAXBP to minichef with 0.00%
-    minichef.add(0, "0x721DaC7d5ACc8Aa62946fd583C1F999e1570b97D", ZERO_ADDRESS)
-    assert minichef.lpToken(8) == "0x721DaC7d5ACc8Aa62946fd583C1F999e1570b97D"
-
     # mass update pools to checkpoint existing stakers
     pids = [1, 2, 3, 4, 5, 6, 7, 8]
     minichef.massUpdatePools(pids)
@@ -67,6 +63,10 @@ def main():
     # 0.00% saddleArbUSDv2
     assert minichef.lpToken(7) == "0x0a20c2FFa10cD43F67D06170422505b7D6fC0953"
     minichef.set(7, 0, ZERO_ADDRESS, False)
+
+    # 0.00% saddleArbUSX-FRAXBP
+    assert minichef.lpToken(8) == "0x721DaC7d5ACc8Aa62946fd583C1F999e1570b97D"
+    minichef.set(8, 0, ZERO_ADDRESS, False)
 
     # Total allocation is 44.92% for Arbitrum
     assert minichef.totalAllocPoint() == 4292
