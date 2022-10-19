@@ -27,27 +27,27 @@ def main():
     pids = [1, 2, 3, 4, 5, 7]
     minichef.massUpdatePools(pids)
 
-    # 32.01% for Optimism: FraxBP
+    # 32.19% for Optimism: FraxBP
     assert minichef.lpToken(1) == "0xf74ebe6e5586275dc4CeD78F5DBEF31B1EfbE7a5"
     minichef.set(1, 3219, ZERO_ADDRESS, False)
     assert minichef.poolInfo(1)[2] == 3219
 
-    # 3.48% for Optimism: frax-optUSD
+    # 0.02% for Optimism: frax-optUSD
     assert minichef.lpToken(2) == "0xfF5fa61Eb9b5cDD63bdFa16EF029d5313457925A"
     minichef.set(2, 2, ZERO_ADDRESS, False)
     assert minichef.poolInfo(2)[2] == 2
 
-    # 8.50% for Optimism: Frax-USDT
+    # 10.51% for Optimism: Frax-USDT
     assert minichef.lpToken(3) == "0xb63d7B0D835ca6eFf89ab774498ed6dD0D71e93e"
     minichef.set(3, 1051, ZERO_ADDRESS, False)
     assert minichef.poolInfo(3)[2] == 1051
 
-    # 8.49% for Optimism: Frax-SUSD
+    # 10.51% for Optimism: Frax-SUSD
     assert minichef.lpToken(4) == "0x205c9B8c1fCa803B779b1eB4B887Aa0E00FE629F"
     minichef.set(4, 1051, ZERO_ADDRESS, False)
     assert minichef.poolInfo(4)[2] == 1051
 
-    # 0.00% for Optimism: optUSD
+    # 3.85% for Optimism: optUSD
     assert minichef.lpToken(5) == "0xcCf860874cbF2d615192a4C4455580B4d622D3B9"
     minichef.set(5, 385, ZERO_ADDRESS, False)
     assert minichef.poolInfo(5)[2] == 385
@@ -60,7 +60,7 @@ def main():
 
     # 0.00% for Optimism: saddleOptUSX-FRAXBP
     assert minichef.lpToken(7) == "0xf349fB2b5eD45864e1d9ad34a483Eb37aC6e0034"
-    minichef.set(5, 0, ZERO_ADDRESS, False)
+    minichef.set(7, 0, ZERO_ADDRESS, False)
     assert minichef.poolInfo(7)[2] == 0
 
     # Total allocation is 52.48% for Arbitrum
