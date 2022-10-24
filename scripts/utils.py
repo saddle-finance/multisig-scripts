@@ -6,8 +6,13 @@ import click
 from ape_safe import ApeSafe
 from brownie import network
 from gnosis.safe.safe_tx import SafeTx
-from helpers import (ARB_BRIDGE_INBOX, ARB_GATEWAY_ROUTER, CHAIN_IDS,
-                     MULTISIG_ADDRESSES)
+from helpers import (
+    ARB_BRIDGE_INBOX,
+    ARB_GATEWAY_ROUTER,
+    CHAIN_IDS,
+    MULTISIG_ADDRESSES,
+    MULTISIG_TRANSACTION_URLS,
+)
 from pytest import console_main
 
 
@@ -16,8 +21,7 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
 
     current_nonce = 0
     try:
-        url = safe.base_url + \
-            f"/api/v1/safes/{safe.address}/multisig-transactions/"
+        url = f"{MULTISIG_TRANSACTION_URLS[network.chain.id]}/api/v1/safes/{safe.address}/multisig-transactions/"
 
         # fetch list of txs from gnosis api
         response = urllib.request.urlopen(url)
@@ -29,10 +33,8 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
                 current_nonce = result["nonce"] + 1
                 break
     except (URLError) as err:
-        console_main.log(
-            f"Fetching txs from gnosis api failed with error: {err}")
-        current_nonce = click.prompt(
-            "Please input current nonce manually:", type=int)
+        print(f"Fetching txs from gnosis api failed with error: {err}")
+        current_nonce = click.prompt("Please input current nonce manually:", type=int)
 
     pending_nonce = safe.pending_nonce()
 
@@ -97,16 +99,19 @@ def bridge_to_arbitrum(safe: ApeSafe, token_address: str, amount: int):
     approval_amount = token.allowance(safe.address, gateway_address)
 
     # Approve more tokens to the gateway if needed
-    if (approval_amount < amount):
+    if approval_amount < amount:
         token.approve(gateway_address, amount)
 
     # Calcualte the outbound call data
     outbound_calldata = gateway_router.getOutboundCalldata(
-        token_address, MULTISIG_ADDRESSES["ARBITRUM"], amount, b"")
+        token_address, MULTISIG_ADDRESSES["ARBITRUM"], amount, b""
+    )
 
     # Calculate retryable submission fee
     inbox = safe.contract(ARB_BRIDGE_INBOX[CHAIN_IDS["MAINNET"]])
-    inbox.calculateRetryableSubmissionFee(outbound_calldata + 256, )
+    inbox.calculateRetryableSubmissionFee(
+        outbound_calldata + 256,
+    )
 
     # TODO: Use the retryable submission fee as msg.value
     # Solidity code:

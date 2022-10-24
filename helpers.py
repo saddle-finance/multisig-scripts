@@ -1,6 +1,7 @@
-from webbrowser import get
-from brownie.network.state import Chain
 import json
+from webbrowser import get
+
+from brownie.network.state import Chain
 
 CHAIN_IDS = {
     "MAINNET": 1,
@@ -9,7 +10,7 @@ CHAIN_IDS = {
     "HARDHAT": 31337,
     "ARBITRUM": 42161,
     "EVMOS": 9001,
-    "KAVA": 2222
+    "KAVA": 2222,
 }
 
 DEPLOYER_ADDRESS = "0x5bdb37d0ddea3a90f233c7b7f6b9394b6b2eef34"
@@ -24,6 +25,14 @@ MULTISIG_ADDRESSES = {
     # https://safe.evmos.org/evmos:0x25e73a609751E3289EAE21A6Dae431ff1E6fE261/balances
     CHAIN_IDS["OPTIMISM"]: "0x91804c72076aDd9fAB49b2c1e1A61A7503199599",
     # https://gnosis-safe.io/app/oeth:0x91804c72076aDd9fAB49b2c1e1A61A7503199599/home
+}
+
+MULTISIG_TRANSACTION_URLS = {
+    CHAIN_IDS["MAINNET"]: "https://safe-transaction-mainnet.safe.global",
+    CHAIN_IDS["ARBITRUM"]: "https://safe-transaction-arbitrum.safe.global",
+    # CHAIN_IDS["EVMOS"]: "https://safe-transaction.evmos.gnosis.io",
+    # TODO: Evmos was not updated in Oct 2022 as its a non-offical fork, need to find tx service
+    CHAIN_IDS["OPTIMISM"]: "https://safe-transaction-optimsim.safe.global",
 }
 
 SDL_ADDRESSES = {
@@ -109,11 +118,11 @@ ARB_GATEWAY_ROUTER = {
 }
 
 ARB_GENERIC_GATEWAY = {
-    CHAIN_IDS["MAINNET"] : "0xa3A7B6F88361F48403514059F1F16C8E78d60EeC",
+    CHAIN_IDS["MAINNET"]: "0xa3A7B6F88361F48403514059F1F16C8E78d60EeC",
 }
 
 ARB_BRIDGE_INBOX = {
-    CHAIN_IDS["MAINNET"] : "0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f",
+    CHAIN_IDS["MAINNET"]: "0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f",
 }
 
 HEDGEY_OTC = {
