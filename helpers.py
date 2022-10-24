@@ -1,6 +1,7 @@
-from webbrowser import get
-from brownie.network.state import Chain
 import json
+from webbrowser import get
+
+from brownie.network.state import Chain
 
 CHAIN_IDS = {
     "MAINNET": 1,
@@ -30,6 +31,10 @@ SDL_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0xf1Dc500FdE233A4055e25e5BbF516372BC4F6871",
     CHAIN_IDS["OPTIMISM"]: "0xAe31207aC34423C41576Ff59BFB4E036150f9cF7",
     CHAIN_IDS["ARBITRUM"]: "0x75C9bC761d88f70156DAf83aa010E84680baF131",
+}
+
+ALCX_ADDRESSES = {
+    CHAIN_IDS["MAINNET"] : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"
 }
 
 SDL_MINTER_ADDRESS = {
@@ -117,6 +122,7 @@ ARB_BRIDGE_INBOX = {
 }
 
 HEDGEY_OTC = {
+    CHAIN_IDS["MAINNET"]: "0xad337077480134028B7C68AF290E891ce28076Eb",
     CHAIN_IDS["ARBITRUM"]: "0xad337077480134028B7C68AF290E891ce28076Eb",
 }
 
