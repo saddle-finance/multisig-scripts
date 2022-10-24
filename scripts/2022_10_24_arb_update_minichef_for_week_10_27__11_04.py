@@ -16,8 +16,8 @@ TARGET_NETWORK = "ARBITRUM"
 
 def main():
     """
-    Updates Arbitrum minichef parameters on Arbitrum network for week 10/20 - 11/04
-    Vote: https://snapshot.org/#/saddlefinance.eth/proposal/0x783103362decf36948c6cb8e1c4d74579a218c246ec8da67b517279ceb33918a
+    Updates Arbitrum minichef parameters on Arbitrum network for week 10/27 - 11/04
+    Vote: https://snapshot.org/#/saddlefinance.eth/proposal/0x1856bafbeee381c68b1872954bcaf4cbc048e5c0057894947d70b5133ab16203
     """
 
     print(f"You are using the '{network.show_active()}' network")
