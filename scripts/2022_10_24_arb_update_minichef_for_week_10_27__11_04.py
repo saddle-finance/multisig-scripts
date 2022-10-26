@@ -26,7 +26,12 @@ def main():
     ), f"Not on {TARGET_NETWORK} network"
 
     deployer = accounts.load("deployer")  # prompts for password
-    multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
+
+    # was run with other utils.py, should be ran in the future with base_url="Transaction Service URL"
+    # until apesafe is updated (pr is up).
+    multisig = ApeSafe(
+        MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
+    )
 
     ##### Update Minichef weights #####
 

@@ -10,7 +10,7 @@ CHAIN_IDS = {
     "HARDHAT": 31337,
     "ARBITRUM": 42161,
     "EVMOS": 9001,
-    "KAVA": 2222,
+    "KAVA": 2222
 }
 
 DEPLOYER_ADDRESS = "0x5bdb37d0ddea3a90f233c7b7f6b9394b6b2eef34"
@@ -27,18 +27,14 @@ MULTISIG_ADDRESSES = {
     # https://gnosis-safe.io/app/oeth:0x91804c72076aDd9fAB49b2c1e1A61A7503199599/home
 }
 
-MULTISIG_TRANSACTION_URLS = {
-    CHAIN_IDS["MAINNET"]: "https://safe-transaction-mainnet.safe.global",
-    CHAIN_IDS["ARBITRUM"]: "https://safe-transaction-arbitrum.safe.global",
-    # CHAIN_IDS["EVMOS"]: "https://safe-transaction.evmos.gnosis.io",
-    # TODO: Evmos was not updated in Oct 2022 as its a non-offical fork, need to find tx service
-    CHAIN_IDS["OPTIMISM"]: "https://safe-transaction-optimsim.safe.global",
-}
-
 SDL_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0xf1Dc500FdE233A4055e25e5BbF516372BC4F6871",
     CHAIN_IDS["OPTIMISM"]: "0xAe31207aC34423C41576Ff59BFB4E036150f9cF7",
     CHAIN_IDS["ARBITRUM"]: "0x75C9bC761d88f70156DAf83aa010E84680baF131",
+}
+
+ALCX_ADDRESSES = {
+    CHAIN_IDS["MAINNET"] : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"
 }
 
 SDL_MINTER_ADDRESS = {
@@ -118,14 +114,15 @@ ARB_GATEWAY_ROUTER = {
 }
 
 ARB_GENERIC_GATEWAY = {
-    CHAIN_IDS["MAINNET"]: "0xa3A7B6F88361F48403514059F1F16C8E78d60EeC",
+    CHAIN_IDS["MAINNET"] : "0xa3A7B6F88361F48403514059F1F16C8E78d60EeC",
 }
 
 ARB_BRIDGE_INBOX = {
-    CHAIN_IDS["MAINNET"]: "0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f",
+    CHAIN_IDS["MAINNET"] : "0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f",
 }
 
 HEDGEY_OTC = {
+    CHAIN_IDS["MAINNET"]: "0xad337077480134028B7C68AF290E891ce28076Eb",
     CHAIN_IDS["ARBITRUM"]: "0xad337077480134028B7C68AF290E891ce28076Eb",
 }
 
