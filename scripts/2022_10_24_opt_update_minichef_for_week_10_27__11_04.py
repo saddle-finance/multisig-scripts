@@ -63,7 +63,7 @@ def main():
     minichef.set(7, 365, ZERO_ADDRESS, False)
     assert minichef.poolInfo(7)[2] == 365
 
-    # Total allocation is 52.48% for Arbitrum
+    # Total allocation is 50.87% for Optimsim
     assert minichef.totalAllocPoint() == 5087
 
     new_rate = math.floor(SIDECHAIN_TOTAL_EMISSION_RATE * 5087 / 10000)
