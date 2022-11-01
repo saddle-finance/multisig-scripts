@@ -1,9 +1,15 @@
 from ape_safe import ApeSafe
 from brownie import Contract, accounts, network
-from helpers import (ALCX_ADDRESSES, CHAIN_IDS, DEPLOYER_ADDRESS, GAUGE_ABI,
-                     GAUGE_CONTROLLER_ADDRESS, HEDGEY_OTC, MINTER,
-                     MULTISIG_ADDRESSES, SDL_ADDRESSES,
-                     SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS)
+from helpers import (
+    CHAIN_IDS,
+    DEPLOYER_ADDRESS,
+    GAUGE_ABI,
+    GAUGE_CONTROLLER_ADDRESS,
+    MINTER,
+    MULTISIG_ADDRESSES,
+    SDL_ADDRESSES,
+    SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS,
+)
 
 from scripts.utils import confirm_posting_transaction
 
@@ -18,11 +24,14 @@ def main():
 
     print(f"You are using the '{network.show_active()}' network")
     assert network.chain.id == CHAIN_IDS[TARGET_NETWORK], f"Not on {TARGET_NETWORK}"
-    multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
-    hedgey_otc = multisig.contract(HEDGEY_OTC[CHAIN_IDS[TARGET_NETWORK]])
+    multisig = ApeSafe(
+        MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
+        base_url="https://safe-transaction-mainnet.safe.global",
+    )
     sdl = multisig.contract(SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
     gauge_controller = multisig.contract(
-        GAUGE_CONTROLLER_ADDRESS[CHAIN_IDS[TARGET_NETWORK]])
+        GAUGE_CONTROLLER_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
+    )
     sdl_vesting_contract_proxy = multisig.contract(
         SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
     )
