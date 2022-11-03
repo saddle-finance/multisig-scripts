@@ -8,7 +8,6 @@ from brownie import network
 from gnosis.safe.safe_tx import SafeTx
 from helpers import (ARB_BRIDGE_INBOX, ARB_GATEWAY_ROUTER, CHAIN_IDS,
                      MULTISIG_ADDRESSES)
-from pytest import console_main
 
 
 def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
@@ -29,7 +28,7 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
                 current_nonce = result["nonce"] + 1
                 break
     except (URLError) as err:
-        console_main.log(
+        print(
             f"Fetching txs from gnosis api failed with error: {err}")
         current_nonce = click.prompt(
             "Please input current nonce manually:", type=int)
@@ -83,31 +82,3 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
             should_post = click.confirm(
                 f"Post this gnosis safe transaction to {safe.address} on {safe.base_url}?"
             )
-
-
-def bridge_to_arbitrum(safe: ApeSafe, token_address: str, amount: int):
-    # bridge to arbitrum
-    token = safe.contract(token_address)
-
-    # Find the the gate way for the token
-    gateway_router = safe.contract(ARB_GATEWAY_ROUTER[CHAIN_IDS["MAINNET"]])
-    gateway_address = gateway_router.getGateway(token.address)
-
-    # Find the approval amount
-    approval_amount = token.allowance(safe.address, gateway_address)
-
-    # Approve more tokens to the gateway if needed
-    if (approval_amount < amount):
-        token.approve(gateway_address, amount)
-
-    # Calcualte the outbound call data
-    outbound_calldata = gateway_router.getOutboundCalldata(
-        token_address, MULTISIG_ADDRESSES["ARBITRUM"], amount, b"")
-
-    # Calculate retryable submission fee
-    inbox = safe.contract(ARB_BRIDGE_INBOX[CHAIN_IDS["MAINNET"]])
-    inbox.calculateRetryableSubmissionFee(outbound_calldata + 256, )
-
-    # TODO: Use the retryable submission fee as msg.value
-    # Solidity code:
-    # https://github.com/saddle-finance/saddle-contract/blob/29c785ce8d7788fcbe781129ce925679f36771c4/contracts/xchainGauges/bridgers/ArbitrumBridger.sol#L102-L124
