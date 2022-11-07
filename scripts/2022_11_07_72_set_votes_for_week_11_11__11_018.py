@@ -98,10 +98,13 @@ def main():
 
     # L2 Minichefs (optimism & arbitrum)
     sdl_balance = sdl.balanceOf(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
-    sdl.transfer(DEPLOYER_ADDRESS, mainnet_minichef_debt)
+    sdl.transfer(DEPLOYER_ADDRESS, sidechain_minichef_debt)
     assert sdl_balance > sdl.balanceOf(
         MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]]
     ), "SDL not sent to deployer"
+
+    # enable voting on the gauge controller
+    gauge_controller.set_voting_enabled(True)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
