@@ -2,6 +2,7 @@ from helpers import (
     CHAIN_IDS,
     ERC20_ABI,
     SUSHISWAP_ROUTER_ABI,
+    MULTISIG_ADDRESSES,
     OPS_MULTISIG_ADDRESSES,
     SDL_ADDRESSES,
     SUSHISWAP_ROUTER_ADDRESS
@@ -23,6 +24,7 @@ def main():
     ops_multisig = ApeSafe(
         OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
     )
+    main_multisig_address = MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
 
     # Run any pending transactions before simulating any more transactions
     # ops_multisig.preview_pending()
@@ -108,7 +110,12 @@ def main():
         f"SUSHI/WETH SLP total supply: {SLP_contract.totalSupply()/ (10 ** SLP_decimals)}\n\n"
     )
 
-    # TODO: send SLP back to main msig
+    # send SLP back to main multisig
+    SLP_contract.transfer(
+        main_multisig_address,
+        SLP_contract.balanceOf(ops_multisig.address),
+        {"from": ops_multisig.address}
+    )
 
     # TODO: set 'safe_nonce'
     safe_tx = ops_multisig.multisend_from_receipts()
