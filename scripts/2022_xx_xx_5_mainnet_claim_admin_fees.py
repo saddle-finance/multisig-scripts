@@ -7,8 +7,6 @@ from helpers import (
     OPS_MULTISIG_ADDRESSES,
     SWAP_ABI,
     META_SWAP_ABI,
-    UNIV3_ROUTER_ABI,
-    UNIV3_QUOTER_ABI
 )
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract, chain
@@ -19,7 +17,7 @@ TARGET_NETWORK = "MAINNET"
 
 
 def main():
-    """This script claims admin fees from all Mainnet pools"""
+    """This script claims admin fees from all Mainnet pools and sends them to Operations Multisig"""
 
     print(f"You are using the '{network.show_active()}' network")
     assert (network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
@@ -27,6 +25,7 @@ def main():
     multisig = ApeSafe(
         MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
     )
+    ops_multisig_address = OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
 
     # Run any pending transactions before simulating any more transactions
     # multisig.preview_pending()
@@ -181,7 +180,23 @@ def main():
             f"Claimed {symbol}: {(token_balances_after_claim_burn[token_address] - token_balances_before[token_address])}"
         )
 
-    # TODO: send fee tokens to operations multisig
+    # send fee tokens to operations multisig
+    for token_address in token_addresses:
+        token_contract = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        )
+        symbol = token_contract.symbol()
+        balance = token_contract.balanceOf(multisig.address)
+        if balance > 0:
+            print(
+                f"Sending {symbol} to operations multisig"
+            )
+            # send tokens to operations multisig
+            token_contract.transfer(
+                ops_multisig_address,
+                balance,
+                {"from": multisig.address}
+            )
 
     # combine history into multisend txn
     # TODO: set 'safe_nonce'
