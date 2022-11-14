@@ -111,11 +111,14 @@ def main():
     )
 
     # send SLP back to main multisig
+    balance = SLP_contract.balanceOf(ops_multisig.address)
     SLP_contract.transfer(
         main_multisig_address,
-        SLP_contract.balanceOf(ops_multisig.address),
+        balance,
         {"from": ops_multisig.address}
     )
+    assert (SLP_contract.balanceOf(ops_multisig.address) == 0)
+    assert (SLP_contract.balanceOf(main_multisig_address) == balance)
 
     # TODO: set 'safe_nonce'
     safe_tx = ops_multisig.multisend_from_receipts()

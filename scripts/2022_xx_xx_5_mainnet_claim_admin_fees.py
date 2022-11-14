@@ -186,6 +186,8 @@ def main():
             "ERC20", token_address, ERC20_ABI
         )
         symbol = token_contract.symbol()
+
+        # send 100% of claimed tokens to operations multisig
         balance = token_contract.balanceOf(multisig.address)
         if balance > 0:
             print(
@@ -197,6 +199,8 @@ def main():
                 balance,
                 {"from": multisig.address}
             )
+        assert (token_contract.balanceOf(multisig.address) == 0)
+        assert (token_contract.balanceOf(ops_multisig_address) == balance)
 
     # combine history into multisend txn
     # TODO: set 'safe_nonce'
