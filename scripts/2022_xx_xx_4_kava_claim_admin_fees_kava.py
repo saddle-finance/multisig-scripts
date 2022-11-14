@@ -28,7 +28,6 @@ def main():
         f"Not on {TARGET_NETWORK}"
     multisig = ApeSafe(
         MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
-        base_url='https://safe-transaction.optimism.gnosis.io/'
     )
 
     # Run any pending transactions before simulating any more transactions
