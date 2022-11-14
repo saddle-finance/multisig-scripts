@@ -1,9 +1,8 @@
-import this
 from helpers import (
     CHAIN_IDS,
     ERC20_ABI,
     SUSHISWAP_ROUTER_ABI,
-    MULTISIG_ADDRESSES,
+    OPS_MULTISIG_ADDRESSES,
     SDL_ADDRESSES,
     SUSHISWAP_ROUTER_ADDRESS
 )
@@ -16,18 +15,17 @@ TARGET_NETWORK = "MAINNET"
 
 
 def main():
-    """Supplies SDL+ETH to SushiSwap liquidity pool"""
+    """Supplies SDL+ETH to SushiSwap liquidity pool via Ops-multisig"""
 
     print(f"You are using the '{network.show_active()}' network")
     assert (network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
         f"Not on {TARGET_NETWORK}"
-    multisig = ApeSafe(
-        MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
-        base_url='https://safe-transaction.optimism.gnosis.io/'
+    ops_multisig = ApeSafe(
+        OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
     )
 
     # Run any pending transactions before simulating any more transactions
-    # multisig.preview_pending()
+    # ops_multisig.preview_pending()
 
     WETH_MAINNET_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
     SUSHI_SDL_SLP_ADDRESS = "0x0C6F06b32E6Ae0C110861b8607e67dA594781961"
@@ -53,38 +51,40 @@ def main():
 
     print(
         "Balances before LP'ing:\n"
-        f"WETH: {WETH_contract.balanceOf(multisig.address)/ (10 ** WETH_decimals)}\n" +
-        f"SDL: {SDL_contract.balanceOf(multisig.address)/ (10 ** SDL_decimals)}\n" +
-        f"SUSHI/WETH SLP: {SLP_contract.balanceOf(multisig.address)/ (10 ** SLP_decimals)}\n" +
+        f"WETH: {WETH_contract.balanceOf(ops_multisig.address)/ (10 ** WETH_decimals)}\n" +
+        f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}\n" +
+        f"SUSHI/WETH SLP: {SLP_contract.balanceOf(ops_multisig.address)/ (10 ** SLP_decimals)}\n" +
         f"SUSHI/WETH SLP total supply: {SLP_contract.totalSupply()/ (10 ** SLP_decimals)}\n\n"
     )
 
-    # approve the router to spend the multisig's WETH
+    # approve the router to spend the ops_multisig's WETH
     WETH_contract.approve(
         SUSHISWAP_ROUTER_ADDRESS[CHAIN_IDS[TARGET_NETWORK]],
         2 ** 256 - 1,
-        {"from": multisig.address}
+        {"from": ops_multisig.address}
     )
 
-    # approve the router to spend the multisig's SDL
+    # approve the router to spend the ops_multisig's SDL
     SDL_contract.approve(
         SUSHISWAP_ROUTER_ADDRESS[CHAIN_IDS[TARGET_NETWORK]],
         2 ** 256 - 1,
-        {"from": multisig.address}
+        {"from": ops_multisig.address}
     )
 
     # paramters for addLiquidity tx
     tolerance_factor = 0.9
     token_a = WETH_MAINNET_ADDRESS
     token_b = SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
-    amount_a_desired = WETH_contract.balanceOf(multisig.address)
+    amount_a_desired = WETH_contract.balanceOf(ops_multisig.address)
 
     # NOTE: SDL amount needs to be adjusted at point of execution, since amount of SDL that was bought
-    # with USDC from fees will have changed (and we can't just use the total SDL balance of the multisig)
+    # with USDC from fees will have changed (and we can't just use the total SDL balance of the ops_multisig)
     amount_b_desired = 2_494_093 * 1e18
-    amount_a_min = WETH_contract.balanceOf(multisig.address) * tolerance_factor
-    amount_b_min = SDL_contract.balanceOf(multisig.address) * tolerance_factor
-    to = multisig.address
+    amount_a_min = WETH_contract.balanceOf(
+        ops_multisig.address) * tolerance_factor
+    amount_b_min = SDL_contract.balanceOf(
+        ops_multisig.address) * tolerance_factor
+    to = ops_multisig.address
     deadline = chain[-1].timestamp + 3600
 
     # perform swap
@@ -97,24 +97,26 @@ def main():
         amount_b_min,
         to,
         deadline,
-        {"from": multisig.address}
+        {"from": ops_multisig.address}
     )
 
     print(
         "Balances after LP'ing:\n"
-        f"WETH: {WETH_contract.balanceOf(multisig.address)/ (10 ** WETH_decimals)}\n" +
-        f"SDL: {SDL_contract.balanceOf(multisig.address)/ (10 ** SDL_decimals)}\n" +
-        f"SUSHI/WETH SLP: {SLP_contract.balanceOf(multisig.address)/ (10 ** SLP_decimals)}\n" +
+        f"WETH: {WETH_contract.balanceOf(ops_multisig.address)/ (10 ** WETH_decimals)}\n" +
+        f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}\n" +
+        f"SUSHI/WETH SLP: {SLP_contract.balanceOf(ops_multisig.address)/ (10 ** SLP_decimals)}\n" +
         f"SUSHI/WETH SLP total supply: {SLP_contract.totalSupply()/ (10 ** SLP_decimals)}\n\n"
     )
 
+    # TODO: send SLP back to main msig
+
     # TODO: set 'safe_nonce'
-    safe_tx = multisig.multisend_from_receipts()
+    safe_tx = ops_multisig.multisend_from_receipts()
     safe_nonce = 0
 
     safe_tx.safe_nonce = safe_nonce
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)  # prompts for password
-    multisig.preview(safe_tx)
-    confirm_posting_transaction(multisig, safe_tx)
+    ops_multisig.preview(safe_tx)
+    confirm_posting_transaction(ops_multisig, safe_tx)

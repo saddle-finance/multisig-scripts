@@ -1,11 +1,7 @@
-import this
 from helpers import (
     CHAIN_IDS,
     ERC20_ABI,
-    META_SWAP_DEPOSIT_ABI,
-    MULTISIG_ADDRESSES,
-    SWAP_ABI,
-    META_SWAP_ABI,
+    OPS_MULTISIG_ADDRESSES,
     UNIV3_ROUTER_ABI,
     UNIV3_QUOTER_ABI
 )
@@ -18,18 +14,17 @@ TARGET_NETWORK = "MAINNET"
 
 
 def main():
-    """This script buys WETH with half of the multisig's USDC balance"""
+    """This script buys WETH with half of the Ops-multisig's USDC balance"""
 
     print(f"You are using the '{network.show_active()}' network")
     assert (network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
         f"Not on {TARGET_NETWORK}"
-    multisig = ApeSafe(
-        MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
-        base_url='https://safe-transaction.optimism.gnosis.io/'
+    ops_multisig = ApeSafe(
+        OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
     )
 
     # Run any pending transactions before simulating any more transactions
-    # multisig.preview_pending()
+    # ops_multisig.preview_pending()
 
     USDC_MAINNET = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
     WETH_MAINNET = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
@@ -53,17 +48,17 @@ def main():
     USDC_decimals = USDC_contract.decimals()
     WETH_decimals = WETH_contract.decimals()
 
-    USDC_balance_before = USDC_contract.balanceOf(multisig.address)
+    USDC_balance_before = USDC_contract.balanceOf(ops_multisig.address)
 
     token_from_address = USDC_MAINNET
     token_to_address = WETH_MAINNET
     fee = 500
-    recipient = multisig.address
-    deadline = chain[chain.height].timestamp + 10 * 60
+    recipient = ops_multisig.address
+    deadline = chain[chain.height].timestamp + 3600  # 1 hour
     sqrt_price_limit_X96 = 0
 
-    # swap half of multisig's USDC for WETH
-    amount_in = USDC_contract.balanceOf(multisig.address) / 2
+    # swap half of ops_multisig's USDC for WETH
+    amount_in = USDC_contract.balanceOf(ops_multisig.address) / 2
 
     # getting min amounts
     print(
@@ -75,7 +70,7 @@ def main():
         fee,
         amount_in,
         sqrt_price_limit_X96,
-        {"from": multisig.address}
+        {"from": ops_multisig.address}
     ).return_value
 
     # input struct for univ3 swap
@@ -97,7 +92,7 @@ def main():
     USDC_contract.approve(
         UNIV3_ROUTER,
         amount_in,
-        {"from": multisig.address}
+        {"from": ops_multisig.address}
     )
 
     # swap using univ3
@@ -106,27 +101,27 @@ def main():
     )
     univ3_router.exactInputSingle(
         params,
-        {"from": multisig.address}
+        {"from": ops_multisig.address}
     )
 
-    USDC_balance_after = USDC_contract.balanceOf(multisig.address)
+    USDC_balance_after = USDC_contract.balanceOf(ops_multisig.address)
 
     assert (USDC_balance_after < 0.51 * USDC_balance_before and
             USDC_balance_after > 0.49 * USDC_balance_before)
 
     print(
         "Balances after swap:\n"
-        f"USDC: {USDC_contract.balanceOf(multisig.address)/ (10 ** USDC_decimals)}\n" +
-        f"WETH: {WETH_contract.balanceOf(multisig.address)/ (10 ** WETH_decimals)}"
+        f"USDC: {USDC_contract.balanceOf(ops_multisig.address)/ (10 ** USDC_decimals)}\n" +
+        f"WETH: {WETH_contract.balanceOf(ops_multisig.address)/ (10 ** WETH_decimals)}"
     )
 
     # TODO: set 'safe_nonce'
-    safe_tx = multisig.multisend_from_receipts()
+    safe_tx = ops_multisig.multisend_from_receipts()
     safe_nonce = 0
 
     safe_tx.safe_nonce = safe_nonce
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)  # prompts for password
-    multisig.preview(safe_tx)
-    confirm_posting_transaction(multisig, safe_tx)
+    ops_multisig.preview(safe_tx)
+    confirm_posting_transaction(ops_multisig, safe_tx)
