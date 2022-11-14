@@ -4,6 +4,7 @@ from helpers import (
     ERC20_ABI,
     META_SWAP_DEPOSIT_ABI,
     MULTISIG_ADDRESSES,
+    OPS_MULTISIG_ADDRESSES,
     SWAP_ABI,
     META_SWAP_ABI,
     EVMOS_CELER_LIQUIDITY_BRIDGE,
@@ -23,12 +24,12 @@ def main():
     print(f"You are using the '{network.show_active()}' network")
     assert (network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
         f"Not on {TARGET_NETWORK}"
-    multisig = ApeSafe(
-        MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
+    ops_multisig = ApeSafe(
+        OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
     )
 
     # Run any pending transactions before simulating any more transactions
-    # multisig.preview_pending()
+    # ops_multisig.preview_pending()
 
     MAX_POOL_LENGTH = 32
     CEUSDC_EVMOS = "0xe46910336479F254723710D57e7b683F3315b22B"
@@ -89,7 +90,7 @@ def main():
         ).symbol()
         token_balances_before[token_address] = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
-        ).balanceOf(multisig.address)
+        ).balanceOf(ops_multisig.address)
         print(
             f"Balance of {symbol} before claiming: {token_balances_before[token_address]}"
         )
@@ -105,7 +106,7 @@ def main():
         )
         pool = Contract.from_abi("Swap", swap_address, SWAP_ABI)
         pool.withdrawAdminFees(
-            {"from": multisig.address})
+            {"from": ops_multisig.address})
 
     # burn LP tokens of base pools gained from claiming for USDC
     for swap_address in swap_to_deposit_dict:
@@ -121,7 +122,7 @@ def main():
             base_pool_LP_contract = Contract.from_abi(
                 "LPToken", base_pool_LP_address, ERC20_ABI
             )
-            LP_balance = base_pool_LP_contract.balanceOf(multisig.address)
+            LP_balance = base_pool_LP_contract.balanceOf(ops_multisig.address)
             if LP_balance > 0:
                 base_swap_address = metaswap_deposit_contract.baseSwap()
                 base_swap = Contract.from_abi(
@@ -139,18 +140,18 @@ def main():
                 base_pool_LP_contract.approve(
                     base_swap,
                     LP_balance,
-                    {"from": multisig.address}
+                    {"from": ops_multisig.address}
                 )
                 print(
                     f"Burning {LP_balance} {base_pool_LP_contract.symbol()} for USDC"
                 )
-                deadline = chain[chain.height].timestamp + 10 * 60
+                deadline = chain[chain.height].timestamp + 3600
                 base_swap.removeLiquidityOneToken(
                     LP_balance,
                     token_index_USDC,
                     min_amount,
                     deadline,
-                    {"from": multisig.address}
+                    {"from": ops_multisig.address}
                 )
 
     # capture and log token balances of msig after claiming
@@ -161,7 +162,7 @@ def main():
         ).symbol()
         token_balances_after[token_address] = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
-        ).balanceOf(multisig.address)
+        ).balanceOf(ops_multisig.address)
         print(
             f"Balance of {symbol} after claiming: {token_balances_after[token_address]}"
         )
@@ -218,8 +219,8 @@ def main():
                 # offset by one for flattened 'to' token index
                 token_index_to = 1 + base_token_index_to
 
-            # deadline 10 mins from now
-            deadline = chain[chain.height].timestamp + 10 * 60
+            # deadline 1h from now
+            deadline = chain[chain.height].timestamp + 3600
 
             # min amount to receive
             min_amount = swap.calculateSwap(
@@ -238,7 +239,7 @@ def main():
             token_contract.approve(
                 swap_address,
                 amount_to_swap,
-                {"from": multisig.address}
+                {"from": ops_multisig.address}
             )
 
             # perform swap
@@ -251,16 +252,14 @@ def main():
                 amount_to_swap,
                 min_amount,
                 deadline,
-                {"from": multisig.address}
+                {"from": ops_multisig.address}
             )
 
-    # bridging USDC to mainnet
+    # bridge 100% of USDC balance to mainnet ops ops_multisig
     ceUSDC_contract = Contract.from_abi("ERC20", CEUSDC_EVMOS, ERC20_ABI)
-
-    # bridge difference between balance before and after claiming + converting
     amount_to_bridge = ceUSDC_contract.balanceOf(
-        multisig.address
-    ) - token_balances_before[CEUSDC_EVMOS]
+        ops_multisig.address
+    )
 
     print(
         f"Approving bridge for ${ceUSDC_contract.symbol()} {amount_to_bridge / (10 ** ceUSDC_contract.decimals())}"
@@ -269,10 +268,10 @@ def main():
     ceUSDC_contract.approve(
         liquidity_bridge,
         amount_to_bridge,
-        {"from": multisig.address}
+        {"from": ops_multisig.address}
     )
 
-    # send tx to bridge
+    # send USDC to mainnet main multisig
     print(
         f"Bridging ${ceUSDC_contract.symbol()} {amount_to_bridge / (10 ** ceUSDC_contract.decimals())} to mainnet"
     )
@@ -286,17 +285,19 @@ def main():
         1,                                          # _dstChainId (eth mainnet)
         chain[chain.height].timestamp,              # _nonce
         5000,                                       # _maxSlippage (in pips)
-        {"from": multisig.address}
+        {"from": ops_multisig.address}
     )
+
+    assert ceUSDC_contract.balanceOf(ops_multisig.address) == 0
 
     # combine history into multisend txn
     # TODO: set 'safe_nonce'
-    safe_tx = multisig.multisend_from_receipts()
+    safe_tx = ops_multisig.multisend_from_receipts()
     safe_nonce = 0
 
     safe_tx.safe_nonce = safe_nonce
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)  # prompts for password
-    multisig.preview(safe_tx)
-    confirm_posting_transaction(multisig, safe_tx)
+    ops_multisig.preview(safe_tx)
+    confirm_posting_transaction(ops_multisig, safe_tx)

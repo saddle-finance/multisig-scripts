@@ -7,6 +7,7 @@ from helpers import (
     ERC20_ABI,
     META_SWAP_DEPOSIT_ABI,
     MULTISIG_ADDRESSES,
+    OPS_MULTISIG_ADDRESSES,
     SWAP_ABI,
     META_SWAP_ABI,
     EVMOS_CELER_LIQUIDITY_BRIDGE,
@@ -29,26 +30,20 @@ def main():
     multisig = ApeSafe(
         MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
     )
+    ops_multisig_address = OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
 
     # Run any pending transactions before simulating any more transactions
     # multisig.preview_pending()
 
     MAX_POOL_LENGTH = 32
-    #CEUSDC_EVMOS = "0xe46910336479F254723710D57e7b683F3315b22B"
-
-    # Optimism L2 Standard Bridge
-    liquidity_bridge = Contract.from_abi(
-        "EvmosCelerLiquidityBridge",
-        EVMOS_CELER_LIQUIDITY_BRIDGE[CHAIN_IDS[TARGET_NETWORK]],
-        EVMOS_CELER_LIQUIDITY_BRIDGE_ABI
-    )
+    USDC_KAVA = "0xfa9343c3897324496a05fc75abed6bac29f8a40f"
 
     # token -> swap/metaswap dict
     # @dev which pool to use for swapping which token (Evmos representations ignored for now)
     token_to_swap_dict = {
         # USDT : Kava USDT Pool
         "0xb44a9b6905af7c801311e8f4e76932ee959c663c": "0x5847f8177221268d279Cf377D0E01aB3FD993628",
-        # USDC : Evmos USDT Pool
+        # USDC : Kava USDT Pool
         "0xfa9343c3897324496a05fc75abed6bac29f8a40f": "0x5847f8177221268d279Cf377D0E01aB3FD993628",
     }
 
@@ -139,7 +134,7 @@ def main():
                 print(
                     f"Burning {LP_balance} {base_pool_LP_contract.symbol()} for USDC"
                 )
-                deadline = chain[chain.height].timestamp + 10 * 60
+                deadline = chain[chain.height].timestamp + 3600
                 base_swap.removeLiquidityOneToken(
                     LP_balance,
                     token_index_USDC,
@@ -161,127 +156,22 @@ def main():
             f"Balance of {symbol} after claiming: {token_balances_after[token_address]}"
         )
 
-    # log claimed amounts
+   # send tokens to operations multisig
     for token_address in token_addresses:
-        symbol = Contract.from_abi(
-            "ERC20", token_address, ERC20_ABI
-        ).symbol()
-        print(
-            f"Claimed {symbol}: {(token_balances_after[token_address] - token_balances_before[token_address])}"
-        )
-
-    # convert all collected fees to USDC, to minimize # of bridge transactions
-    for token_address in token_addresses:
-        # skip USDC, since it's the target
-        if token_address == CEUSDC_EVMOS:
-            continue
-
-        # amount to swap
-        amount_to_swap = token_balances_after[token_address] - \
-            token_balances_before[token_address]
-
-        # skip if no fees were claimed
-        if amount_to_swap > 0:
-            # get swap and token indices
-            # if base pool, use base pool for swapping
-            if swap_to_deposit_dict[token_to_swap_dict[token_address]] == "":
-                swap_address = token_to_swap_dict[token_address]
-                # Base swap for swapping
-                swap = Contract.from_abi(
-                    "Swap", swap_address, SWAP_ABI
-                )
-                # get token indices from base pool contract
-                token_index_from = swap.getTokenIndex(token_address)
-                token_index_to = swap.getTokenIndex(CEUSDC_EVMOS)
-
-            # if metapool, use metapool deposit for swapping
-            else:
-                swap_address = swap_to_deposit_dict[token_to_swap_dict[token_address]]
-                # Metaswap deposit for swapping
-                swap = Contract.from_abi(
-                    "MetaSwapDeposit", swap_address, SWAP_ABI
-                )
-                # get (flattened) token indices from underlying swap contract
-                meta_swap = Contract.from_abi(
-                    "MetaSwap", token_to_swap_dict[token_address], META_SWAP_ABI
-                )
-                base_swap = Contract.from_abi(
-                    "BaseSwap", meta_swap.metaSwapStorage()[0], SWAP_ABI
-                )
-                base_token_index_to = base_swap.getTokenIndex(CEUSDC_EVMOS)
-                token_index_from = 0  # index 0 is non-base-pool token
-                # offset by one for flattened 'to' token index
-                token_index_to = 1 + base_token_index_to
-
-            # deadline 10 mins from now
-            deadline = chain[chain.height].timestamp + 10 * 60
-
-            # min amount to receive
-            min_amount = swap.calculateSwap(
-                token_index_from,
-                token_index_to,
-                amount_to_swap
-            )
-
-            # approve amount to swap
-            token_contract = Contract.from_abi(
-                "ERC20", token_address, ERC20_ABI
-            )
+        token_contract = Contract.from_abi("ERC20", token_address, ERC20_ABI)
+        symbol = token_contract.symbol()
+        token_balance = token_contract.balanceOf(multisig.address)
+        if token_balance > 0:
             print(
-                f"Approving swap for ${token_contract.symbol()} {amount_to_swap}"
+                f"Sending {token_balance} {symbol} to operations multisig"
             )
-            token_contract.approve(
-                swap_address,
-                amount_to_swap,
+            token_contract.transfer(
+                ops_multisig_address,
+                token_balance,
                 {"from": multisig.address}
             )
-
-            # perform swap
-            print(
-                f"Swapping {amount_to_swap / (10 ** token_contract.decimals())} {token_contract.symbol()} to USDC"
-            )
-            swap.swap(
-                token_index_from,
-                token_index_to,
-                amount_to_swap,
-                min_amount,
-                deadline,
-                {"from": multisig.address}
-            )
-
-    # bridging USDC to mainnet
-    ceUSDC_contract = Contract.from_abi("ERC20", CEUSDC_EVMOS, ERC20_ABI)
-
-    # bridge difference between balance before and after claiming + converting
-    amount_to_bridge = ceUSDC_contract.balanceOf(
-        multisig.address
-    ) - token_balances_before[CEUSDC_EVMOS]
-
-    print(
-        f"Approving bridge for ${ceUSDC_contract.symbol()} {amount_to_bridge / (10 ** ceUSDC_contract.decimals())}"
-    )
-    # approve gateway
-    ceUSDC_contract.approve(
-        liquidity_bridge,
-        amount_to_bridge,
-        {"from": multisig.address}
-    )
-
-    # send tx to bridge
-    print(
-        f"Bridging ${ceUSDC_contract.symbol()} {amount_to_bridge / (10 ** ceUSDC_contract.decimals())} to mainnet"
-    )
-    # @dev
-    # bridge to use for Kava still tbd
-    # liquidity_bridge.send(
-    #    MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]],   # _receiver
-    #    CEUSDC_EVMOS,                               # _token
-    #    amount_to_bridge,                           # _amount
-    #    1,                                          # _dstChainId (eth mainnet)
-    #    chain[chain.height].timestamp,              # _nonce
-    #    5000,                                       # _maxSlippage (in pips)
-    #    {"from": multisig.address}
-    # )
+        assert token_contract.balanceOf(multisig.address) == 0
+        assert token_contract.balanceOf(ops_multisig_address) == token_balance
 
     # combine history into multisend txn
     # TODO: set 'safe_nonce'
