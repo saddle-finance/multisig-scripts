@@ -9,3 +9,6 @@ tests/abi.json
 **/.DS_Store
 .env
 .hypothesis
+.vscode/
+
+node_modules/

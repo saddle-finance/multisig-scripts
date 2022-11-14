@@ -6,7 +6,6 @@ live:
         id: mainnet
         host: https://eth-mainnet.alchemyapi.io/v2/$ALCHEMY_KEY
         explorer: https://api.etherscan.io/api
-        # explorer: "http://localhost:9000/etherscan/api" # cache me outside
         multicall2: "0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696"
       - name: Ropsten (Infura)
         chainid: 3
@@ -48,8 +47,8 @@ live:
     networks:
       - name: Mainnet
         chainid: 42161
-        id: arbitrum-main
-        host: https://arb1.arbitrum.io/rpc
+        id: arb-main
+        host: https://rpc.ankr.com/arbitrum
         explorer: https://api.arbiscan.io/api
         multicall2: "0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858"
   - name: Avalanche
@@ -75,18 +74,6 @@ live:
         id: bsc-main
         host: https://bsc-dataseed.binance.org
         explorer: https://api.bscscan.com/api
-  - name: Evmos
-    networks:
-      - name: Testnet
-        chainid: 9000
-        id: evmos-test
-        host: https://eth.bd.evmos.dev:8545
-        explorer: https://evm.evmos.dev/
-      - name: Mainnet
-        chainid: 9001
-        id: evmos-main
-        host: https://eth.bd.evmos.org:8545
-        explorer: https://evm.evmos.org/
   - name: Fantom Opera
     networks:
       - name: Testnet
@@ -132,6 +119,43 @@ live:
         id: xdai-test
         host: https://sokol.poa.network
         explorer: https://blockscout.com/poa/sokol/api
+  - name: Optimism
+    networks:
+      - name: Mainnet
+        chainid: 10
+        id: optimism-main
+        host: https://opt-mainnet.g.alchemy.com/v2/$ALCHEMY_KEY
+        explorer: https://api-optimistic.etherscan.io/api
+      - name: Testnet
+        chainid: 69
+        id: optimism-test
+        host: https://kovan.optimism.io
+        explorer: https://kovan-optimistic.etherscan.io/api
+  - name: Evmos
+    networks:
+      - name: Mainnet
+        chainid: 9001
+        id: evmos-main
+        host: https://eth.bd.evmos.org:8545
+        explorer: https://evm.evmos.org/api
+        multicall2: "0x3A0c2A793a8DB779e0293699D0Ce77c77617FE0f"
+      - name: Testnet
+        chainid: 9000
+        id: evmos-test
+        host: https://eth.bd.evmos.dev:8545
+        explorer: https://evm.evmos.dev/api
+  - name: Kava
+    networks:
+      - name: Mainnet
+        chainid: 2222
+        id: kava-main
+        host: https://evm.kava.io
+        explorer: https://explorer.kava.io/api
+      - name: Testnet
+        chainid: 2221
+        id: kava-test
+        host: https://evm.testnet.kava.io
+        explorer: https://explorer.testnet.kava.io/api
 
 development:
   - name: Ganache-CLI
@@ -158,13 +182,20 @@ development:
       port: 8545
   - name: Hardhat (Mainnet Fork)
     id: hardhat-fork
-    chain_id: 1
     cmd: npx hardhat node
     host: http://localhost
     timeout: 120
     cmd_settings:
       port: 8545
       fork: mainnet
+  - name: Hardhat (Arbitrum Mainnet Fork)
+    id: hardhat-arb-fork
+    cmd: npx hardhat node --fork-ignore-unknown-tx-type true
+    host: http://localhost
+    timeout: 120
+    cmd_settings:
+      port: 8545
+      fork: arb-main
   - name: Ganache-CLI (Mainnet Fork)
     id: mainnet-fork
     cmd: ganache-cli
@@ -175,7 +206,7 @@ development:
       gas_limit: 12000000
       accounts: 10
       evm_version: istanbul
-      mnemonic: brownie2
+      mnemonic: brownie
       fork: mainnet
   - name: Ganache-CLI (BSC-Mainnet Fork)
     id: bsc-main-fork
@@ -202,7 +233,7 @@ development:
       mnemonic: brownie
       fork: ftm-main
   - name: Ganache-CLI (Arbitrum-Mainnet Fork)
-    id: arbitrum-main-fork
+    id: arb-main-fork
     cmd: ganache-cli
     host: http://127.0.0.1
     timeout: 120
@@ -212,7 +243,7 @@ development:
       accounts: 10
       evm_version: istanbul
       mnemonic: brownie
-      fork: arbitrum-main
+      fork: arb-main
   - name: Ganache-CLI (Polygon-Mainnet Fork)
     id: polygon-main-fork
     cmd: ganache-cli
@@ -261,3 +292,27 @@ development:
       evm_version: istanbul
       mnemonic: brownie
       fork: evmos-main
+  - name: Ganache-CLI (Kava-Mainnet Fork)
+    id: kava-main-fork
+    cmd: ganache-cli
+    host: http://127.0.0.1
+    timeout: 120
+    cmd_settings:
+      port: 8545
+      gas_limit: 20000000
+      accounts: 10
+      evm_version: istanbul
+      mnemonic: brownie
+      fork: kava-main
+  - name: Ganache-CLI (Opt-Mainnet Fork)
+    id: opt-main-fork
+    cmd: ganache-cli
+    host: http://127.0.0.1
+    timeout: 120
+    cmd_settings:
+      port: 8545
+      gas_limit: 20000000
+      accounts: 10
+      evm_version: istanbul
+      mnemonic: brownie
+      fork: optimism-main
