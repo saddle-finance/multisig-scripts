@@ -541,6 +541,10 @@ def main():
     USDC_decimals = USDC_contract.decimals()
     SDL_decimals = SDL_contract.decimals()
 
+    ######### Debug #########
+    SDL_balance_before_buying = SDL_contract.balanceOf(
+        multisig.address) / (10 ** SDL_decimals)
+
     print(
         "\nBalances before swap:\n"
         f"USDC: {USDC_contract.balanceOf(multisig.address)/ (10 ** USDC_decimals)}\n" +
@@ -791,11 +795,14 @@ def main():
 
     ####### final outputs before LP'ing to sushi ########
 
+    SDL_balance_after_buying = SDL_contract.balanceOf(
+        multisig.address) / (10 ** SDL_decimals)
     print(
         "\n\n################ Final balances before LP'ing ################:\n" +
         f"USDC: {USDC_contract.balanceOf(multisig.address)/ (10 ** USDC_decimals)}\n" +
         f"WETH: {WETH_contract.balanceOf(multisig.address)/ (10 ** WETH_decimals)}\n" +
-        f"SDL: {SDL_contract.balanceOf(multisig.address)/ (10 ** SDL_decimals)}\n\n" +
+        f"SDL: {SDL_contract.balanceOf(multisig.address)/ (10 ** SDL_decimals)}\n" +
+        f"SDL available for LP'ing: {SDL_balance_after_buying - SDL_balance_before_buying}"
         "\n\n##############################################################:\n"
     )
 
@@ -879,4 +886,11 @@ def main():
         f"SUSHI/WETH SLP: {SLP_contract.balanceOf(multisig.address)/ (10 ** SLP_decimals)}\n" +
         f"SUSHI/WETH SLP total supply: {SLP_contract.totalSupply()/ (10 ** SLP_decimals)}\n\n"
 
+    )
+
+    ######## Debug ########
+    SDL_balance_after_LPing = SDL_contract.balanceOf(
+        multisig.address) / (10 ** SDL_decimals)
+    print(
+        f"SDL balance used for LP'ing: {SDL_balance_after_buying - SDL_balance_after_LPing}"
     )
