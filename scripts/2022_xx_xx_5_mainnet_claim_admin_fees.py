@@ -199,8 +199,8 @@ def main():
                 balance,
                 {"from": multisig.address}
             )
-        assert (token_contract.balanceOf(multisig.address) == 0)
-        assert (token_contract.balanceOf(ops_multisig_address) == balance)
+        assert token_contract.balanceOf(multisig.address) == 0
+        assert token_contract.balanceOf(ops_multisig_address) == balance
 
     # combine history into multisend txn
     # TODO: set 'safe_nonce'
