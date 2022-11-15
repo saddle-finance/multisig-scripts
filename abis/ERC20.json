@@ -119,5 +119,5 @@
         ],
         "stateMutability": "nonpayable",
         "type": "function"
-    },
+    }
 ]

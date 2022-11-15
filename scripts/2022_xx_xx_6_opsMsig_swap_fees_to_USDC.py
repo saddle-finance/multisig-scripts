@@ -256,8 +256,7 @@ def main():
         fee = 500
         recipient = ops_multisig.address
         deadline = chain[chain.height].timestamp + 3600
-        amount_in = token_balances_after_saddle_swap[token_from] - \
-            token_balances_before[token_from]
+        amount_in = token_balances_after_saddle_swap[token_from]
         sqrt_price_limit_X96 = 0
 
         token_contract = Contract.from_abi(
