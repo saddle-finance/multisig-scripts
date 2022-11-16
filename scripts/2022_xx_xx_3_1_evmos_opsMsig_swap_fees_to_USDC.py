@@ -10,6 +10,12 @@ from helpers import (
     EVMOS_CELER_LIQUIDITY_BRIDGE,
     EVMOS_CELER_LIQUIDITY_BRIDGE_ABI,
 )
+from fee_distro_helpers import (
+    token_addresses_evmos,
+    evmos_token_to_swap_dict,
+    evmos_swap_to_deposit_dict,
+    MAX_POOL_LENGTH
+)
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract, chain
 from scripts.utils import confirm_posting_transaction
@@ -31,9 +37,6 @@ def main():
     # Run any pending transactions before simulating any more transactions
     # ops_multisig.preview_pending()
 
-    MAX_POOL_LENGTH = 32
-    CEUSDC_EVMOS = "0xe46910336479F254723710D57e7b683F3315b22B"
-
     # Optimism L2 Standard Bridge
     liquidity_bridge = Contract.from_abi(
         "EvmosCelerLiquidityBridge",
@@ -41,37 +44,12 @@ def main():
         EVMOS_CELER_LIQUIDITY_BRIDGE_ABI
     )
 
-    # token -> swap/metaswap dict
-    # @dev which pool to use for swapping which token (Evmos representations ignored for now)
-    token_to_swap_dict = {
-        # ceUSDC : Evmos USDT Pool
-        "0x7f5c764cbc14f9669b88837ca1490cca17c31607": "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b",
-        # ceUSDT : Evmos USDT Pool
-        "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58": "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b",
-    }
-
-    # swap -> metaswapDeposit dict
-    swap_to_deposit_dict = {
-        # Evmos USDT Pool
-        "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b": "",
-        # Evmos 4Pool (paused)
-        # "0x81272C5c573919eF0C719D6d63317a4629F161da": "",
-        # Evmos Frax3Pool (paused)
-        # "0x21d4365834B7c61447e142ef6bCf01136cBD01c6": "",
-        # Evmos 3Pool (paused)
-        # "0x1275203FB58Fc25bC6963B13C2a1ED1541563aF0": "",
-        # Evmos BTC Pool (paused)
-        # "0x7003102c75587E8D29c56124060463Ef319407D0": "",
-        # Evmos tBTC Metapool (paused)
-        # "0xdb5c5A6162115Ce9a188E7D773C4D011F421BbE5": "0xFdA5D2ad8b6d3884AbB799DA66f57175E8706941",
-    }
-
     # comprehend set of underlying tokens used by pools on that chain
     token_addresses = set()
     base_LP_addresses = set()
-    for swap_address in swap_to_deposit_dict:
+    for swap_address in evmos_swap_to_deposit_dict:
         swap_contract = Contract.from_abi("Swap", swap_address, SWAP_ABI)
-        if swap_to_deposit_dict[swap_address] == "":  # base pool
+        if evmos_swap_to_deposit_dict[swap_address] == "":  # base pool
             for index in range(MAX_POOL_LENGTH):
                 try:
                     token_addresses.add(swap_contract.getToken(index))
@@ -96,7 +74,7 @@ def main():
         )
 
     # execute txs for claiming admin fees
-    for swap_address in swap_to_deposit_dict:
+    for swap_address in evmos_swap_to_deposit_dict:
         lp_token_address = Contract.from_abi(
             "Swap", swap_address, SWAP_ABI).swapStorage()[6]
         lp_token_name = Contract.from_abi(
@@ -109,8 +87,8 @@ def main():
             {"from": ops_multisig.address})
 
     # burn LP tokens of base pools gained from claiming for USDC
-    for swap_address in swap_to_deposit_dict:
-        metaswap_deposit_address = swap_to_deposit_dict[swap_address]
+    for swap_address in evmos_swap_to_deposit_dict:
+        metaswap_deposit_address = evmos_swap_to_deposit_dict[swap_address]
         if metaswap_deposit_address != "":
             metaswap_contract = Contract.from_abi(
                 "MetaSwap", swap_address, META_SWAP_ABI
@@ -128,7 +106,8 @@ def main():
                 base_swap = Contract.from_abi(
                     "BaseSwap", base_swap_address, SWAP_ABI
                 )
-                token_index_USDC = base_swap.getTokenIndex(CEUSDC_EVMOS)
+                token_index_USDC = base_swap.getTokenIndex(
+                    token_addresses_evmos["CEUSDC"])
                 min_amount = base_swap.calculateRemoveLiquidityOneToken(
                     LP_balance,
                     token_index_USDC
@@ -179,7 +158,7 @@ def main():
     # convert all collected fees to USDC, to minimize # of bridge transactions
     for token_address in token_addresses:
         # skip USDC, since it's the target
-        if token_address == CEUSDC_EVMOS:
+        if token_address == token_addresses_evmos["CEUSDC"]:
             continue
 
         # amount to swap
@@ -190,31 +169,33 @@ def main():
         if amount_to_swap > 0:
             # get swap and token indices
             # if base pool, use base pool for swapping
-            if swap_to_deposit_dict[token_to_swap_dict[token_address]] == "":
-                swap_address = token_to_swap_dict[token_address]
+            if evmos_swap_to_deposit_dict[evmos_token_to_swap_dict[token_address]] == "":
+                swap_address = evmos_token_to_swap_dict[token_address]
                 # Base swap for swapping
                 swap = Contract.from_abi(
                     "Swap", swap_address, SWAP_ABI
                 )
                 # get token indices from base pool contract
                 token_index_from = swap.getTokenIndex(token_address)
-                token_index_to = swap.getTokenIndex(CEUSDC_EVMOS)
+                token_index_to = swap.getTokenIndex(
+                    token_addresses_evmos["CEUSDC"])
 
             # if metapool, use metapool deposit for swapping
             else:
-                swap_address = swap_to_deposit_dict[token_to_swap_dict[token_address]]
+                swap_address = evmos_swap_to_deposit_dict[evmos_token_to_swap_dict[token_address]]
                 # Metaswap deposit for swapping
                 swap = Contract.from_abi(
                     "MetaSwapDeposit", swap_address, SWAP_ABI
                 )
                 # get (flattened) token indices from underlying swap contract
                 meta_swap = Contract.from_abi(
-                    "MetaSwap", token_to_swap_dict[token_address], META_SWAP_ABI
+                    "MetaSwap", evmos_token_to_swap_dict[token_address], META_SWAP_ABI
                 )
                 base_swap = Contract.from_abi(
                     "BaseSwap", meta_swap.metaSwapStorage()[0], SWAP_ABI
                 )
-                base_token_index_to = base_swap.getTokenIndex(CEUSDC_EVMOS)
+                base_token_index_to = base_swap.getTokenIndex(
+                    token_addresses_evmos["CEUSDC"])
                 token_index_from = 0  # index 0 is non-base-pool token
                 # offset by one for flattened 'to' token index
                 token_index_to = 1 + base_token_index_to
@@ -256,7 +237,8 @@ def main():
             )
 
     # bridge 100% of USDC balance to mainnet ops ops_multisig
-    ceUSDC_contract = Contract.from_abi("ERC20", CEUSDC_EVMOS, ERC20_ABI)
+    ceUSDC_contract = Contract.from_abi(
+        "ERC20", token_addresses_evmos["CEUSDC"], ERC20_ABI)
     amount_to_bridge = ceUSDC_contract.balanceOf(
         ops_multisig.address
     )
@@ -280,7 +262,7 @@ def main():
     # Celer suggests using timestamp as nonce
     liquidity_bridge.send(
         MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]],   # _receiver
-        CEUSDC_EVMOS,                               # _token
+        token_addresses_evmos["CEUSDC"],            # _token
         amount_to_bridge,                           # _amount
         1,                                          # _dstChainId (eth mainnet)
         chain[chain.height].timestamp,              # _nonce

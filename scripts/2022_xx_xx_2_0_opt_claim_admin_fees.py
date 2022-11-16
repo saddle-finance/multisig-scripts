@@ -7,6 +7,11 @@ from helpers import (
     SWAP_ABI,
     META_SWAP_ABI,
 )
+from fee_distro_helpers import (
+    token_addresses_optimism,
+    opt_swap_to_deposit_dict,
+    MAX_POOL_LENGTH
+)
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract, chain
 from scripts.utils import confirm_posting_transaction
@@ -30,29 +35,12 @@ def main():
     # Run any pending transactions before simulating any more transactions
     # multisig.preview_pending()
 
-    MAX_POOL_LENGTH = 32
-    USDC_OPTIMISM = "0x7F5c764cBc14f9669B88837ca1490cCa17c31607"
-
-    # swap -> metaswapDeposit dict
-    swap_to_deposit_dict = {
-        # Opt USD Pool
-        "0x5847f8177221268d279Cf377D0E01aB3FD993628": "",
-        # Opt FRAXBP Pool
-        "0xF6C2e0aDc659007Ba7c48446F5A4e4E94dfe08b5": "",
-        # Opt FRAXBP/sUSD Metapool
-        "0x250184dDDEC6d38E28ac12B481c9016867226E9D": "0xdf815Ea6b066Ac9f3107d8863a6c19aA2a5d24d3",
-        # Opt FRAXBP/USDT Metapool
-        "0xa9a84238098Dc3d1529228E6c74dBE7EbdF117a5": "0x3F1d224557afA4365155ea77cE4BC32D5Dae2174",
-        # Opt USD/FRAX Metapool
-        "0xc55E8C79e5A6c3216D4023769559D06fa9A7732e": "0x88Cc4aA0dd6Cf126b00C012dDa9f6F4fd9388b17",
-    }
-
     # comprehend set of underlying tokens used by pools on that chain
     token_addresses = set()
     base_LP_addresses = set()
-    for swap_address in swap_to_deposit_dict:
+    for swap_address in opt_swap_to_deposit_dict:
         swap_contract = Contract.from_abi("Swap", swap_address, SWAP_ABI)
-        if swap_to_deposit_dict[swap_address] == "":  # base pool
+        if opt_swap_to_deposit_dict[swap_address] == "":  # base pool
             for index in range(MAX_POOL_LENGTH):
                 try:
                     token_addresses.add(swap_contract.getToken(index))
@@ -77,7 +65,7 @@ def main():
         )
 
     # execute txs for claiming admin fees
-    for swap_address in swap_to_deposit_dict:
+    for swap_address in opt_swap_to_deposit_dict:
         lp_token_address = Contract.from_abi(
             "Swap", swap_address, SWAP_ABI).swapStorage()[6]
         lp_token_name = Contract.from_abi(
@@ -90,8 +78,8 @@ def main():
             {"from": multisig.address})
 
     # burn LP tokens of base pools gained from claiming for USDC
-    for swap_address in swap_to_deposit_dict:
-        metaswap_deposit_address = swap_to_deposit_dict[swap_address]
+    for swap_address in opt_swap_to_deposit_dict:
+        metaswap_deposit_address = opt_swap_to_deposit_dict[swap_address]
         if metaswap_deposit_address != "":
             metaswap_contract = Contract.from_abi(
                 "MetaSwap", swap_address, META_SWAP_ABI

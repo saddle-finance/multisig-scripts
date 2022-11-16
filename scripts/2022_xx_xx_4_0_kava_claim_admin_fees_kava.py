@@ -1,7 +1,11 @@
-# since we don't have decided on which bridge to use on Kava yet, this is WIP
-
-
-import this
+from scripts.utils import confirm_posting_transaction
+from brownie import accounts, network, Contract, chain
+from ape_safe import ApeSafe
+from fee_distro_helpers import (
+    token_addresses_kava,
+    kava_swap_to_deposit_dict,
+    MAX_POOL_LENGTH
+)
 from helpers import (
     CHAIN_IDS,
     ERC20_ABI,
@@ -10,19 +14,17 @@ from helpers import (
     OPS_MULTISIG_ADDRESSES,
     SWAP_ABI,
     META_SWAP_ABI,
-    EVMOS_CELER_LIQUIDITY_BRIDGE,
-    EVMOS_CELER_LIQUIDITY_BRIDGE_ABI,
 )
-from ape_safe import ApeSafe
-from brownie import accounts, network, Contract, chain
-from scripts.utils import confirm_posting_transaction
 
 
 TARGET_NETWORK = "KAVA"
 
 
 def main():
-    """This script claims admin fees from all Kava pools, then converts them to xxxx and sends them to Mainnet"""
+    """This script claims admin fees from all Evmos pools, then sends it operations multisig on kava"""
+
+    # skip until we've decided on a bridge
+    return
 
     print(f"You are using the '{network.show_active()}' network")
     assert (network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
@@ -35,32 +37,12 @@ def main():
     # Run any pending transactions before simulating any more transactions
     # multisig.preview_pending()
 
-    MAX_POOL_LENGTH = 32
-    USDC_KAVA = "0xfa9343c3897324496a05fc75abed6bac29f8a40f"
-
-    # token -> swap/metaswap dict
-    # @dev which pool to use for swapping which token (Evmos representations ignored for now)
-    token_to_swap_dict = {
-        # USDT : Kava USDT Pool
-        "0xb44a9b6905af7c801311e8f4e76932ee959c663c": "0x5847f8177221268d279Cf377D0E01aB3FD993628",
-        # USDC : Kava USDT Pool
-        "0xfa9343c3897324496a05fc75abed6bac29f8a40f": "0x5847f8177221268d279Cf377D0E01aB3FD993628",
-    }
-
-    # swap -> metaswapDeposit dict
-    swap_to_deposit_dict = {
-        # Kava USDT Pool
-        "0x5847f8177221268d279Cf377D0E01aB3FD993628": "",
-        # Kava 3Pool (paused)
-        # "0xA500b0e1360462eF777804BCAe6CE2BfB524dD2e": "",
-    }
-
     # comprehend set of underlying tokens used by pools on that chain
     token_addresses = set()
     base_LP_addresses = set()
-    for swap_address in swap_to_deposit_dict:
+    for swap_address in kava_swap_to_deposit_dict:
         swap_contract = Contract.from_abi("Swap", swap_address, SWAP_ABI)
-        if swap_to_deposit_dict[swap_address] == "":  # base pool
+        if kava_swap_to_deposit_dict[swap_address] == "":  # base pool
             for index in range(MAX_POOL_LENGTH):
                 try:
                     token_addresses.add(swap_contract.getToken(index))
@@ -85,7 +67,7 @@ def main():
         )
 
     # execute txs for claiming admin fees
-    for swap_address in swap_to_deposit_dict:
+    for swap_address in kava_swap_to_deposit_dict:
         lp_token_address = Contract.from_abi(
             "Swap", swap_address, SWAP_ABI).swapStorage()[6]
         lp_token_name = Contract.from_abi(
@@ -98,8 +80,8 @@ def main():
             {"from": multisig.address})
 
     # burn LP tokens of base pools gained from claiming for USDC
-    for swap_address in swap_to_deposit_dict:
-        metaswap_deposit_address = swap_to_deposit_dict[swap_address]
+    for swap_address in kava_swap_to_deposit_dict:
+        metaswap_deposit_address = kava_swap_to_deposit_dict[swap_address]
         if metaswap_deposit_address != "":
             metaswap_contract = Contract.from_abi(
                 "MetaSwap", swap_address, META_SWAP_ABI
@@ -117,7 +99,8 @@ def main():
                 base_swap = Contract.from_abi(
                     "BaseSwap", base_swap_address, SWAP_ABI
                 )
-                token_index_USDC = base_swap.getTokenIndex(CEUSDC_EVMOS)
+                token_index_USDC = base_swap.getTokenIndex(
+                    token_addresses_kava["USDC"])
                 min_amount = base_swap.calculateRemoveLiquidityOneToken(
                     LP_balance,
                     token_index_USDC
@@ -143,7 +126,7 @@ def main():
                     {"from": multisig.address}
                 )
 
-    # capture and log token balances of msig after claiming
+    # capture and log token balances of msig after swapping
     token_balances_after = {}
     for token_address in token_addresses:
         symbol = Contract.from_abi(
@@ -153,10 +136,10 @@ def main():
             "ERC20", token_address, ERC20_ABI
         ).balanceOf(multisig.address)
         print(
-            f"Balance of {symbol} after claiming: {token_balances_after[token_address]}"
+            f"Balance of {symbol} after swapping: {token_balances_after[token_address]}"
         )
 
-   # send tokens to operations multisig
+    # send tokens to operations multisig
     for token_address in token_addresses:
         token_contract = Contract.from_abi("ERC20", token_address, ERC20_ABI)
         symbol = token_contract.symbol()

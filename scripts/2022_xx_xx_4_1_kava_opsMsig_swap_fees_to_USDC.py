@@ -6,6 +6,7 @@ from helpers import (
     ERC20_ABI,
     META_SWAP_DEPOSIT_ABI,
     MULTISIG_ADDRESSES,
+    OPS_MULTISIG_ADDRESSES,
     SWAP_ABI,
     META_SWAP_ABI,
 )
@@ -17,11 +18,14 @@ TARGET_NETWORK = "KAVA"
 def main():
     """This script claims admin fees from all Kava pools, then converts them to xxxx and sends them to Mainnet"""
 
+    # skip until we've decided on a bridge
+    return
+
     print(f"You are using the '{network.show_active()}' network")
     assert (network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
         f"Not on {TARGET_NETWORK}"
     ops_multisig = ApeSafe(
-        MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
+        OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
     )
 
     # Run any pending transactions before simulating any more transactions

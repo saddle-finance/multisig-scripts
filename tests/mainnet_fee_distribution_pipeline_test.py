@@ -33,7 +33,7 @@ TARGET_NETWORK = "MAINNET"
 
 
 # This script concatenates all mainnet scripts (5 to 8) and impersonates
-# ops-multisig with deployer EOA, since we don't yet have an ops-multisig
+# ops-multisig with random EOA (with enough ETH), since we don't yet have an ops-multisig
 # @dev  All instances in the original scripts of ops ApeSafe.address
 # ('ops_multisig_address') are replaced by simple 'ops_multisig_address'
 
