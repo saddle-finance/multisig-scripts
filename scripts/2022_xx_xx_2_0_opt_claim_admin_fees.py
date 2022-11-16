@@ -97,7 +97,8 @@ def main():
                 base_swap = Contract.from_abi(
                     "BaseSwap", base_swap_address, SWAP_ABI
                 )
-                token_index_USDC = base_swap.getTokenIndex(USDC_OPTIMISM)
+                token_index_USDC = base_swap.getTokenIndex(
+                    token_addresses_optimism["USDC"])
                 min_amount = base_swap.calculateRemoveLiquidityOneToken(
                     LP_balance,
                     token_index_USDC

@@ -262,9 +262,9 @@ token_addresses_kava = {
 
 kava_token_to_swap_dict = {
     # ceUSDC : Evmos USDT Pool
-    token_addresses_evmos["CEUSDC"]: "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b",
+    token_addresses_kava["USDC"]: "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b",
     # ceUSDT : Evmos USDT Pool
-    token_addresses_evmos["CEUSDT"]: "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b",
+    token_addresses_kava["USDT"]: "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b",
 }
 
 kava_swap_to_deposit_dict = {
