@@ -2,6 +2,137 @@ from helpers import (
     CHAIN_IDS,
 )
 
+MAX_POOL_LENGTH = 32
+SUSHI_SDL_SLP_ADDRESS = "0x0C6F06b32E6Ae0C110861b8607e67dA594781961"
+UNIV3_ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+UNIV3_QUOTER = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"
+
+token_addresses_mainnet = {
+    "USDC": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "WETH": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    "WBTC": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+    "FEI": "0x956F47F50A910163D8BF957Cf5846D573E7f87CA",
+    "DAI": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+    "LUSD": "0x5f98805A4E8be255a32880FDeC7F6728C6568bA0",
+    "USDT": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "FRAX": "0x853d955aCEf822Db058eb8505911ED77F175b99e",
+    "SUSD": "0x57Ab1ec28D129707052df4dF418D58a2D46d5f51",
+    "ALUSD": "0xBC6DA0FE9aD5f3b0d58160288917AA56653660E9",
+    "WCUSD": "0xad3E3Fc59dff318BecEaAb7D00EB4F68b1EcF195",
+    "USX": "0x0a5E677a6A24b2F1A2Bf4F3bFfC443231d2fDEc8",
+    "RENBTC": "0xEB4C2781e4ebA804CE9a9803C67d0893436bB27D",
+    "SBTC": "0xfE18be6b3Bd88A2D2A7f928d00292E7a9963CfC6",
+    "TBTC": "0x18084fbA666a33d37592fA2633fD49a74DD93a88",
+    "ALETH": "0x0100546F2cD4C9D97f798fFC9755E47865FF7Ee6",
+    "SETH": "0x5e74C9036fb86BD7eCdcb084a0673EFc32eA31cb"
+}
+
+# token_from -> (token_to, swap/metaswap) dict
+# which target token and pool
+token_to_swap_dict_saddle = {
+    # USDT : USDv2 Pool
+    token_addresses_mainnet["USDT"]: (token_addresses_mainnet["USDC"], "0xaCb83E0633d6605c5001e2Ab59EF3C745547C8C7"),
+    # FRAX : FraxBP Pool
+    token_addresses_mainnet["FRAX"]: (token_addresses_mainnet["USDC"], "0x13Cc34Aa8037f722405285AD2C82FE570bfa2bdc"),
+    # sUSD : FraxBP/sUSD Metapool
+    token_addresses_mainnet["SUSD"]: (token_addresses_mainnet["USDC"], "0x69baA0d7c2e864b74173922Ca069Ac79d3be1556"),
+    # DAI : USDv2 Pool
+    token_addresses_mainnet["DAI"]: (token_addresses_mainnet["USDC"], "0xaCb83E0633d6605c5001e2Ab59EF3C745547C8C7"),
+    # alUSD : FraxBP/alUSD Metapool
+    token_addresses_mainnet["ALUSD"]: (token_addresses_mainnet["USDC"], "0xFB516cF3710fC6901F2266aAEB8834cF5e4E9558"),
+    # WCUSD : WCUSD/USDv2 Metapool
+    token_addresses_mainnet["WCUSD"]: (token_addresses_mainnet["USDC"], "0x3F1d224557afA4365155ea77cE4BC32D5Dae2174"),
+    # USX : USDC-USX Pool
+    token_addresses_mainnet["USX"]: (token_addresses_mainnet["USDC"], "0x2bFf1B48CC01284416E681B099a0CDDCA0231d72"),
+    # renBTC : wBTC
+    token_addresses_mainnet["RENBTC"]: (token_addresses_mainnet["WBTC"], "0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2"),
+    # sBTC : wBTC
+    token_addresses_mainnet["SBTC"]: (token_addresses_mainnet["WBTC"], "0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2"),
+    # tBTC : wBTC
+    token_addresses_mainnet["TBTC"]: (token_addresses_mainnet["WBTC"], "0xfa9ED0309Bf79Eb84C847819F0B3CB84F6d351Af"),
+    # alETH : WETH
+    token_addresses_mainnet["ALETH"]: (token_addresses_mainnet["WETH"], "0xa6018520EAACC06C30fF2e1B3ee2c7c22e64196a"),
+    # sETH : WETH
+    token_addresses_mainnet["SETH"]: (token_addresses_mainnet["WETH"], "0xa6018520EAACC06C30fF2e1B3ee2c7c22e64196a"),
+}
+
+# swap -> metaswapDeposit dict
+swap_to_deposit_dict = {
+    # FraxBP Pool
+    "0x13Cc34Aa8037f722405285AD2C82FE570bfa2bdc": "",
+    # Frax 3Pool Pool
+    "0x8cAEa59f3Bf1F341f89c51607E4919841131e47a": "",
+    # Saddle D4Pool Pool
+    "0xC69DDcd4DFeF25D8a793241834d4cc4b3668EAD6": "",
+    # Saddle USX Pool
+    "0x2bFf1B48CC01284416E681B099a0CDDCA0231d72": "",
+    # Saddle s/w/renBTCV2 Pool
+    "0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2": "",
+    # FraxBP/alUSD Metapool
+    "0xFB516cF3710fC6901F2266aAEB8834cF5e4E9558": "0xe9154791883Df07e1328B636BCedfcCb80fefa38",
+    # FraxBP/sUSD Metapool
+    "0x69baA0d7c2e864b74173922Ca069Ac79d3be1556": "0x7D6c760cBde5a9Ad47510A86b9DCc58F9473CdD8",
+    # FraxBP/USDT Metapool
+    "0xC765Cd3d015626244AD63B5FB63a97c5634643b9": "0xAbf69CDE7B3725c12B8703005342EB5DD8a95D61",
+    # FraxBP/USX Metapool
+    "0x1dcB69a2b9148C641a43F731fCee123e2be30bAb": "0x4F0E41a37cE2ff1fA654cC93Eb03F9d16E65fD11",
+    # Saddle sUSD Metapool
+    "0x4568727f50c7246ded8C39214Ed6FF3c157f080D": "0xB98fd1f66884cD5786b37cDE040B9f0cf763866f",
+    # WCUSD Metapool
+    "0x3F1d224557afA4365155ea77cE4BC32D5Dae2174": "0x9898D87368DE0Bf1f10bbea8dE46c00cC3a2F9F1",
+    # Saddle USD Pool
+    "0xaCb83E0633d6605c5001e2Ab59EF3C745547C8C7": "",
+    # Saddle alETH Pool
+    "0xa6018520EAACC06C30fF2e1B3ee2c7c22e64196a": "",
+    # Saddle TBTC Metapool
+    "0xfa9ED0309Bf79Eb84C847819F0B3CB84F6d351Af": "0x4946DE721ce70D4B7aa226aA0Fe869C935769388"
+}
+
+# token_from -> token_to dict, for using UniswapV3
+token_to_token_univ3_dict = {
+    # LUSD : USDC
+    token_addresses_mainnet["LUSD"]: token_addresses_mainnet["USDC"],
+    # WBTC : USDC
+    token_addresses_mainnet["WBTC"]: token_addresses_mainnet["USDC"],
+    # WETH : USDC
+    token_addresses_mainnet["WETH"]: token_addresses_mainnet["USDC"],
+    # FEI: USDC
+    token_addresses_mainnet["FEI"]: token_addresses_mainnet["USDC"],
+}
+
+# swap -> metaswapDeposit dict
+swap_to_deposit_dict = {
+    # FraxBP Pool
+    "0x13Cc34Aa8037f722405285AD2C82FE570bfa2bdc": "",
+    # Frax 3Pool Pool
+    "0x8cAEa59f3Bf1F341f89c51607E4919841131e47a": "",
+    # Saddle D4Pool Pool
+    "0xC69DDcd4DFeF25D8a793241834d4cc4b3668EAD6": "",
+    # Saddle USX Pool
+    "0x2bFf1B48CC01284416E681B099a0CDDCA0231d72": "",
+    # Saddle s/w/renBTCV2 Pool
+    "0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2": "",
+    # FraxBP/alUSD Metapool
+    "0xFB516cF3710fC6901F2266aAEB8834cF5e4E9558": "0xe9154791883Df07e1328B636BCedfcCb80fefa38",
+    # FraxBP/sUSD Metapool
+    "0x69baA0d7c2e864b74173922Ca069Ac79d3be1556": "0x7D6c760cBde5a9Ad47510A86b9DCc58F9473CdD8",
+    # FraxBP/USDT Metapool
+    "0xC765Cd3d015626244AD63B5FB63a97c5634643b9": "0xAbf69CDE7B3725c12B8703005342EB5DD8a95D61",
+    # FraxBP/USX Metapool
+    "0x1dcB69a2b9148C641a43F731fCee123e2be30bAb": "0x4F0E41a37cE2ff1fA654cC93Eb03F9d16E65fD11",
+    # Saddle sUSD Metapool
+    "0x4568727f50c7246ded8C39214Ed6FF3c157f080D": "0xB98fd1f66884cD5786b37cDE040B9f0cf763866f",
+    # WCUSD Metapool
+    "0x3F1d224557afA4365155ea77cE4BC32D5Dae2174": "0x9898D87368DE0Bf1f10bbea8dE46c00cC3a2F9F1",
+    # Saddle USD Pool
+    "0xaCb83E0633d6605c5001e2Ab59EF3C745547C8C7": "",
+    # Saddle alETH Pool
+    "0xa6018520EAACC06C30fF2e1B3ee2c7c22e64196a": "",
+    # Saddle TBTC Metapool
+    "0xfa9ED0309Bf79Eb84C847819F0B3CB84F6d351Af": "0x4946DE721ce70D4B7aa226aA0Fe869C935769388"
+}
+
+
 L1_TO_L2_ERC20_ADDRESSES = {
     "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": {  # USDC
         CHAIN_IDS["MAINNET"]: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",

@@ -7,6 +7,10 @@ from helpers import (
     SDL_ADDRESSES,
     SUSHISWAP_ROUTER_ADDRESS
 )
+from fee_distro_helpers import (
+    token_addresses_mainnet,
+    SUSHI_SDL_SLP_ADDRESS
+)
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract, chain
 from scripts.utils import confirm_posting_transaction
@@ -29,9 +33,6 @@ def main():
     # Run any pending transactions before simulating any more transactions
     # ops_multisig.preview_pending()
 
-    WETH_MAINNET_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-    SUSHI_SDL_SLP_ADDRESS = "0x0C6F06b32E6Ae0C110861b8607e67dA594781961"
-
     sushiswap_router = Contract.from_abi(
         "SushiSwapRouter",
         SUSHISWAP_ROUTER_ADDRESS[CHAIN_IDS[TARGET_NETWORK]],
@@ -42,7 +43,7 @@ def main():
         "SDL", SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]], ERC20_ABI
     )
     WETH_contract = Contract.from_abi(
-        "USDC", WETH_MAINNET_ADDRESS, ERC20_ABI
+        "USDC", token_addresses_mainnet["WETH"], ERC20_ABI
     )
     SLP_contract = Contract.from_abi(
         "SLP", SUSHI_SDL_SLP_ADDRESS, ERC20_ABI
@@ -74,14 +75,14 @@ def main():
     )
 
     # paramters for addLiquidity tx
-    tolerance_factor = 0.9
-    token_a = WETH_MAINNET_ADDRESS
+    tolerance_factor = 0.5
+    token_a = token_addresses_mainnet["WETH"]
     token_b = SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
     amount_a_desired = WETH_contract.balanceOf(ops_multisig.address)
 
-    # NOTE: SDL amount needs to be adjusted at point of execution, since amount of SDL that was bought
-    # with USDC from fees will have changed (and we can't just use the total SDL balance of the ops_multisig)
-    amount_b_desired = 2_494_093 * 1e18
+    # NOTE: we can only take total SDL amount, since we're sending this tx from ops-multisig
+    amount_b_desired = SDL_contract.balanceOf(
+        ops_multisig.address)
     amount_a_min = WETH_contract.balanceOf(
         ops_multisig.address) * tolerance_factor
     amount_b_min = SDL_contract.balanceOf(
@@ -117,8 +118,8 @@ def main():
         balance,
         {"from": ops_multisig.address}
     )
-    assert (SLP_contract.balanceOf(ops_multisig.address) == 0)
-    assert (SLP_contract.balanceOf(main_multisig_address) == balance)
+    assert SLP_contract.balanceOf(ops_multisig.address) == 0
+    assert SLP_contract.balanceOf(main_multisig_address) == balance
 
     # TODO: set 'safe_nonce'
     safe_tx = ops_multisig.multisend_from_receipts()

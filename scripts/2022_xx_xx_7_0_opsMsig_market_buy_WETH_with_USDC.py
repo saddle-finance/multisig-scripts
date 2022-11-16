@@ -5,6 +5,11 @@ from helpers import (
     UNIV3_ROUTER_ABI,
     UNIV3_QUOTER_ABI
 )
+from fee_distro_helpers import (
+    token_addresses_mainnet,
+    UNIV3_ROUTER,
+    UNIV3_QUOTER
+)
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract, chain
 from scripts.utils import confirm_posting_transaction
@@ -26,12 +31,6 @@ def main():
     # Run any pending transactions before simulating any more transactions
     # ops_multisig.preview_pending()
 
-    USDC_MAINNET = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
-    WETH_MAINNET = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-
-    UNIV3_ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
-    UNIV3_QUOTER = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"
-
     univ3_router = Contract.from_abi(
         "UniV3Router", UNIV3_ROUTER, UNIV3_ROUTER_ABI
     )
@@ -40,25 +39,33 @@ def main():
     )
 
     USDC_contract = Contract.from_abi(
-        "ERC20", USDC_MAINNET, ERC20_ABI
+        "ERC20", token_addresses_mainnet["USDC"], ERC20_ABI
     )
     WETH_contract = Contract.from_abi(
-        "ERC20", WETH_MAINNET, ERC20_ABI
+        "ERC20", token_addresses_mainnet["WETH"], ERC20_ABI
     )
     USDC_decimals = USDC_contract.decimals()
     WETH_decimals = WETH_contract.decimals()
 
     USDC_balance_before = USDC_contract.balanceOf(ops_multisig.address)
 
-    token_from_address = USDC_MAINNET
-    token_to_address = WETH_MAINNET
+    token_from_address = token_addresses_mainnet["USDC"]
+    token_to_address = token_addresses_mainnet["WETH"]
     fee = 500
     recipient = ops_multisig.address
     deadline = chain[chain.height].timestamp + 3600  # 1 hour
     sqrt_price_limit_X96 = 0
 
-    # swap half of ops_multisig's USDC for WETH
-    amount_in = USDC_contract.balanceOf(ops_multisig.address) / 2
+    # Swap ~50% of ops_multisig's USDC for WETH.
+    # factor to correct for price increases of SDL through tranch buys,
+    # requiring less and less SDL to provide liq in optimal ratio.
+
+    # TODO: adjust factor before executing, s.t. minimal SDL or WETH is left
+    # after LPing
+    SDL_price_impact_factor = 1.3
+    amount_in = USDC_contract.balanceOf(
+        ops_multisig.address
+    ) / 2 * SDL_price_impact_factor
 
     # getting min amounts
     print(
@@ -106,8 +113,8 @@ def main():
 
     USDC_balance_after = USDC_contract.balanceOf(ops_multisig.address)
 
-    assert (USDC_balance_after < 0.51 * USDC_balance_before and
-            USDC_balance_after > 0.49 * USDC_balance_before)
+    assert (USDC_balance_after < 0.51 * USDC_balance_before * SDL_price_impact_factor and
+            USDC_balance_after > 0.49 * USDC_balance_before * (1 - SDL_price_impact_factor))
 
     print(
         "Balances after swap:\n"

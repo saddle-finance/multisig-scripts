@@ -6,6 +6,9 @@ from helpers import (
     SDL_ADDRESSES,
     SUSHISWAP_ROUTER_ADDRESS
 )
+from fee_distro_helpers import (
+    token_addresses_mainnet,
+)
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract, chain
 from scripts.utils import confirm_posting_transaction
@@ -27,9 +30,6 @@ def main():
     # Run any pending transactions before simulating any more transactions
     # ops_multisig.preview_pending()
 
-    USDC_MAINNET_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
-    WETH_MAINNET_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-
     sushiswap_router = Contract.from_abi(
         "SushiSwapRouter",
         SUSHISWAP_ROUTER_ADDRESS[CHAIN_IDS[TARGET_NETWORK]],
@@ -40,7 +40,7 @@ def main():
         "SDL", SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]], ERC20_ABI
     )
     USDC_contract = Contract.from_abi(
-        "USDC", USDC_MAINNET_ADDRESS, ERC20_ABI
+        "USDC", token_addresses_mainnet["USDC"], ERC20_ABI
     )
     USDC_decimals = USDC_contract.decimals()
     SDL_decimals = SDL_contract.decimals()
@@ -62,8 +62,8 @@ def main():
     amount_in = USDC_contract.balanceOf(ops_multisig.address) / 2
 
     # path to use for swapping
-    path = [USDC_MAINNET_ADDRESS,
-            WETH_MAINNET_ADDRESS,
+    path = [token_addresses_mainnet["USDC"],
+            token_addresses_mainnet["WETH"],
             SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
             ]
 
