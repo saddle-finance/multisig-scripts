@@ -6,6 +6,7 @@ import click
 from ape_safe import ApeSafe
 from brownie import network
 from gnosis.safe.safe_tx import SafeTx
+
 from helpers import (ARB_BRIDGE_INBOX, ARB_GATEWAY_ROUTER, CHAIN_IDS,
                      MULTISIG_ADDRESSES)
 
@@ -82,3 +83,7 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
             should_post = click.confirm(
                 f"Post this gnosis safe transaction to {safe.address} on {safe.base_url}?"
             )
+
+
+def convert_string_to_bytes32(string: str):
+    return string.encode("utf-8").ljust(32, b"\x00")
