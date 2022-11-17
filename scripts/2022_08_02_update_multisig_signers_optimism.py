@@ -1,7 +1,8 @@
 from array import array
-from helpers import CHAIN_IDS, MULTISIG_ADDRESSES, OWNERS, GNOSIS_SAFE_ABI, intersection
+
 from ape_safe import ApeSafe
-from brownie import accounts, network, Contract
+from brownie import Contract, accounts, network
+from helpers import CHAIN_IDS, GNOSIS_SAFE_ABI, MULTISIG_ADDRESSES, OWNERS, intersection
 
 from scripts.utils import confirm_posting_transaction
 
@@ -21,7 +22,7 @@ def main():
     # base_url added as by default no optimism support
     multisig = ApeSafe(
         MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
-        base_url="https://safe-transaction.optimism.gnosis.io",
+        base_url="https://safe-transaction-optimism.safe.global/",
     )
 
     safe_contract = Contract.from_abi(
