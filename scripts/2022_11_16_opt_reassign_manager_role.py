@@ -24,6 +24,7 @@ def main():
     multisig = ApeSafe(
         MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
         base_url="https://safe-transaction-optimism.safe.global",
+        multisend="0x998739BFdAAdde7C933B942a68053933098f9EDa"
     )
 
     # Remove 1 signer, add 2 signers
