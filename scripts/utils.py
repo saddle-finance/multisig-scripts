@@ -42,7 +42,7 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
         ) == "N":
             return
         else:
-            safe_tx.safe_nonce = None
+            safe_tx.safe_nonce = 0
     elif safe_nonce < current_nonce:
         print(
             f"Error: Your nonce ({safe_nonce}) is already used. "
