@@ -1,8 +1,9 @@
 from ape_safe import ApeSafe
-from brownie import accounts, network
+from brownie import Contract, accounts, network
 
-from helpers import (CHAIN_IDS, DEPLOYER_ADDRESS, MASTER_REGISTRY_ADDRESSES,
-                     MULTISIG_ADDRESSES, OPS_MULTISIG_ADDRESSES)
+from helpers import (CHAIN_IDS, DEPLOYER_ADDRESS, GNOSIS_SAFE_ABI,
+                     MASTER_REGISTRY_ADDRESSES, MULTISIG_ADDRESSES,
+                     OPS_MULTISIG_ADDRESSES, OWNERS, intersection)
 from scripts.utils import (confirm_posting_transaction,
                            convert_string_to_bytes32)
 
@@ -11,6 +12,8 @@ TARGET_NETWORK = "OPTIMISM"
 
 def main():
     """
+    Replace an inactive signer with a new one. Adds another signer.
+
     Move the manager roles of below contracts from deployer EOA to 2/3 ops multisig
     * MasterRegistry
     * PoolRegistry
@@ -22,14 +25,34 @@ def main():
         MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
         base_url="https://safe-transaction-optimism.safe.global",
     )
+
+    # Remove 1 signer, add 2 signers
+    safe_contract = Contract.from_abi(
+        "Gnosis Safe",
+        MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
+        GNOSIS_SAFE_ABI,
+        multisig.account,
+    )
+    Kain_Warwick = "0x5b97680e165b4dbf5c45f4ff4241e85f418c66c2"
+
+    # prev owner(pointer), old owner, new owner
+    # note* owners are in a different order than mainnet
+    safe_contract.swapOwner(OWNERS[7], Kain_Warwick, OWNERS[5])
+
+    safe_contract.addOwnerWithThreshold(OWNERS[0], 3)
+    new_owners = safe_contract.getOwners()
+
+    # check owner list contains expected addresses
+    assert len(intersection(new_owners, OWNERS)) == 0
+
+    # Replace deployer EOA with a 2/3 ops multisig as manager
     master_registry = multisig.contract(
         MASTER_REGISTRY_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
     ops_multisig_address = OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
 
-    # Replace deployer EOA with a 2/3 ops multisig as manager
     manager_role = master_registry.SADDLE_MANAGER_ROLE()
-    master_registry.revokeRole(manager_role, DEPLOYER_ADDRESS)
     master_registry.grantRole(manager_role, ops_multisig_address)
+    master_registry.revokeRole(manager_role, DEPLOYER_ADDRESS)
 
     # Find pool registry
     pool_registry = multisig.contract(

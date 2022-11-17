@@ -28,8 +28,8 @@ def main():
 
     # Replace deployer EOA with a 2/3 ops multisig as manager
     manager_role = master_registry.SADDLE_MANAGER_ROLE()
-    master_registry.revokeRole(manager_role, DEPLOYER_ADDRESS)
     master_registry.grantRole(manager_role, ops_multisig_address)
+    master_registry.revokeRole(manager_role, DEPLOYER_ADDRESS)
 
     # Find pool registry
     pool_registry = multisig.contract(
@@ -60,15 +60,15 @@ def main():
 
     # Replace manager
     manager_role = permissionless_deployer.SADDLE_MANAGER_ROLE()
-    permissionless_deployer.revokeRole(manager_role, DEPLOYER_ADDRESS)
     permissionless_deployer.grantRole(manager_role, ops_multisig_address)
+    permissionless_deployer.revokeRole(manager_role, DEPLOYER_ADDRESS)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
-    safe_tx.safe_nonce = 0
+    safe_tx.safe_nonce = 73
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)
-    multisig.preview(safe_tx)
+    # multisig.preview(safe_tx)
 
     confirm_posting_transaction(multisig, safe_tx)
