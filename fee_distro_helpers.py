@@ -258,13 +258,15 @@ evmos_swap_to_deposit_dict = {
 
 token_addresses_kava = {
     "USDC": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
+    "USDT": "0xB44a9B6905aF7c801311e8F4E76932ee959c663C",
+
 }
 
 kava_token_to_swap_dict = {
-    # ceUSDC : Evmos USDT Pool
-    token_addresses_kava["USDC"]: "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b",
-    # ceUSDT : Evmos USDT Pool
-    token_addresses_kava["USDT"]: "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b",
+    # USDC : USDT Pool
+    token_addresses_kava["USDC"]: "0x5847f8177221268d279Cf377D0E01aB3FD993628",
+    # USDT : USDT Pool
+    token_addresses_kava["USDT"]: "0x5847f8177221268d279Cf377D0E01aB3FD993628",
 }
 
 kava_swap_to_deposit_dict = {
@@ -275,6 +277,7 @@ kava_swap_to_deposit_dict = {
 }
 
 
+# for Arbitrum single token bridging (not in use atm)
 L1_TO_L2_ERC20_ADDRESSES = {
     "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": {  # USDC
         CHAIN_IDS["MAINNET"]: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
