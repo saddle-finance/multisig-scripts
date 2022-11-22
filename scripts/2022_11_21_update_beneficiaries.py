@@ -11,7 +11,7 @@ def main():
     print(f"You are using the '{network.show_active()}' network")
     assert(network.chain.id == CHAIN_IDS[TARGET_NETWORK]), \
         f"Not on {TARGET_NETWORK}"
-    multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
+    multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]], "https://safe-transaction-mainnet.safe.global")
 
     # Run any pending transactions before simulating any more transactions
     multisig.preview_pending()
@@ -32,7 +32,7 @@ def main():
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
-    safe_nonce = 74
+    safe_nonce = 75
 
     safe_tx.safe_nonce = safe_nonce
 
