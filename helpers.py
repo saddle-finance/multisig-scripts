@@ -1,5 +1,4 @@
 import json
-from webbrowser import get
 
 from brownie.network.state import Chain
 
@@ -15,6 +14,8 @@ CHAIN_IDS = {
 }
 
 DEPLOYER_ADDRESS = "0x5bdb37d0ddea3a90f233c7b7f6b9394b6b2eef34"
+
+INCITE_MULTISIG_ADDRESS = "0x4ba5B41c4378966f08E3E4F7dd80840191D54C69"
 
 # Addresses of 3/8 multisigs for administrational purposes
 MULTISIG_ADDRESSES = {
