@@ -4,9 +4,11 @@ from brownie import Contract, accounts, network
 from helpers import (
     CHAIN_IDS,
     DEPLOYER_ADDRESS,
+    INCITE_MULTISIG_ADDRESS,
     MULTISIG_ADDRESSES,
     SDL_ADDRESSES,
     SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS,
+    VESTING_ABI,
 )
 from scripts.utils import confirm_posting_transaction
 
@@ -43,6 +45,20 @@ def main():
     assert sdl_balance > sdl.balanceOf(
         MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]]
     ), "SDL not sent to deployer"
+
+    target_addresses = [
+        "0xC7B2F1a2D0838370f88a2FD5c2E3F64D8aF89a18",  # Art
+        "0xd17c31796d3Cb41d9d211904780320C4be286172",  # Sandra
+    ]
+    for vesting_address in target_addresses:
+        vesting_contract = Contract.from_abi(
+            "Vesting",
+            vesting_address,
+            VESTING_ABI,
+            multisig.account,
+        )
+        vesting_contract.release()
+        vesting_contract.changeBeneficiary(INCITE_MULTISIG_ADDRESS)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()

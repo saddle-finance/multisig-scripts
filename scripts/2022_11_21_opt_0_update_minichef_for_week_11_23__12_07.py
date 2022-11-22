@@ -30,6 +30,7 @@ def main():
     multisig = ApeSafe(
         OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
         base_url="https://safe-transaction-optimism.safe.global",
+        multisend="0x998739BFdAAdde7C933B942a68053933098f9EDa",
     )
 
     minichef = multisig.contract(MINICHEF_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
@@ -98,7 +99,7 @@ def main():
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
-    # safe_tx.safe_nonce = 0
+    safe_tx.safe_nonce = 0
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)
