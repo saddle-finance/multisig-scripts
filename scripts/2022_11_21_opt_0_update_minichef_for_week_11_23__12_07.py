@@ -98,7 +98,7 @@ def main():
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
-    safe_tx.safe_nonce = 0
+    # safe_tx.safe_nonce = 0
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)

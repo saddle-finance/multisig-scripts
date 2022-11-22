@@ -6,8 +6,8 @@ import click
 from ape_safe import ApeSafe
 from brownie import network
 from gnosis.safe.safe_tx import SafeTx
-from helpers import (ARB_BRIDGE_INBOX, ARB_GATEWAY_ROUTER, CHAIN_IDS,
-                     MULTISIG_ADDRESSES)
+
+from helpers import ARB_BRIDGE_INBOX, ARB_GATEWAY_ROUTER, CHAIN_IDS, MULTISIG_ADDRESSES
 
 
 def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
@@ -15,8 +15,7 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
 
     current_nonce = 0
     try:
-        url = safe.base_url + \
-            f"/api/v1/safes/{safe.address}/multisig-transactions/"
+        url = safe.base_url + f"/api/v1/safes/{safe.address}/multisig-transactions/"
 
         # fetch list of txs from gnosis api
         response = urllib.request.urlopen(url)
@@ -28,10 +27,8 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
                 current_nonce = result["nonce"] + 1
                 break
     except (URLError) as err:
-        print(
-            f"Fetching txs from gnosis api failed with error: {err}")
-        current_nonce = click.prompt(
-            "Please input current nonce manually:", type=int)
+        print(f"Fetching txs from gnosis api failed with error: {err}")
+        current_nonce = click.prompt("Please input current nonce manually:", type=int)
 
     pending_nonce = safe.pending_nonce()
 
@@ -44,8 +41,8 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
             )
         ) == "N":
             return
-        else:
-            safe_tx.safe_nonce = None
+        # else:
+        # safe_tx.safe_nonce = None
     elif safe_nonce < current_nonce:
         print(
             f"Error: Your nonce ({safe_nonce}) is already used. "
