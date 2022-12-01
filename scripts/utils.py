@@ -4,10 +4,20 @@ from urllib.error import URLError
 
 import click
 from ape_safe import ApeSafe
-from brownie import network
+from brownie import accounts, network, Contract, chain
 from gnosis.safe.safe_tx import SafeTx
-from helpers import (ARB_BRIDGE_INBOX, ARB_GATEWAY_ROUTER, CHAIN_IDS,
-                     MULTISIG_ADDRESSES)
+from helpers import (
+    CHAIN_IDS,
+    ERC20_ABI,
+    META_SWAP_DEPOSIT_ABI,
+    MULTISIG_ADDRESSES,
+    SWAP_ABI,
+    META_SWAP_ABI,
+)
+from fee_distro_helpers import (
+    swap_to_deposit_dicts,
+    MAX_POOL_LENGTH
+)
 
 
 def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
@@ -82,3 +92,109 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
             should_post = click.confirm(
                 f"Post this gnosis safe transaction to {safe.address} on {safe.base_url}?"
             )
+
+
+def claim_admin_fees(multisig: ApeSafe, chain_id: int):
+    swap_to_deposit_dict = swap_to_deposit_dicts[chain_id]
+
+    # comprehend set of underlying tokens used by pools on that chain
+    token_addresses = set()
+    base_LP_addresses = set()
+    for swap_address in swap_to_deposit_dict:
+        swap_contract = Contract.from_abi("Swap", swap_address, SWAP_ABI)
+        if swap_to_deposit_dict[swap_address] == "":  # base pool
+            for index in range(MAX_POOL_LENGTH):
+                try:
+                    token_addresses.add(swap_contract.getToken(index))
+                except:
+                    break
+        else:  # metapool
+            # first token in metapool is non-base-pool token
+            token_addresses.add(swap_contract.getToken(0))
+            base_LP_addresses.add(swap_contract.getToken(1))
+
+    # capture and log token balances of msig before claiming
+    token_balances_before = {}
+    for token_address in token_addresses:
+        symbol = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        ).symbol()
+        token_balances_before[token_address] = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        ).balanceOf(multisig.address)
+        print(
+            f"Balance of {symbol} before claiming: {token_balances_before[token_address]}"
+        )
+
+    # execute txs for claiming admin fees
+    for swap_address in swap_to_deposit_dict:
+        lp_token_address = Contract.from_abi(
+            "Swap", swap_address, SWAP_ABI).swapStorage()[6]
+        lp_token_name = Contract.from_abi(
+            "LPToken", lp_token_address, ERC20_ABI).name()
+        print(
+            f"Claiming admin fees from {lp_token_name}"
+        )
+        pool = Contract.from_abi("Swap", swap_address, SWAP_ABI)
+        pool.withdrawAdminFees(
+            {"from": multisig.address})
+
+    # burn LP tokens of base pools gained from claiming for USDC
+    for swap_address in swap_to_deposit_dict:
+        metaswap_deposit_address = swap_to_deposit_dict[swap_address]
+        if metaswap_deposit_address != "":
+            metaswap_contract = Contract.from_abi(
+                "MetaSwap", swap_address, META_SWAP_ABI
+            )
+            metaswap_deposit_contract = Contract.from_abi(
+                "MetaSwapDeposit", metaswap_deposit_address, META_SWAP_DEPOSIT_ABI
+            )
+            base_pool_LP_address = metaswap_contract.getToken(1)
+            base_pool_LP_contract = Contract.from_abi(
+                "LPToken", base_pool_LP_address, ERC20_ABI
+            )
+            LP_balance = base_pool_LP_contract.balanceOf(multisig.address)
+            if LP_balance > 0:
+                base_swap_address = metaswap_deposit_contract.baseSwap()
+                base_swap = Contract.from_abi(
+                    "BaseSwap", base_swap_address, SWAP_ABI
+                )
+                token_index_USDC = base_swap.getTokenIndex(
+                    token_addresses["EVMOS"]["CEUSDC"])
+                min_amount = base_swap.calculateRemoveLiquidityOneToken(
+                    LP_balance,
+                    token_index_USDC
+                )
+                # approve amount to swap
+                print(
+                    f"Approving base pool for {base_pool_LP_contract.symbol()} {LP_balance}"
+                )
+                base_pool_LP_contract.approve(
+                    base_swap,
+                    LP_balance,
+                    {"from": multisig.address}
+                )
+                print(
+                    f"Burning {LP_balance} {base_pool_LP_contract.symbol()} for USDC"
+                )
+                deadline = chain[chain.height].timestamp + 3600
+                base_swap.removeLiquidityOneToken(
+                    LP_balance,
+                    token_index_USDC,
+                    min_amount,
+                    deadline,
+                    {"from": multisig.address}
+                )
+
+    # capture and log token balances of msig after swapping
+    token_balances_after = {}
+    for token_address in token_addresses:
+        symbol = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        ).symbol()
+        token_balances_after[token_address] = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        ).balanceOf(multisig.address)
+        print(
+            f"Balance of {symbol} after swapping: {token_balances_after[token_address]}"
+        )
