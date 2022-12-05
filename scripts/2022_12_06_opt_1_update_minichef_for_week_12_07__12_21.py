@@ -16,8 +16,8 @@ TARGET_NETWORK = "OPTIMISM"
 
 def main():
     """
-    Updates minichef parameters on Optimism network for week 11/21 - 12/07
-    Vote: https://snapshot.org/#/saddlefinance.eth/proposal/0x508226028d3a401df05f84aa4f6292f5dde8db55d5aa10804f73794a02dbf5f0
+    Updates minichef parameters on Optimism network for week 12/06 - 12/21
+    Vote: https://snapshot.org/#/saddlefinance.eth/proposal/0x020e0a773444a8fe0b9b44336387a76f7befb1e4158cb83d3133fb8c9132c7c9
     """
     print(f"You are using the '{network.show_active()}' network")
     assert (
