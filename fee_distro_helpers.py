@@ -45,8 +45,8 @@ token_addresses = {
 
     },
     CHAIN_IDS["EVMOS"]: {
-        "CEUSDC": "0xe46910336479F254723710D57e7b683F3315b22B",
-        "CEUSDT": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+        "USDC": "0xe46910336479F254723710D57e7b683F3315b22B",  # CEUSDC
+        "USDT": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",  # CEUSDT
     },
     CHAIN_IDS["KAVA"]: {
         "USDC": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
@@ -112,9 +112,9 @@ token_to_swap_dicts_saddle = {
     },
     CHAIN_IDS["EVMOS"]: {
         # ceUSDC : Evmos USDT Pool
-        token_addresses[CHAIN_IDS["EVMOS"]]["CEUSDT"]: "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b",
+        token_addresses[CHAIN_IDS["EVMOS"]]["USDT"]: "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b",
         # ceUSDT : Evmos USDT Pool
-        token_addresses[CHAIN_IDS["EVMOS"]]["CEUSDT"]: "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b",
+        token_addresses[CHAIN_IDS["EVMOS"]]["USDT"]: "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b",
     },
     CHAIN_IDS["KAVA"]: {
         # USDC : USDT Pool
