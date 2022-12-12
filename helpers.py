@@ -14,6 +14,15 @@ CHAIN_IDS = {
     "AURORA": 1313161554,
 }
 
+DEPLOYMENT_FOLDER_NAMES = {
+    CHAIN_IDS["MAINNET"]: "mainnet",
+    CHAIN_IDS["OPTIMISM"]: "optimism_mainnet",
+    CHAIN_IDS["ARBITRUM"]: "arbitrum_mainnet",
+    CHAIN_IDS["EVMOS"]: "evmos_mainnet",
+    CHAIN_IDS["KAVA"]: "kava_mainnet",
+    CHAIN_IDS["AURORA"]: "aurora_mainnet",
+}
+
 DEPLOYER_ADDRESS = "0x5bdb37d0ddea3a90f233c7b7f6b9394b6b2eef34"
 
 ENG_EOA_ADDRESS = "0xA1DBb0A0388f105212C2a8d51fF37010f6A0C36A"
@@ -71,7 +80,7 @@ SDL_ADDRESSES = {
     CHAIN_IDS["ARBITRUM"]: "0x75C9bC761d88f70156DAf83aa010E84680baF131",
 }
 
-ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]: "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
+ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]                  : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
 
 SDL_MINTER_ADDRESS = {
     CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
@@ -194,6 +203,13 @@ def intersection(lst1, lst2):
     temp = set(lst2)
     lst3 = [value for value in lst1 if value not in temp]
     return lst3
+
+
+def get_deployment_details(chain_id: int, contract_name: str):
+    """Returns the address and the ABI of the contract with the given name"""
+    contract_json = json.load(open(
+        f"saddle-contract/deployments/{DEPLOYMENT_FOLDER_NAMES[chain_id]}/{contract_name}.json"))
+    return contract_json["address"], contract_json["abi"]
 
 
 VESTING_ABI = get_abi("Vesting")
