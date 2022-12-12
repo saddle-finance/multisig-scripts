@@ -17,7 +17,7 @@ from fee_distro_helpers import (
 )
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract, chain
-from scripts.utils import confirm_posting_transaction
+from scripts.utils import confirm_posting_transaction, convert_fees_to_USDC
 
 
 TARGET_NETWORK = "ARBITRUM"
@@ -39,114 +39,116 @@ def main():
         ARB_GATEWAY_ROUTER[CHAIN_IDS[TARGET_NETWORK]]
     )
 
-    # comprehend set of underlying tokens used by pools on that chain
-    token_addresses = set()
-    base_LP_addresses = set()
-    for swap_address in arb_swap_to_deposit_dict:
-        swap_contract = Contract.from_abi("Swap", swap_address, SWAP_ABI)
-        if arb_swap_to_deposit_dict[swap_address] == "":  # base pool
-            for index in range(MAX_POOL_LENGTH):
-                try:
-                    token_addresses.add(swap_contract.getToken(index))
-                except:
-                    break
-        else:  # metapool
-            # first token in metapool is non-base-pool token
-            token_addresses.add(swap_contract.getToken(0))
-            base_LP_addresses.add(swap_contract.getToken(1))
+    convert_fees_to_USDC(ops_multisig, CHAIN_IDS[TARGET_NETWORK])
 
-    # capture and log token balances of ops msig before swapping
-    token_balances_before = {}
-    for token_address in token_addresses:
-        symbol = Contract.from_abi(
-            "ERC20", token_address, ERC20_ABI
-        ).symbol()
-        token_balances_before[token_address] = Contract.from_abi(
-            "ERC20", token_address, ERC20_ABI
-        ).balanceOf(ops_multisig.address)
-        print(
-            f"Balance of {symbol} before swapping: {token_balances_before[token_address]}"
-        )
+    # # comprehend set of underlying tokens used by pools on that chain
+    # token_addresses = set()
+    # base_LP_addresses = set()
+    # for swap_address in arb_swap_to_deposit_dict:
+    #     swap_contract = Contract.from_abi("Swap", swap_address, SWAP_ABI)
+    #     if arb_swap_to_deposit_dict[swap_address] == "":  # base pool
+    #         for index in range(MAX_POOL_LENGTH):
+    #             try:
+    #                 token_addresses.add(swap_contract.getToken(index))
+    #             except:
+    #                 break
+    #     else:  # metapool
+    #         # first token in metapool is non-base-pool token
+    #         token_addresses.add(swap_contract.getToken(0))
+    #         base_LP_addresses.add(swap_contract.getToken(1))
 
-    # convert all collected fees to USDC, to minimize # of claiming txs on L1
-    for token_address in token_addresses:
-        # skip USDC, since it's the target
-        if token_address == token_addresses_arbitrum["USDC"]:
-            continue
+    # # capture and log token balances of ops msig before swapping
+    # token_balances_before = {}
+    # for token_address in token_addresses:
+    #     symbol = Contract.from_abi(
+    #         "ERC20", token_address, ERC20_ABI
+    #     ).symbol()
+    #     token_balances_before[token_address] = Contract.from_abi(
+    #         "ERC20", token_address, ERC20_ABI
+    #     ).balanceOf(ops_multisig.address)
+    #     print(
+    #         f"Balance of {symbol} before swapping: {token_balances_before[token_address]}"
+    #     )
 
-        # amount to swap
-        amount_to_swap = token_balances_before[token_address]
+    # # convert all collected fees to USDC, to minimize # of claiming txs on L1
+    # for token_address in token_addresses:
+    #     # skip USDC, since it's the target
+    #     if token_address == token_addresses_arbitrum["USDC"]:
+    #         continue
 
-        # skip if no fees were claimed
-        if amount_to_swap > 0:
-            # get swap and token indices
-            # if base pool, use base pool for swapping
-            if arb_swap_to_deposit_dict[arb_token_to_swap_dict[token_address]] == "":
-                swap_address = arb_token_to_swap_dict[token_address]
-                # Base swap for swapping
-                swap = Contract.from_abi(
-                    "Swap", swap_address, SWAP_ABI
-                )
-                # get token indices from base pool contract
-                token_index_from = swap.getTokenIndex(token_address)
-                token_index_to = swap.getTokenIndex(
-                    token_addresses_arbitrum["USDC"])
+    #     # amount to swap
+    #     amount_to_swap = token_balances_before[token_address]
 
-            # if metapool, use metapool deposit for swapping
-            else:
-                swap_address = arb_swap_to_deposit_dict[arb_token_to_swap_dict[token_address]]
-                # Metaswap deposit for swapping
-                swap = Contract.from_abi(
-                    "MetaSwapDeposit", swap_address, SWAP_ABI
-                )
-                # get (flattened) token indices from underlying swap contract
-                meta_swap = Contract.from_abi(
-                    "MetaSwap", arb_token_to_swap_dict[token_address], META_SWAP_ABI
-                )
-                base_swap = Contract.from_abi(
-                    "BaseSwap", meta_swap.metaSwapStorage()[0], SWAP_ABI
-                )
-                base_token_index_to = base_swap.getTokenIndex(
-                    token_addresses_arbitrum["USDC"])
-                token_index_from = 0  # index 0 is non-base-pool token
-                # offset by one for flattened 'to' token index
-                token_index_to = 1 + base_token_index_to
+    #     # skip if no fees were claimed
+    #     if amount_to_swap > 0:
+    #         # get swap and token indices
+    #         # if base pool, use base pool for swapping
+    #         if arb_swap_to_deposit_dict[arb_token_to_swap_dict[token_address]] == "":
+    #             swap_address = arb_token_to_swap_dict[token_address]
+    #             # Base swap for swapping
+    #             swap = Contract.from_abi(
+    #                 "Swap", swap_address, SWAP_ABI
+    #             )
+    #             # get token indices from base pool contract
+    #             token_index_from = swap.getTokenIndex(token_address)
+    #             token_index_to = swap.getTokenIndex(
+    #                 token_addresses_arbitrum["USDC"])
 
-            # deadline 1h from now
-            deadline = chain[chain.height].timestamp + 3600
+    #         # if metapool, use metapool deposit for swapping
+    #         else:
+    #             swap_address = arb_swap_to_deposit_dict[arb_token_to_swap_dict[token_address]]
+    #             # Metaswap deposit for swapping
+    #             swap = Contract.from_abi(
+    #                 "MetaSwapDeposit", swap_address, SWAP_ABI
+    #             )
+    #             # get (flattened) token indices from underlying swap contract
+    #             meta_swap = Contract.from_abi(
+    #                 "MetaSwap", arb_token_to_swap_dict[token_address], META_SWAP_ABI
+    #             )
+    #             base_swap = Contract.from_abi(
+    #                 "BaseSwap", meta_swap.metaSwapStorage()[0], SWAP_ABI
+    #             )
+    #             base_token_index_to = base_swap.getTokenIndex(
+    #                 token_addresses_arbitrum["USDC"])
+    #             token_index_from = 0  # index 0 is non-base-pool token
+    #             # offset by one for flattened 'to' token index
+    #             token_index_to = 1 + base_token_index_to
 
-            # min amount to receive
-            min_amount = swap.calculateSwap(
-                token_index_from,
-                token_index_to,
-                amount_to_swap
-            )
+    #         # deadline 1h from now
+    #         deadline = chain[chain.height].timestamp + 3600
 
-            # approve amount to swap
-            token_contract = Contract.from_abi(
-                "ERC20", token_address, ERC20_ABI
-            )
-            print(
-                f"Approving {token_contract.symbol()} for saddle pool"
-            )
-            token_contract.approve(
-                swap_address,
-                amount_to_swap,
-                {"from": ops_multisig.address}
-            )
+    #         # min amount to receive
+    #         min_amount = swap.calculateSwap(
+    #             token_index_from,
+    #             token_index_to,
+    #             amount_to_swap
+    #         )
 
-            # perform swap
-            print(
-                f"Swapping {amount_to_swap / (10 ** token_contract.decimals())} {token_contract.symbol()} to USDC"
-            )
-            swap.swap(
-                token_index_from,
-                token_index_to,
-                amount_to_swap,
-                min_amount,
-                deadline,
-                {"from": ops_multisig.address}
-            )
+    #         # approve amount to swap
+    #         token_contract = Contract.from_abi(
+    #             "ERC20", token_address, ERC20_ABI
+    #         )
+    #         print(
+    #             f"Approving {token_contract.symbol()} for saddle pool"
+    #         )
+    #         token_contract.approve(
+    #             swap_address,
+    #             amount_to_swap,
+    #             {"from": ops_multisig.address}
+    #         )
+
+    #         # perform swap
+    #         print(
+    #             f"Swapping {amount_to_swap / (10 ** token_contract.decimals())} {token_contract.symbol()} to USDC"
+    #         )
+    #         swap.swap(
+    #             token_index_from,
+    #             token_index_to,
+    #             amount_to_swap,
+    #             min_amount,
+    #             deadline,
+    #             {"from": ops_multisig.address}
+    #         )
 
     # bridging USDC to mainnet
     USDC = Contract.from_abi(
