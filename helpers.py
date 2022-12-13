@@ -1,6 +1,5 @@
-import enum
 import json
-from webbrowser import get
+from enum import IntEnum
 
 from brownie.network.state import Chain
 
@@ -180,7 +179,7 @@ HEDGEY_OTC = {
 SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
 
 # PoolType enum to match pool registry's field
-PoolType = enum('PoolType', ['BTC', 'ETH', 'USD', 'OTHERS'])
+PoolType = IntEnum('PoolType', ['BTC', 'ETH', 'USD', 'OTHERS'])
 
 
 def assert_filename(file: str):

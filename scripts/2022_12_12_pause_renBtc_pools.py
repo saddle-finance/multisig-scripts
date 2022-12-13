@@ -4,7 +4,8 @@ from brownie import Contract, accounts, network
 from helpers import (CHAIN_IDS, GAUGE_ABI, GAUGE_CONTROLLER_ADDRESS,
                      META_SWAP_ABI, MULTISIG_ADDRESSES, OPS_MULTISIG_ADDRESSES,
                      POOL_REGISTRY_ADDRESSES, SWAP_FLASH_LOAN_ABI, PoolType)
-from scripts.utils import confirm_posting_transaction
+from scripts.utils import (confirm_posting_transaction,
+                           convert_string_to_bytes32)
 
 TARGET_NETWORK = "MAINNET"
 
@@ -40,8 +41,8 @@ def main():
     ]
 
     gauges_to_add = [
-        # "0x",  # BTCBP gauge
-        # "0x",  # BTCBP-tBTCv2 gauge
+        "0xab47EDfc33BA5D5Bc19fC7D2Bcd093F99530BB3d",  # BTCBP gauge
+        "0x3bd4130B83de1215dF8611e2FBbe17187C823aa0",  # BTCBP-tBTCv2 gauge
     ]
 
     for pool_address in pools_to_pause:
@@ -66,26 +67,43 @@ def main():
         assert len(tx.events["NewGauge"]) == 1
         assert (tx.events["NewGauge"][0]["addr"] == gauge_address)
 
+    # combine history into multisend txn
+    safe_tx = multisig.multisend_from_receipts()
+    safe_tx.safe_nonce = 76
+
+    # sign with private key
+    safe_tx.sign(accounts.load("deployer").private_key)
+    multisig.preview(safe_tx, False)
+
+    confirm_posting_transaction(multisig, safe_tx)
+
+    # Ops multisig actions
     pool_registry = ops_multisig.contract(
         POOL_REGISTRY_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
     pools_to_register = [
         [
-            "0x",   # pool address
+            "0xCcbE39ffC56915fd88e1AAB58010d305441Bab26",   # pool address
             PoolType.BTC,  # pool type
-            "BTC Base Pool",  # pool registry name (for display)
-            "0x",  # target contract address
-            "0x",  # meta swap deposit address. 0x0 if not a meta pool
+            # pool registry name (for display)
+            convert_string_to_bytes32("BTC Base Pool"),
+            # target contract address. Self if not a proxy.
+            "0xCcbE39ffC56915fd88e1AAB58010d305441Bab26",
+            # meta swap deposit address. 0x0 if not a meta pool
+            "0x0000000000000000000000000000000000000000",
             True,  # is saddle approved pool
             False,  # is removed
             False  # is gaurded
         ],
         [
-            "0x",   # pool address
+            "0x8B2DB87142dA4D5Ecfa9B416E592DF9155A38c2D",   # pool address
             PoolType.BTC,  # pool type
-            "BTCBP-tBTCv2 Meta Pool",  # pool registry name (for display)
-            "0x",  # target contract address
-            "0x",  # meta swap deposit address. 0x0 if not a meta pool
+            # pool registry name (for display)
+            convert_string_to_bytes32("BTCBP-tBTCv2 Meta Pool"),
+            # target contract address. Self if not a proxy.
+            "0x8B2DB87142dA4D5Ecfa9B416E592DF9155A38c2D",
+            # meta swap deposit address. 0x0 if not a meta pool
+            "0x83F87E73148EE05F669293C2f90163b6D0d261ed",
             True,  # is saddle approved pool
             False,  # is removed
             False  # is gaurded
@@ -96,14 +114,6 @@ def main():
         pool_registry.addPool(pool)
 
     # combine history into multisend txn
-    safe_tx = multisig.multisend_from_receipts()
-    safe_tx.safe_nonce = 76
-
-    # sign with private key
-    safe_tx.sign(accounts.load("deployer").private_key)
-    multisig.preview(safe_tx)
-
-    # combine history into multisend txn
     ops_safe_tx = ops_multisig.multisend_from_receipts()
     ops_safe_tx.safe_nonce = 0
 
@@ -111,5 +121,4 @@ def main():
     ops_safe_tx.sign(accounts.load("deployer").private_key)
     ops_multisig.preview(ops_safe_tx)
 
-    confirm_posting_transaction(multisig, safe_tx)
     confirm_posting_transaction(ops_multisig, ops_safe_tx)
