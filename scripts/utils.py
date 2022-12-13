@@ -3,21 +3,32 @@ from fee_distro_helpers import (
     swap_to_deposit_dicts,
     token_addresses,
     token_to_swap_dicts_saddle,
-    MAX_POOL_LENGTH
+    univ3_fee_tier_dicts,
+    token_to_token_univ3_dicts,
+    univ3_route_type_tuples,
+    univ3_route_string_tuples,
+    MAX_POOL_LENGTH,
+    UNIV3_ROUTER,
+    UNIV3_QUOTER
 )
 from helpers import (
     ERC20_ABI,
     META_SWAP_DEPOSIT_ABI,
     SWAP_ABI,
     META_SWAP_ABI,
-    OPS_MULTISIG_ADDRESSES
+    OPS_MULTISIG_ADDRESSES,
+    UNIV3_ROUTER_ABI,
+    UNIV3_QUOTER_ABI,
+    SUSHISWAP_ROUTER_ADDRESSES,
+    SUSHISWAP_ROUTER_ABI,
+    SDL_ADDRESSES
 )
+from eth_abi.packed import encode_abi_packed
 from gnosis.safe.safe_tx import SafeTx
 from brownie import accounts, network, Contract, chain
 import json
 import urllib.request
 from urllib.error import URLError
-
 import click
 from ape_safe import ApeSafe
 
@@ -94,6 +105,8 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
                 f"Post this gnosis safe transaction to {safe.address} on {safe.base_url}?"
             )
 
+# claims admin fees and sends them to ops-multisig on the same chain
+
 
 def claim_admin_fees(multisig: ApeSafe, chain_id: int):
     ops_multisig_address = OPS_MULTISIG_ADDRESSES[chain_id]
@@ -119,14 +132,16 @@ def claim_admin_fees(multisig: ApeSafe, chain_id: int):
     # capture and log token balances of msig before claiming
     token_balances_before = {}
     for token_address in collected_token_addresses:
-        symbol = Contract.from_abi(
+        token_contract = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
-        ).symbol()
+        )
         token_balances_before[token_address] = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
         ).balanceOf(multisig.address)
+        symbol = token_contract.symbol()
+        decimals = token_contract.decimals()
         print(
-            f"Balance of {symbol} before claiming: {token_balances_before[token_address]}"
+            f"Balance of {symbol} before claiming: {token_balances_before[token_address] / (10 ** decimals)}"
         )
 
     # execute txs for claiming admin fees
@@ -139,8 +154,7 @@ def claim_admin_fees(multisig: ApeSafe, chain_id: int):
             f"Claiming admin fees from {lp_token_name}"
         )
         pool = Contract.from_abi("Swap", swap_address, SWAP_ABI)
-        pool.withdrawAdminFees(
-            {"from": multisig.address})
+        pool.withdrawAdminFees({"from": multisig.address})
 
     # burn LP tokens of base pools gained from claiming for USDC
     for swap_address in swap_to_deposit_dict:
@@ -162,13 +176,7 @@ def claim_admin_fees(multisig: ApeSafe, chain_id: int):
                 base_swap = Contract.from_abi(
                     "BaseSwap", base_swap_address, SWAP_ABI
                 )
-                token_index_USDC = base_swap.getTokenIndex(
-                    token_addresses[chain_id]["USDC"])
-                min_amount = base_swap.calculateRemoveLiquidityOneToken(
-                    LP_balance,
-                    token_index_USDC
-                )
-                # approve amount to swap
+                # approve amount to burn
                 print(
                     f"Approving base pool for {base_pool_LP_contract.symbol()} {LP_balance}"
                 )
@@ -178,28 +186,51 @@ def claim_admin_fees(multisig: ApeSafe, chain_id: int):
                     {"from": multisig.address}
                 )
                 print(
-                    f"Burning {LP_balance} {base_pool_LP_contract.symbol()} for USDC"
+                    f"Burning {LP_balance} {base_pool_LP_contract.symbol()} for USDC or underlyings"
                 )
                 deadline = chain[chain.height].timestamp + 3600
-                base_swap.removeLiquidityOneToken(
-                    LP_balance,
-                    token_index_USDC,
-                    min_amount,
-                    deadline,
-                    {"from": multisig.address}
-                )
+                # if on mainnet, burn for individual underlyings
+                if chain_id == 1:
+                    # calculate min amounts to receive
+                    min_amounts = base_swap.calculateRemoveLiquidity(
+                        LP_balance
+                    )
+                    base_swap.removeLiquidity(
+                        LP_balance,
+                        min_amounts,
+                        deadline,
+                        {"from": multisig.address}
+                    )
+                # if on side chains, burn for USDC only
+                else:
+                    token_index_USDC = base_swap.getTokenIndex(
+                        token_addresses[chain_id]["USDC"])
+                    min_amount = base_swap.calculateRemoveLiquidityOneToken(
+                        LP_balance,
+                        token_index_USDC
+                    )
+
+                    base_swap.removeLiquidityOneToken(
+                        LP_balance,
+                        token_index_USDC,
+                        min_amount,
+                        deadline,
+                        {"from": multisig.address}
+                    )
 
     # capture and log token balances of msig after swapping
     token_balances_after = {}
     for token_address in collected_token_addresses:
-        symbol = Contract.from_abi(
+        token_contract = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
-        ).symbol()
-        token_balances_after[token_address] = Contract.from_abi(
-            "ERC20", token_address, ERC20_ABI
-        ).balanceOf(multisig.address)
+        )
+        symbol = token_contract.symbol()
+        balance = token_contract.balanceOf(multisig.address)
+        token_balances_after[token_address] = token_contract.balanceOf(
+            multisig.address)
+        decimals = token_contract.decimals()
         print(
-            f"Balance of {symbol} after swapping: {token_balances_after[token_address]}"
+            f"Balance of {symbol} after swapping: {token_balances_after[token_address] / (10 ** decimals)}"
         )
 
     # send tokens to ops multisig
@@ -209,9 +240,10 @@ def claim_admin_fees(multisig: ApeSafe, chain_id: int):
         )
         symbol = token_contract.symbol()
         balance = token_contract.balanceOf(multisig.address)
+        decimals = token_contract.decimals()
         if balance > 0:
             print(
-                f"Sending {balance} {symbol} to ops multisig"
+                f"Sending {balance / (10 ** decimals)} {symbol} to ops multisig"
             )
             token_contract.transfer(
                 ops_multisig_address,
@@ -219,10 +251,10 @@ def claim_admin_fees(multisig: ApeSafe, chain_id: int):
                 {"from": multisig.address}
             )
         assert token_contract.balanceOf(multisig.address) == 0
-        assert token_contract.balanceOf(ops_multisig_address) == balance
+        assert token_contract.balanceOf(ops_multisig_address) >= balance
 
 
-def convert_fees_to_USDC(ops_multisig: ApeSafe, chain_id: int):
+def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int):
     swap_to_deposit_dict = swap_to_deposit_dicts[chain_id]
     specific_token_addresses = token_addresses[chain_id]
     token_to_swap_dict = token_to_swap_dicts_saddle[chain_id]
@@ -247,14 +279,13 @@ def convert_fees_to_USDC(ops_multisig: ApeSafe, chain_id: int):
     # capture and log token balances of ops msig before swapping
     token_balances_before = {}
     for token_address in collected_token_addresses:
-        symbol = Contract.from_abi(
-            "ERC20", token_address, ERC20_ABI
-        ).symbol()
-        token_balances_before[token_address] = Contract.from_abi(
-            "ERC20", token_address, ERC20_ABI
-        ).balanceOf(ops_multisig.address)
+        token_contract = Contract.from_abi("ERC20", token_address, ERC20_ABI)
+        token_balances_before[token_address] = token_contract.balanceOf(
+            ops_multisig.address)
+        symbol = token_contract.symbol()
+        decimals = token_contract.decimals()
         print(
-            f"Balance of {symbol} before swapping: {token_balances_before[token_address]}"
+            f"Balance of {symbol} before swapping: {token_balances_before[token_address] / (10 ** decimals)}"
         )
 
     # convert all collected fees to USDC, to minimize # of claiming txs on L1
@@ -326,7 +357,7 @@ def convert_fees_to_USDC(ops_multisig: ApeSafe, chain_id: int):
 
             # perform swap
             print(
-                f"Swapping {amount_to_swap / (10 ** token_contract.decimals())} {token_contract.symbol()} to USDC"
+                f"Swapping {amount_to_swap / (10 ** token_contract.decimals())} {token_contract.symbol()} to USDC (or wBTC/WETH on mainnet)"
             )
             swap.swap(
                 token_index_from,
@@ -336,6 +367,216 @@ def convert_fees_to_USDC(ops_multisig: ApeSafe, chain_id: int):
                 deadline,
                 {"from": ops_multisig.address}
             )
+    return collected_token_addresses
+
+
+def convert_fees_to_USDC_uniswap(ops_multisig: ApeSafe, chain_id: int, collected_token_addresses: set):
+    # capture and log token balances of msig
+    # after claiming, burning and swapping via saddle
+    print(
+        f"Balances of tokens before swapping with Uniswap:"
+    )
+    univ3_router = Contract.from_abi(
+        "UniV3Router", UNIV3_ROUTER, UNIV3_ROUTER_ABI
+    )
+    univ3_quoter = Contract.from_abi(
+        "UniV3Quoter", UNIV3_QUOTER, UNIV3_QUOTER_ABI
+    )
+    univ3_fee_tier_dict = univ3_fee_tier_dicts[chain_id]
+    token_to_token_univ3_dict = token_to_token_univ3_dicts[chain_id]
+    token_balances_after_saddle_swap = {}
+    for token_address in collected_token_addresses:
+        token_contract = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        )
+        symbol = token_contract.symbol()
+        token_balances_after_saddle_swap[token_address] = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        ).balanceOf(ops_multisig.address)
+        print(
+            f"Balance of {symbol}: {token_balances_after_saddle_swap[token_address] / (10 ** token_contract.decimals())}"
+        )
+
+    # swap all remaining tokens that are not USDC into USDC via UniswapV3
+    for token_address in token_to_token_univ3_dict.keys():
+        balance = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        ).balanceOf(ops_multisig.address)
+        # skip if balance is 0
+        if balance == 0:
+            continue
+
+        token_from = token_address
+        token_to = token_to_token_univ3_dict[token_address]
+        fee = univ3_fee_tier_dict[token_from]
+        recipient = ops_multisig.address
+        deadline = chain[chain.height].timestamp + 3600
+        amount_in = token_balances_after_saddle_swap[token_from]
+        sqrt_price_limit_X96 = 0
+
+        # approve Univ3 router
+        print(
+            f"Approve UniV3 router for ${token_contract.symbol()} {amount_in / (10 ** token_contract.decimals())}"
+        )
+        token_contract = Contract.from_abi("ERC20", token_address, ERC20_ABI)
+        token_contract.approve(
+            UNIV3_ROUTER,
+            amount_in,
+            {"from": ops_multisig.address}
+        )
+        print(
+            f"Getting quote for ${token_contract.symbol()}"
+        )
+
+        # getting min amounts
+        amount_out_min = 0
+        params = ()
+
+        # in case we want to use a multi-hop route
+        if token_address in univ3_route_type_tuples[chain_id]:
+            route_type_tuple = univ3_route_type_tuples[chain_id][token_addresses[chain_id][token_address]]
+            route_string_tuple = univ3_route_string_tuples[
+                chain_id][token_addresses[chain_id][token_address]]
+            route_encoded = encode_abi_packed(
+                route_type_tuple, route_string_tuple)
+            amount_out_min = univ3_quoter.quoteExactInput(
+                route_encoded,
+                amount_in,
+                {"from": ops_multisig.address}
+            ).return_value
+            print(
+                f"Quote for ${token_contract.symbol()}: {amount_out_min / (10 ** token_contract.decimals())}"
+            )
+            # input struct for exactInput swap
+            params = (
+                route_encoded,
+                recipient,
+                deadline,
+                amount_in,
+                amount_out_min,
+            )
+            # swap using univ3
+            print(
+                f"Swap {amount_in / (10 ** token_contract.decimals())} ${token_contract.symbol()} for $USDC on UniV3"
+            )
+            univ3_router.exactInput(
+                params,
+                {"from": ops_multisig.address}
+            )
+        # in case we have a direct pairing between the token and USDC
+        else:
+            amount_out_min = univ3_quoter.quoteExactInputSingle(
+                token_from,
+                token_to,
+                fee,
+                amount_in,
+                sqrt_price_limit_X96,
+                {"from": ops_multisig.address}
+            ).return_value
+            print(
+                f"Quote for ${token_contract.symbol()}: {amount_out_min / (10 ** token_contract.decimals())}"
+            )
+            # input struct for exactInputSingle swap
+            params = (
+                token_from,
+                token_to,
+                fee,
+                recipient,
+                deadline,
+                amount_in,
+                amount_out_min,
+                sqrt_price_limit_X96
+            )
+            # swap using univ3
+            print(
+                f"Swap {amount_in / (10 ** token_contract.decimals())} ${token_contract.symbol()} for $USDC on UniV3"
+            )
+            univ3_router.exactInputSingle(
+                params,
+                {"from": ops_multisig.address}
+            )
+
+    # capture and log token balances of msig after claiming and burning
+    print(
+        f"Final balances in Ops-Multisig after claiming, burning, swapping via saddle and UniswapV3:"
+    )
+    token_balances_final = {}
+    for token_address in collected_token_addresses:
+        token_contract = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        )
+        symbol = token_contract.symbol()
+        token_balances_final[token_address] = token_contract.balanceOf(
+            ops_multisig.address
+        )
+        decimals = token_contract.decimals()
+        print(
+            f"Balance of ${symbol} : {token_balances_final[token_address] / (10 ** decimals)}"
+        )
+
+
+def buy_sdl_with_usdc_sushi(ops_multisig: ApeSafe, chain_id: int, divisor: int = 1):
+    sushiswap_router = Contract.from_abi(
+        "SushiSwapRouter",
+        SUSHISWAP_ROUTER_ADDRESSES[chain_id],
+        SUSHISWAP_ROUTER_ABI
+    )
+
+    SDL_contract = Contract.from_abi(
+        "SDL", SDL_ADDRESSES[CHAIN_IDS[chain_id]], ERC20_ABI
+    )
+    USDC_contract = Contract.from_abi(
+        "USDC", token_addresses[chain_id]["USDC"], ERC20_ABI
+    )
+    USDC_decimals = USDC_contract.decimals()
+    SDL_decimals = SDL_contract.decimals()
+
+    print(
+        "Balances before swap:\n"
+        f"USDC: {USDC_contract.balanceOf(ops_multisig.address)/ (10 ** USDC_decimals)}\n" +
+        f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}"
+    )
+
+    # approve the router to spend ops_multisig's USDC
+    USDC_contract.approve(
+        SUSHISWAP_ROUTER_ADDRESSES[chain_id],
+        2 ** 256 - 1,
+        {"from": ops_multisig.address}
+    )
+
+    # swap 1/4 of ops_multisig's USDC balance to SDL
+    amount_in = USDC_contract.balanceOf(ops_multisig.address) / divisor
+
+    # path to use for swapping
+    path = [token_addresses[chain_id]["USDC"],
+            token_addresses[chain_id]["WETH"],
+            SDL_ADDRESSES[chain_id]
+            ]
+
+    # min amount of SDL to receive
+    amount_out_min = sushiswap_router.getAmountsOut(
+        amount_in,
+        path
+    )[2]
+
+    to = ops_multisig.address
+    deadline = chain[-1].timestamp + 3600
+
+    # perform swap
+    sushiswap_router.swapExactTokensForTokens(
+        amount_in,
+        amount_out_min,
+        path,
+        to,
+        deadline,
+        {"from": ops_multisig.address}
+    )
+
+    print(
+        "Balances after swap:\n"
+        f"USDC: {USDC_contract.balanceOf(ops_multisig.address)/ (10 ** USDC_decimals)}\n" +
+        f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}"
+    )
 
 
 def convert_string_to_bytes32(string: str) -> bytes:

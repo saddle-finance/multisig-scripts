@@ -7,6 +7,7 @@ SUSHI_SDL_SLP_ADDRESS = "0x0C6F06b32E6Ae0C110861b8607e67dA594781961"
 UNIV3_ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
 UNIV3_QUOTER = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"
 
+
 # chain_id -> token -> address
 token_addresses = {
     CHAIN_IDS["MAINNET"]: {
@@ -55,8 +56,20 @@ token_addresses = {
 
 }
 
+univ3_fee_tier_dicts = {
+    CHAIN_IDS["MAINNET"]: {
+        token_addresses[CHAIN_IDS["MAINNET"]]["WETH"]: int(3000),
+        token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"]: int(3000),
+        token_addresses[CHAIN_IDS["MAINNET"]]["FEI"]: int(500),
+        token_addresses[CHAIN_IDS["MAINNET"]]["DAI"]: int(500),
+        token_addresses[CHAIN_IDS["MAINNET"]]["LUSD"]: int(500)
+    }
+}
+
+
 # chain_id -> token_from -> (token_to, swap/metaswap)
 # which token to swap using which pool, for saddle swaps
+# note: on side chains the token is always USDC
 token_to_swap_dicts_saddle = {
     CHAIN_IDS["MAINNET"]: {
         # USDT : USDv2 Pool
@@ -207,157 +220,42 @@ swap_to_deposit_dicts = {
 }
 
 # token_from -> token_to dict, for using UniswapV3
-token_to_token_univ3_dict = {
-    # LUSD : USDC
-    token_addresses[CHAIN_IDS["MAINNET"]]["LUSD"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
-    # WBTC : USDC
-    token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
-    # WETH : USDC
-    token_addresses[CHAIN_IDS["MAINNET"]]["WETH"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
-    # FEI: USDC
-    token_addresses[CHAIN_IDS["MAINNET"]]["FEI"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
+token_to_token_univ3_dicts = {
+    CHAIN_IDS["MAINNET"]: {
+        # LUSD : USDC
+        token_addresses[CHAIN_IDS["MAINNET"]]["LUSD"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
+        # WBTC : USDC
+        token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
+        # WETH : USDC
+        token_addresses[CHAIN_IDS["MAINNET"]]["WETH"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
+        # FEI: USDC
+        token_addresses[CHAIN_IDS["MAINNET"]]["FEI"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
+    }
 }
 
+# chain_id -> token_from -> route_type_tuple
+univ3_route_type_tuples = {
+    CHAIN_IDS["MAINNET"]: {
+        # FEI to USDC (FEI -> DAI -> USDC)
+        token_addresses[CHAIN_IDS["MAINNET"]]["FEI"]:
+            ['address', 'uint24', 'address', 'uint24', 'address'],
+    },
+}
 
-# ##################
-# #### Arbitrum ####
-# ##################
-
-# token_addresses_arbitrum = {
-#     "USDC": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-#     "USDT": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
-#     "FRAX": "0x17FC002b466eEc40DaE837Fc4bE5c67993ddBd6F",
-#     "MIM": "0xFEa7a6a0B346362BF88A9e4A88416B77a57D6c2A",
-#     "nUSD": "0x2913E812Cf0dcCA30FB28E6Cac3d2DCFF4497688",
-#     "USDs": "0xD74f5255D557944cf7Dd0E45FF521520002D5748"
-# }
-
-# # token -> swap/metaswap dict , which pool to use for swapping which token
-# arb_token_to_swap_dict = {
-#     # USDC : Arb USD Pool
-#     token_addresses_arbitrum["USDC"]: "0xBea9F78090bDB9e662d8CB301A00ad09A5b756e9",
-#     # USDT : Arb USDV2 Pool
-#     token_addresses_arbitrum["USDT"]: "0xfeEa4D1BacB0519E8f952460A70719944fe56Ee0",
-#     # FRAX : Arb FRAXBP Pool
-#     token_addresses_arbitrum["FRAX"]: "0x401AFbc31ad2A3Bc0eD8960d63eFcDEA749b4849",
-#     # MIM : Arb USD Pool
-#     token_addresses_arbitrum["MIM"]: "0xBea9F78090bDB9e662d8CB301A00ad09A5b756e9",
-#     # nUSD : Arb USD Pool
-#     token_addresses_arbitrum["nUSD"]: "0xBea9F78090bDB9e662d8CB301A00ad09A5b756e9",
-#     # USDs : Arb FRAXBP/USDS Metapool
-#     token_addresses_arbitrum["USDs"]: "0xa5bD85ed9fA27ba23BfB702989e7218E44fd4706"
-# }
-
-# # swap/metaswap -> metaswapDeposit dict
-# arb_swap_to_deposit_dict = {
-#     # Arb USD Pool
-#     "0xBea9F78090bDB9e662d8CB301A00ad09A5b756e9": "",
-#     # Arb USDV2 Pool
-#     "0xfeEa4D1BacB0519E8f952460A70719944fe56Ee0": "",
-#     # Arb USDS Metapool
-#     "0x5dD186f8809147F96D3ffC4508F3C82694E58c9c": "0xDCA5b16A96f984ffb2A3022cfF339eb049126101",
-#     # Arb FRAXBP Pool
-#     "0x401AFbc31ad2A3Bc0eD8960d63eFcDEA749b4849": "",
-#     # Arb FRAXBP/USDS Metapool
-#     "0xa5bD85ed9fA27ba23BfB702989e7218E44fd4706": "0x1D434f50acf16BA013BE3536e9A3CDb5D7d4e694",
-#     # Arb FRAXBP/USDT Metapool
-#     "0xf8504e92428d65E56e495684A38f679C1B1DC30b": "0xc8DFCFC329E19fDAF43a338aD6038dBA02a5079B",
-# }
-
-# ##################
-# #### Optimism ####
-# ##################
-
-# token_addresses_optimism = {
-#     "USDC": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
-#     "USDT": "",
-#     "FRAX": "",
-#     "MIM": "",
-#     "nUSD": "",
-#     "USDs": ""
-# }
-
-
-# opt_token_to_swap_dict = {
-#     # USDC : Opt FRAXBP Pool
-#     "0x7f5c764cbc14f9669b88837ca1490cca17c31607": "0xF6C2e0aDc659007Ba7c48446F5A4e4E94dfe08b5",
-#     # USDT : Opt FRAXBP/USDT Metapool
-#     "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58": "0xa9a84238098Dc3d1529228E6c74dBE7EbdF117a5",
-#     # FRAX : Opt FRAXBP Pool
-#     "0x2E3D870790dC77A83DD1d18184Acc7439A53f475": "0xF6C2e0aDc659007Ba7c48446F5A4e4E94dfe08b5",
-#     # sUSD : Opt FRAXBP/sUSD Metapool
-#     "0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9": "0x250184dDDEC6d38E28ac12B481c9016867226E9D",
-# }
-
-# opt_swap_to_deposit_dict = {
-#     # Opt USD Pool
-#     "0x5847f8177221268d279Cf377D0E01aB3FD993628": "",
-#     # Opt FRAXBP Pool
-#     "0xF6C2e0aDc659007Ba7c48446F5A4e4E94dfe08b5": "",
-#     # Opt FRAXBP/sUSD Metapool
-#     "0x250184dDDEC6d38E28ac12B481c9016867226E9D": "0xdf815Ea6b066Ac9f3107d8863a6c19aA2a5d24d3",
-#     # Opt FRAXBP/USDT Metapool
-#     "0xa9a84238098Dc3d1529228E6c74dBE7EbdF117a5": "0x3F1d224557afA4365155ea77cE4BC32D5Dae2174",
-#     # Opt USD/FRAX Metapool
-#     "0xc55E8C79e5A6c3216D4023769559D06fa9A7732e": "0x88Cc4aA0dd6Cf126b00C012dDa9f6F4fd9388b17",
-# }
-
-
-# ##################
-# ##### Evmos ######
-# ##################
-
-# token_addresses_evmos = {
-#     "CEUSDC": "0xe46910336479F254723710D57e7b683F3315b22B",
-#     "CEUSDT": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
-# }
-
-# evmos_token_to_swap_dict = {
-#     # ceUSDC : Evmos USDT Pool
-#     token_addresses_evmos["CEUSDC"]: "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b",
-#     # ceUSDT : Evmos USDT Pool
-#     token_addresses_evmos["CEUSDT"]: "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b",
-# }
-
-# evmos_swap_to_deposit_dict = {
-#     # Evmos USDT Pool
-#     "0x79cb59c7B6bd0e5ef99189efD9065500eAbc1a4b": "",
-#     # Evmos 4Pool (paused)
-#     # "0x81272C5c573919eF0C719D6d63317a4629F161da": "",
-#     # Evmos Frax3Pool (paused)
-#     # "0x21d4365834B7c61447e142ef6bCf01136cBD01c6": "",
-#     # Evmos 3Pool (paused)
-#     # "0x1275203FB58Fc25bC6963B13C2a1ED1541563aF0": "",
-#     # Evmos BTC Pool (paused)
-#     # "0x7003102c75587E8D29c56124060463Ef319407D0": "",
-#     # Evmos tBTC Metapool (paused)
-#     # "0xdb5c5A6162115Ce9a188E7D773C4D011F421BbE5": "0xFdA5D2ad8b6d3884AbB799DA66f57175E8706941",
-# }
-
-
-# ##################
-# ###### Kava ######
-# ##################
-
-# token_addresses_kava = {
-#     "USDC": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
-#     "USDT": "0xB44a9B6905aF7c801311e8F4E76932ee959c663C",
-
-# }
-
-# kava_token_to_swap_dict = {
-#     # USDC : USDT Pool
-#     token_addresses_kava["USDC"]: "0x5847f8177221268d279Cf377D0E01aB3FD993628",
-#     # USDT : USDT Pool
-#     token_addresses_kava["USDT"]: "0x5847f8177221268d279Cf377D0E01aB3FD993628",
-# }
-
-# kava_swap_to_deposit_dict = {
-#     # Kava USDT Pool
-#     "0x5847f8177221268d279Cf377D0E01aB3FD993628": "",
-#     # Kava 3Pool (paused)
-#     # "0xA500b0e1360462eF777804BCAe6CE2BfB524dD2e": "",
-# }
+# chain_id -> token_from -> route_string_tuple
+univ3_route_string_tuples = {
+    CHAIN_IDS["MAINNET"]: {
+        # FEI to USDC (FEI -> DAI -> USDC)
+        token_addresses[CHAIN_IDS["MAINNET"]]["FEI"]:
+            (str(token_addresses[CHAIN_IDS["MAINNET"]]["FEI"]),
+                univ3_fee_tier_dicts[CHAIN_IDS["MAINNET"]
+                                     ][token_addresses[CHAIN_IDS["MAINNET"]]["FEI"]],
+             str(token_addresses[CHAIN_IDS["MAINNET"]]["DAI"]),
+                univ3_fee_tier_dicts[CHAIN_IDS["MAINNET"]
+                                     ][token_addresses[CHAIN_IDS["MAINNET"]]["DAI"]],
+             str(token_addresses[CHAIN_IDS["MAINNET"]]["USDC"]))
+    }
+}
 
 
 # for Arbitrum single token bridging (not in use atm)
