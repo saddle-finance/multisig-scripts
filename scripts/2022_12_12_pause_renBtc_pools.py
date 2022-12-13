@@ -3,7 +3,9 @@ from brownie import Contract, accounts, network
 
 from helpers import (CHAIN_IDS, GAUGE_ABI, GAUGE_CONTROLLER_ADDRESS,
                      META_SWAP_ABI, MULTISIG_ADDRESSES, OPS_MULTISIG_ADDRESSES,
-                     POOL_REGISTRY_ADDRESSES, SWAP_FLASH_LOAN_ABI, PoolType)
+                     POOL_REGISTRY_ADDRESSES, SDL_ADDRESSES,
+                     SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS,
+                     SDL_MINTER_ADDRESS, SWAP_FLASH_LOAN_ABI, PoolType)
 from scripts.utils import (confirm_posting_transaction,
                            convert_string_to_bytes32)
 
@@ -66,6 +68,17 @@ def main():
         tx = gauge_controller.add_gauge(gauge_address, 0)
         assert len(tx.events["NewGauge"]) == 1
         assert (tx.events["NewGauge"][0]["addr"] == gauge_address)
+
+    # Claim SDL from the vesting contract
+    sdl_vesting_contract_proxy = multisig.contract(
+        SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
+    )
+    sdl_vesting_contract_proxy.release()
+
+    # Send 5M SDL to minter
+    sdl = multisig.contract(SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
+    amount_to_send = 5_000_000 * 1e18
+    sdl.transfer(SDL_MINTER_ADDRESS[CHAIN_IDS[TARGET_NETWORK]], amount_to_send)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
