@@ -382,7 +382,7 @@
                 "type": "uint256"
             }
         ],
-        "stateMutability": "payable",
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -506,7 +506,7 @@
         ],
         "name": "flashLoan",
         "outputs": [],
-        "stateMutability": "payable",
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -682,7 +682,7 @@
         ],
         "name": "initialize",
         "outputs": [],
-        "stateMutability": "payable",
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -746,7 +746,7 @@
         ],
         "name": "rampA",
         "outputs": [],
-        "stateMutability": "payable",
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -775,7 +775,7 @@
                 "type": "uint256[]"
             }
         ],
-        "stateMutability": "payable",
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -804,7 +804,7 @@
                 "type": "uint256"
             }
         ],
-        "stateMutability": "payable",
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -838,7 +838,7 @@
                 "type": "uint256"
             }
         ],
-        "stateMutability": "payable",
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -858,7 +858,7 @@
         ],
         "name": "setAdminFee",
         "outputs": [],
-        "stateMutability": "payable",
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -876,7 +876,7 @@
         ],
         "name": "setFlashLoanFees",
         "outputs": [],
-        "stateMutability": "payable",
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -889,14 +889,14 @@
         ],
         "name": "setSwapFee",
         "outputs": [],
-        "stateMutability": "payable",
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
         "inputs": [],
         "name": "stopRampA",
         "outputs": [],
-        "stateMutability": "payable",
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -935,7 +935,7 @@
                 "type": "uint256"
             }
         ],
-        "stateMutability": "payable",
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -1005,7 +1005,7 @@
         "inputs": [],
         "name": "withdrawAdminFees",
         "outputs": [],
-        "stateMutability": "payable",
+        "stateMutability": "nonpayable",
         "type": "function"
     }
 ]

@@ -5,6 +5,7 @@ from helpers import (
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract, chain
 from scripts.utils import confirm_posting_transaction, claim_admin_fees
+from brownie import history
 
 
 TARGET_NETWORK = "KAVA"

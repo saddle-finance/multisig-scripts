@@ -17,12 +17,18 @@ from helpers import (
     META_SWAP_DEPOSIT_ABI,
     SWAP_ABI,
     META_SWAP_ABI,
+    MULTISIG_ADDRESSES,
     OPS_MULTISIG_ADDRESSES,
     UNIV3_ROUTER_ABI,
     UNIV3_QUOTER_ABI,
     SUSHISWAP_ROUTER_ADDRESSES,
     SUSHISWAP_ROUTER_ABI,
     SDL_ADDRESSES,
+    ARB_GATEWAY_ROUTER,
+    OPTIMISM_STANDARD_BRIDGE,
+    OPTIMISM_L2_STANDARD_BRIDGE_ABI,
+    EVMOS_CELER_LIQUIDITY_BRIDGE,
+    EVMOS_CELER_LIQUIDITY_BRIDGE_ABI,
 )
 from eth_abi.packed import encode_abi_packed
 from gnosis.safe.safe_tx import SafeTx
@@ -257,7 +263,6 @@ def claim_admin_fees(multisig: ApeSafe, chain_id: int):
 
 def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int):
     swap_to_deposit_dict = swap_to_deposit_dicts[chain_id]
-    specific_token_addresses = token_addresses[chain_id]
     token_to_swap_dict = token_to_swap_dicts_saddle[chain_id]
 
     # comprehend set of underlying tokens used by pools on that chain
@@ -289,11 +294,11 @@ def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int):
             f"Balance of {symbol} before swapping: {token_balances_before[token_address] / (10 ** decimals)}"
         )
 
-    # convert all collected fees to USDC, to minimize # of claiming txs on L1
-    for token_address in collected_token_addresses:
+    # convert all collected fees to USDC/WETH/WBTC
+    for token_address in token_to_swap_dict.keys():
         # skip USDC, since it's the target
-        if token_address == specific_token_addresses["USDC"]:
-            continue
+        # if token_address == token_addresses[chain_id]["USDC"]:
+        #    continue
 
         # amount to swap
         amount_to_swap = token_balances_before[token_address]
@@ -302,8 +307,8 @@ def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int):
         if amount_to_swap > 0:
             # get swap and token indices
             # if base pool, use base pool for swapping
-            if swap_to_deposit_dict[token_to_swap_dict[token_address]] == "":
-                swap_address = token_to_swap_dict[token_address]
+            if swap_to_deposit_dict[token_to_swap_dict[token_address][1]] == "":
+                swap_address = token_to_swap_dict[token_address][1]
                 # Base swap for swapping
                 swap = Contract.from_abi(
                     "Swap", swap_address, SWAP_ABI
@@ -311,24 +316,26 @@ def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int):
                 # get token indices from base pool contract
                 token_index_from = swap.getTokenIndex(token_address)
                 token_index_to = swap.getTokenIndex(
-                    specific_token_addresses["USDC"])
+                    token_to_swap_dict[token_address][0]
+                )
 
             # if metapool, use metapool deposit for swapping
             else:
-                swap_address = swap_to_deposit_dict[token_to_swap_dict[token_address]]
+                swap_address = swap_to_deposit_dict[token_to_swap_dict[token_address][1]]
                 # Metaswap deposit for swapping
                 swap = Contract.from_abi(
                     "MetaSwapDeposit", swap_address, SWAP_ABI
                 )
                 # get (flattened) token indices from underlying swap contract
                 meta_swap = Contract.from_abi(
-                    "MetaSwap", token_to_swap_dict[token_address], META_SWAP_ABI
+                    "MetaSwap", token_to_swap_dict[token_address][1], META_SWAP_ABI
                 )
                 base_swap = Contract.from_abi(
                     "BaseSwap", meta_swap.metaSwapStorage()[0], SWAP_ABI
                 )
                 base_token_index_to = base_swap.getTokenIndex(
-                    specific_token_addresses["USDC"])
+                    token_to_swap_dict[token_address][0]
+                )
                 token_index_from = 0  # index 0 is non-base-pool token
                 # offset by one for flattened 'to' token index
                 token_index_to = 1 + base_token_index_to
@@ -356,9 +363,12 @@ def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int):
                 {"from": ops_multisig.address}
             )
 
+            to_symbol = Contract.from_abi(
+                "ERC20", token_to_swap_dict[token_address][0], ERC20_ABI
+            ).symbol()
             # perform swap
             print(
-                f"Swapping {amount_to_swap / (10 ** token_contract.decimals())} {token_contract.symbol()} to USDC (or wBTC/WETH on mainnet)"
+                f"Swapping {amount_to_swap / (10 ** token_contract.decimals())} {token_contract.symbol()} to {to_symbol} via saddle pool on chain_id {chain_id}"
             )
             swap.swap(
                 token_index_from,
@@ -378,10 +388,10 @@ def convert_fees_to_USDC_uniswap(ops_multisig: ApeSafe, chain_id: int, collected
         f"Balances of tokens before swapping with Uniswap:"
     )
     univ3_router = Contract.from_abi(
-        "UniV3Router", UNIV3_ROUTER_ADDRESSES, UNIV3_ROUTER_ABI
+        "UniV3Router", UNIV3_ROUTER_ADDRESSES[chain_id], UNIV3_ROUTER_ABI
     )
     univ3_quoter = Contract.from_abi(
-        "UniV3Quoter", UNIV3_QUOTER_ADDRESSES, UNIV3_QUOTER_ABI
+        "UniV3Quoter", UNIV3_QUOTER_ADDRESSES[chain_id], UNIV3_QUOTER_ABI
     )
     univ3_fee_tier_dict = univ3_fee_tier_dicts[chain_id]
     token_to_token_univ3_dict = token_to_token_univ3_dicts[chain_id]
@@ -435,9 +445,8 @@ def convert_fees_to_USDC_uniswap(ops_multisig: ApeSafe, chain_id: int, collected
 
         # in case we want to use a multi-hop route
         if token_address in univ3_route_type_tuples[chain_id]:
-            route_type_tuple = univ3_route_type_tuples[chain_id][token_addresses[chain_id][token_address]]
-            route_string_tuple = univ3_route_string_tuples[
-                chain_id][token_addresses[chain_id][token_address]]
+            route_type_tuple = univ3_route_type_tuples[chain_id][token_address]
+            route_string_tuple = univ3_route_string_tuples[chain_id][token_address]
             route_encoded = encode_abi_packed(
                 route_type_tuple, route_string_tuple)
             amount_out_min = univ3_quoter.quoteExactInput(
@@ -522,9 +531,8 @@ def buy_sdl_with_usdc_sushi(ops_multisig: ApeSafe, chain_id: int, divisor: int =
         SUSHISWAP_ROUTER_ADDRESSES[chain_id],
         SUSHISWAP_ROUTER_ABI
     )
-
     SDL_contract = Contract.from_abi(
-        "SDL", SDL_ADDRESSES[CHAIN_IDS[chain_id]], ERC20_ABI
+        "SDL", SDL_ADDRESSES[chain_id], ERC20_ABI
     )
     USDC_contract = Contract.from_abi(
         "USDC", token_addresses[chain_id]["USDC"], ERC20_ABI
@@ -580,13 +588,18 @@ def buy_sdl_with_usdc_sushi(ops_multisig: ApeSafe, chain_id: int, divisor: int =
     )
 
 
-def provide_sdl_eth_lp_sushi(ops_multisig: ApeSafe, multisig: ApeSafe, chain_id: int):
+def provide_sdl_eth_lp_sushi(
+    ops_multisig: ApeSafe,
+    multisig: ApeSafe,
+    chain_id: int,
+    tolerance_factor: float = 0.5
+):
+
     sushiswap_router = Contract.from_abi(
         "SushiSwapRouter",
         SUSHISWAP_ROUTER_ADDRESSES[chain_id],
         SUSHISWAP_ROUTER_ABI
     )
-
     SDL_contract = Contract.from_abi(
         "SDL", SDL_ADDRESSES[chain_id], ERC20_ABI
     )
@@ -623,7 +636,6 @@ def provide_sdl_eth_lp_sushi(ops_multisig: ApeSafe, multisig: ApeSafe, chain_id:
     )
 
     # paramters for addLiquidity tx
-    tolerance_factor = 0.5
     token_a = token_addresses[chain_id]["WETH"]
     token_b = SDL_ADDRESSES[chain_id]
     amount_a_desired = WETH_contract.balanceOf(ops_multisig.address)
@@ -668,6 +680,233 @@ def provide_sdl_eth_lp_sushi(ops_multisig: ApeSafe, multisig: ApeSafe, chain_id:
     )
     assert SLP_contract.balanceOf(ops_multisig.address) == 0
     assert SLP_contract.balanceOf(multisig.address) == balance
+
+
+def buy_weth_with_usdc(
+    ops_multisig: ApeSafe,
+    chain_id,
+    divisor: int = 2,
+    price_impact_factor: float = 1.3,
+):
+    univ3_router = Contract.from_abi(
+        "UniV3Router", UNIV3_ROUTER_ADDRESSES[chain_id], UNIV3_ROUTER_ABI
+    )
+    univ3_quoter = Contract.from_abi(
+        "UniV3Quoter", UNIV3_QUOTER_ADDRESSES[chain_id], UNIV3_QUOTER_ABI
+    )
+
+    USDC_contract = Contract.from_abi(
+        "ERC20", token_addresses[chain_id]["USDC"], ERC20_ABI
+    )
+    WETH_contract = Contract.from_abi(
+        "ERC20", token_addresses[chain_id]["WETH"], ERC20_ABI
+    )
+    USDC_decimals = USDC_contract.decimals()
+    WETH_decimals = WETH_contract.decimals()
+
+    USDC_balance_before = USDC_contract.balanceOf(ops_multisig.address)
+
+    token_from_address = token_addresses[chain_id]["USDC"]
+    token_to_address = token_addresses[chain_id]["WETH"]
+    fee = 500
+    recipient = ops_multisig.address
+    deadline = chain[chain.height].timestamp + 3600  # 1 hour
+    sqrt_price_limit_X96 = 0
+
+    # Swap ~50% of ops_multisig's USDC for WETH.
+    # factor to correct for price increases of SDL through tranch buys,
+    # requiring less and less SDL to provide liq in optimal ratio.
+
+    # TODO: adjust factor before executing, s.t. minimal SDL or WETH is left
+    # after LPing
+    amount_in = USDC_contract.balanceOf(
+        ops_multisig.address
+    ) / divisor * price_impact_factor
+
+    # getting min amounts
+    print(
+        f"Getting quote for WETH"
+    )
+    amount_out_min = univ3_quoter.quoteExactInputSingle(
+        token_from_address,
+        token_to_address,
+        fee,
+        amount_in,
+        sqrt_price_limit_X96,
+        {"from": ops_multisig.address}
+    ).return_value
+
+    # input struct for univ3 swap
+    params = (
+        token_from_address,
+        token_to_address,
+        fee,
+        recipient,
+        deadline,
+        amount_in,
+        amount_out_min,
+        sqrt_price_limit_X96
+    )
+
+    # approve Univ3 router
+    print(
+        f"Approve UniV3 router for USDC {amount_in / (10 ** USDC_decimals)}"
+    )
+    USDC_contract.approve(
+        UNIV3_ROUTER_ADDRESSES[chain_id],
+        amount_in,
+        {"from": ops_multisig.address}
+    )
+
+    # swap using univ3
+    print(
+        f"Swap {amount_in / (10 ** USDC_decimals)} USDC for WETH on UniV3"
+    )
+    univ3_router.exactInputSingle(
+        params,
+        {"from": ops_multisig.address}
+    )
+
+    USDC_balance_after = USDC_contract.balanceOf(ops_multisig.address)
+
+    assert (USDC_balance_after < 0.51 * USDC_balance_before * price_impact_factor and
+            USDC_balance_after > 0.49 * USDC_balance_before * (1 - price_impact_factor))
+
+    print(
+        "Balances after swap:\n"
+        f"USDC: {USDC_contract.balanceOf(ops_multisig.address)/ (10 ** USDC_decimals)}\n" +
+        f"WETH: {WETH_contract.balanceOf(ops_multisig.address)/ (10 ** WETH_decimals)}"
+    )
+
+
+def bridge_usdc_to_mainnet(ops_multisig: ApeSafe, chain_id: int):
+    if chain_id == CHAIN_IDS["ARBITRUM"]:
+        # Arbitrum L2 gateway router
+        gateway_router = ops_multisig.contract(
+            ARB_GATEWAY_ROUTER[chain_id]
+        )
+
+        # bridging USDC to mainnet
+        USDC = Contract.from_abi(
+            "ERC20", token_addresses[chain_id]["USDC"], ERC20_ABI
+        )
+
+        # bridge 100% of ops-msig USDC balance to mainnet main multisig
+        amount_to_bridge = USDC.balanceOf(
+            ops_multisig.address
+        )
+
+        print(
+            f"Bridging ${USDC.symbol()} {amount_to_bridge / (10 ** USDC.decimals())} to mainnet main msig"
+        )
+
+        # find gateway for USDC
+        token_gateway_address = gateway_router.getGateway(
+            USDC.address
+        )
+
+        # approve gateway
+        USDC.approve(
+            token_gateway_address,
+            amount_to_bridge,
+            {"from": ops_multisig.address}
+        )
+
+        # bridge USDC to mainnet main msig
+        gateway_router.outboundTransfer(
+            token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
+            MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]],  # mainnet main multisig
+            amount_to_bridge,
+            #encode(['bytes'], [(b'')]),
+            b'',
+            {"from": ops_multisig.address}
+        )
+        assert USDC.balanceOf(ops_multisig.address) == 0
+
+    elif chain_id == CHAIN_IDS["OPTIMISM"]:
+        # Optimism L2 Standard Bridge
+        standard_bridge = Contract.from_abi(
+            "L2StandardBridge",
+            OPTIMISM_STANDARD_BRIDGE[chain_id],
+            OPTIMISM_L2_STANDARD_BRIDGE_ABI
+        )
+
+        # bridge 100% of USDC balance to mainnet main multisig
+        USDC = Contract.from_abi(
+            "ERC20", token_addresses[chain_id]["USDC"], ERC20_ABI)
+        amount_to_bridge = USDC.balanceOf(
+            ops_multisig.address
+        )
+
+        print(
+            f"Approving bridge for ${USDC.symbol()} {amount_to_bridge / (10 ** USDC.decimals())}"
+        )
+        # approve gateway
+        USDC.approve(
+            standard_bridge,
+            amount_to_bridge,
+            {"from": ops_multisig.address}
+        )
+
+        # send tx to bridge
+        print(
+            f"Bridging ${USDC.symbol()} {amount_to_bridge / (10 ** USDC.decimals())} to mainnet"
+        )
+        standard_bridge.withdrawTo(
+            token_addresses[chain_id]["USDC"],          # _l2token
+            MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]],   # _to
+            amount_to_bridge,                           # _amount
+            0,                                          # _l1Gas
+            "",                                         # _data
+            {"from": ops_multisig.address}
+        )
+
+        assert USDC.balanceOf(ops_multisig.address) == 0
+
+    elif chain_id == CHAIN_IDS["EVMOS"]:
+        # Optimism L2 Standard Bridge
+        liquidity_bridge = Contract.from_abi(
+            "EvmosCelerLiquidityBridge",
+            EVMOS_CELER_LIQUIDITY_BRIDGE[chain_id],
+            EVMOS_CELER_LIQUIDITY_BRIDGE_ABI
+        )
+
+        # bridge 100% of USDC balance to mainnet ops ops_multisig
+        ceUSDC_contract = Contract.from_abi(
+            "ERC20", token_addresses[chain_id]["USDC"], ERC20_ABI)
+        amount_to_bridge = ceUSDC_contract.balanceOf(
+            ops_multisig.address
+        )
+
+        print(
+            f"Approving bridge for ${ceUSDC_contract.symbol()} {amount_to_bridge / (10 ** ceUSDC_contract.decimals())}"
+        )
+        # approve gateway
+        ceUSDC_contract.approve(
+            liquidity_bridge,
+            amount_to_bridge,
+            {"from": ops_multisig.address}
+        )
+
+        if amount_to_bridge > 0:
+            # send USDC to mainnet main multisig
+            print(
+                f"Bridging ${ceUSDC_contract.symbol()} {amount_to_bridge / (10 ** ceUSDC_contract.decimals())} to mainnet"
+            )
+            # @dev
+            # for ref: https://cbridge-docs.celer.network/developer/api-reference/contract-pool-based-transfer
+            # Celer suggests using timestamp as nonce
+            liquidity_bridge.send(
+                MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]],   # _receiver
+                token_addresses[chain_id]["USDC"],          # _token
+                amount_to_bridge,                           # _amount
+                1,                          # _dstChainId (eth mainnet)
+                chain[chain.height].timestamp,              # _nonce
+                5000,                       # _maxSlippage (in pips)
+                {"from": ops_multisig.address}
+            )
+
+            assert ceUSDC_contract.balanceOf(ops_multisig.address) == 0
 
 
 def convert_string_to_bytes32(string: str) -> bytes:

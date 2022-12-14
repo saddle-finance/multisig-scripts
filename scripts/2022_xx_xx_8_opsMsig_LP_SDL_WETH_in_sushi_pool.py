@@ -6,6 +6,7 @@ from helpers import (
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract, chain
 from scripts.utils import confirm_posting_transaction, provide_sdl_eth_lp_sushi
+from brownie import history
 
 
 TARGET_NETWORK = "MAINNET"
@@ -24,9 +25,6 @@ def main():
         MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
     )
 
-    # Run any pending transactions before simulating any more transactions
-    # ops_multisig.preview_pending()
-
     # provide SDL+ETH to SushiSwap
     provide_sdl_eth_lp_sushi(ops_multisig, multisig, CHAIN_IDS[TARGET_NETWORK])
 
@@ -38,5 +36,7 @@ def main():
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)  # prompts for password
-    ops_multisig.preview(safe_tx)
+    # ops_multisig.preview(safe_tx)
+    for tx in history:
+        tx.info()
     confirm_posting_transaction(ops_multisig, safe_tx)

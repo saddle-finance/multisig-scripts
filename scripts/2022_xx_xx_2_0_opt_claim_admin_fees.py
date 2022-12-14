@@ -5,6 +5,7 @@ from helpers import (
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract, chain
 from scripts.utils import confirm_posting_transaction, claim_admin_fees
+from brownie import history
 
 
 TARGET_NETWORK = "OPTIMISM"
@@ -18,7 +19,7 @@ def main():
         f"Not on {TARGET_NETWORK}"
     multisig = ApeSafe(
         MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
-        base_url='https://safe-transaction.optimism.gnosis.io/'
+        base_url='https://safe-transaction-optimism.safe.global'
     )
 
     # Run any pending transactions before simulating any more transactions
@@ -35,5 +36,7 @@ def main():
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)  # prompts for password
-    multisig.preview(safe_tx)
+    # multisig.preview(safe_tx)
+    for tx in history:
+        tx.info()
     confirm_posting_transaction(multisig, safe_tx)

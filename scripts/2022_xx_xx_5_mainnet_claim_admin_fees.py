@@ -7,10 +7,10 @@ from helpers import (
     SWAP_ABI,
     META_SWAP_ABI,
 )
-
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract, chain
 from scripts.utils import confirm_posting_transaction, claim_admin_fees
+from brownie import history
 
 
 TARGET_NETWORK = "MAINNET"
@@ -26,9 +26,6 @@ def main():
         MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
     )
 
-    # Run any pending transactions before simulating any more transactions
-    # multisig.preview_pending()
-
     claim_admin_fees(multisig, CHAIN_IDS[TARGET_NETWORK])
 
     # combine history into multisend txn
@@ -40,5 +37,7 @@ def main():
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)  # prompts for password
-    multisig.preview(safe_tx)
+    # multisig.preview(safe_tx)
+    for tx in history:
+        tx.info()
     confirm_posting_transaction(multisig, safe_tx)

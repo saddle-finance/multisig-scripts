@@ -5,6 +5,7 @@ from helpers import (
 from ape_safe import ApeSafe
 from brownie import accounts, network
 from scripts.utils import confirm_posting_transaction, convert_fees_to_USDC_saddle, convert_fees_to_USDC_uniswap
+from brownie import history
 
 
 TARGET_NETWORK = "MAINNET"
@@ -19,9 +20,6 @@ def main():
     ops_multisig = ApeSafe(
         OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
     )
-
-    # Run any pending transactions before simulating any more transactions
-    # ops_multisig.preview_pending()
 
     collected_token_addresses = convert_fees_to_USDC_saddle(
         ops_multisig,
@@ -43,5 +41,7 @@ def main():
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)  # prompts for password
-    ops_multisig.preview(safe_tx)
+    # ops_multisig.preview(safe_tx)
+    for tx in history:
+        tx.info()
     confirm_posting_transaction(ops_multisig, safe_tx)
