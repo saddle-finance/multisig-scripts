@@ -1,6 +1,5 @@
 from helpers import (
     CHAIN_IDS,
-    ERC20_ABI,
     ARB_GATEWAY_ROUTER,
     MULTISIG_ADDRESSES,
     OPS_MULTISIG_ADDRESSES,
@@ -11,12 +10,7 @@ from scripts.utils import (
     convert_fees_to_USDC_saddle,
     bridge_usdc_to_mainnet
 )
-from fee_distro_helpers import (
-    token_addresses
-)
 from ape_safe import ApeSafe
-from brownie import Contract
-from eth_abi import encode
 from brownie import history
 
 
