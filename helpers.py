@@ -1,5 +1,5 @@
 import json
-from webbrowser import get
+from enum import IntEnum
 
 from brownie.network.state import Chain
 
@@ -12,6 +12,15 @@ CHAIN_IDS = {
     "EVMOS": 9001,
     "KAVA": 2222,
     "AURORA": 1313161554,
+}
+
+DEPLOYMENT_FOLDER_NAMES = {
+    CHAIN_IDS["MAINNET"]: "mainnet",
+    CHAIN_IDS["OPTIMISM"]: "optimism_mainnet",
+    CHAIN_IDS["ARBITRUM"]: "arbitrum_mainnet",
+    CHAIN_IDS["EVMOS"]: "evmos_mainnet",
+    CHAIN_IDS["KAVA"]: "kava_mainnet",
+    CHAIN_IDS["AURORA"]: "aurora_mainnet",
 }
 
 DEPLOYER_ADDRESS = "0x5bdb37d0ddea3a90f233c7b7f6b9394b6b2eef34"
@@ -51,6 +60,10 @@ MASTER_REGISTRY_ADDRESSES = {
     CHAIN_IDS["EVMOS"]: "0xBa684B8E05415726Ee1fFE197eaf1b82E4d44418",
 }
 
+POOL_REGISTRY_ADDRESSES = {
+    CHAIN_IDS["MAINNET"]: "0xFb4DE84c4375d7c8577327153dE88f58F69EeC81",
+}
+
 OPS_MULTISIG_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0x4802CedbDF865382dbaED8D5e41a65C8AB840676",
     CHAIN_IDS["ARBITRUM"]: "0x6d9b26C25993358dCa0ABE9BF6A26Ddb18583200",
@@ -81,7 +94,7 @@ SDL_ADDRESSES = {
     CHAIN_IDS["ARBITRUM"]: "0x75C9bC761d88f70156DAf83aa010E84680baF131",
 }
 
-ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]: "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
+ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]                  : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
 
 SDL_MINTER_ADDRESS = {
     CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
@@ -203,6 +216,9 @@ HEDGEY_OTC = {
 # 59,300 SDL/day in seconds
 SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
 
+# PoolType enum to match pool registry's field
+PoolType = IntEnum('PoolType', ['BTC', 'ETH', 'USD', 'OTHERS'])
+
 
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
@@ -234,6 +250,13 @@ def intersection(lst1, lst2):
     return lst3
 
 
+def get_deployment_details(chain_id: int, contract_name: str):
+    """Returns the address and the ABI of the contract with the given name"""
+    contract_json = json.load(open(
+        f"saddle-contract/deployments/{DEPLOYMENT_FOLDER_NAMES[chain_id]}/{contract_name}.json"))
+    return contract_json["address"], contract_json["abi"]
+
+
 VESTING_ABI = get_abi("Vesting")
 GAUGE_ABI = get_abi("Gauge")
 NOMAD_GATEWAY_ABI = get_abi("NomadRouterImpl")
@@ -245,6 +268,7 @@ UNIV3_ROUTER_ABI = get_abi("UniV3Router")
 UNIV3_QUOTER_ABI = get_abi("UniV3Quoter")
 META_SWAP_ABI = get_abi("MetaSwap")
 ERC20_ABI = get_abi("ERC20")
+META_SWAP_ABI = get_abi("MetaSwap")
 META_SWAP_DEPOSIT_ABI = get_abi("MetaSwapDeposit")
 SWAP_ABI = get_abi("Swap")
 OPTIMISM_L2_STANDARD_BRIDGE_ABI = get_abi("OptimismL2StandardBridge")
