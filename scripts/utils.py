@@ -813,14 +813,30 @@ def bridge_usdc_to_mainnet(ops_multisig: ApeSafe, chain_id: int):
         )
 
         # bridge USDC to mainnet main msig
-        gateway_router.outboundTransfer(
-            token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
-            MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]],  # mainnet main multisig
-            amount_to_bridge,
-            #encode(['bytes'], [(b'')]),
-            b'',
-            {"from": ops_multisig.address}
+        # gateway_router.outboundTransfer(
+        #     token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
+        #     MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]],  # mainnet main multisig
+        #     amount_to_bridge,
+        #     encode_abi(['bytes32[]'], [[]]).hex(),
+        #     {"from": ops_multisig.address}
+        # )
+
+        # due to brownie problem with encoding empty bytes32 array, we manually encode calldata
+        calldata = '0x7b3a3c8b' + encode_abi(
+            ['address', 'address', 'uint256',],
+            [
+                token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
+                MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]],
+                amount_to_bridge
+            ]
+        ).hex() + '00000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000'
+
+        ops_multisig.account.transfer(
+            to=ARB_GATEWAY_ROUTER[chain_id],
+            amount=0,
+            data=calldata
         )
+
         assert USDC.balanceOf(ops_multisig.address) == 0
 
     elif chain_id == CHAIN_IDS["OPTIMISM"]:
