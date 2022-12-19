@@ -10,5 +10,7 @@ tests
 .env
 .hypothesis
 .vscode/
+.envrc
+.python-version
 
 node_modules/

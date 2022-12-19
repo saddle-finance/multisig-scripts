@@ -1,4 +1,5 @@
 import json
+from enum import IntEnum
 
 from brownie.network.state import Chain
 
@@ -13,7 +14,18 @@ CHAIN_IDS = {
     "AURORA": 1313161554,
 }
 
+DEPLOYMENT_FOLDER_NAMES = {
+    CHAIN_IDS["MAINNET"]: "mainnet",
+    CHAIN_IDS["OPTIMISM"]: "optimism_mainnet",
+    CHAIN_IDS["ARBITRUM"]: "arbitrum_mainnet",
+    CHAIN_IDS["EVMOS"]: "evmos_mainnet",
+    CHAIN_IDS["KAVA"]: "kava_mainnet",
+    CHAIN_IDS["AURORA"]: "aurora_mainnet",
+}
+
 DEPLOYER_ADDRESS = "0x5bdb37d0ddea3a90f233c7b7f6b9394b6b2eef34"
+
+ENG_EOA_ADDRESS = "0xA1DBb0A0388f105212C2a8d51fF37010f6A0C36A"
 
 INCITE_MULTISIG_ADDRESS = "0x4ba5B41c4378966f08E3E4F7dd80840191D54C69"
 
@@ -48,15 +60,31 @@ MASTER_REGISTRY_ADDRESSES = {
     CHAIN_IDS["EVMOS"]: "0xBa684B8E05415726Ee1fFE197eaf1b82E4d44418",
 }
 
+POOL_REGISTRY_ADDRESSES = {
+    CHAIN_IDS["MAINNET"]: "0xFb4DE84c4375d7c8577327153dE88f58F69EeC81",
+}
+
+OPS_MULTISIG_ADDRESSES = {
+    CHAIN_IDS["MAINNET"]: "0x4802CedbDF865382dbaED8D5e41a65C8AB840676",
+    CHAIN_IDS["ARBITRUM"]: "0x6d9b26C25993358dCa0ABE9BF6A26Ddb18583200",
+    CHAIN_IDS["OPTIMISM"]: "0x55F51A0DF2714F3CcA7acBcd9d3552A66FF5953B",
+    CHAIN_IDS["EVMOS"]: "0x8A0BB6E3456008195219Bf71E1Bb6E37b909c153",
+}
+
+MASTER_REGISTRY_ADDRESSES = {
+    CHAIN_IDS["MAINNET"]: "0xc5ad17b98D7fe73B6dD3b0df5b3040457E68C045",
+    CHAIN_IDS["ARBITRUM"]: "0xaB94A2c0D8F044AA439A5654f06b5797928396cF",
+    CHAIN_IDS["OPTIMISM"]: "0x0E510c9b20a5D136E75f7FD2a5F344BD98f9d875",
+    CHAIN_IDS["EVMOS"]: "0xBa684B8E05415726Ee1fFE197eaf1b82E4d44418",
+}
+
 SDL_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0xf1Dc500FdE233A4055e25e5BbF516372BC4F6871",
     CHAIN_IDS["OPTIMISM"]: "0xAe31207aC34423C41576Ff59BFB4E036150f9cF7",
     CHAIN_IDS["ARBITRUM"]: "0x75C9bC761d88f70156DAf83aa010E84680baF131",
 }
 
-ALCX_ADDRESSES = {
-    CHAIN_IDS["MAINNET"]: "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"
-}
+ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]                  : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
 
 SDL_MINTER_ADDRESS = {
     CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
@@ -150,6 +178,9 @@ HEDGEY_OTC = {
 # 59,300 SDL/day in seconds
 SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
 
+# PoolType enum to match pool registry's field
+PoolType = IntEnum('PoolType', ['BTC', 'ETH', 'USD', 'OTHERS'])
+
 
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
@@ -181,6 +212,13 @@ def intersection(lst1, lst2):
     return lst3
 
 
+def get_deployment_details(chain_id: int, contract_name: str):
+    """Returns the address and the ABI of the contract with the given name"""
+    contract_json = json.load(open(
+        f"saddle-contract/deployments/{DEPLOYMENT_FOLDER_NAMES[chain_id]}/{contract_name}.json"))
+    return contract_json["address"], contract_json["abi"]
+
+
 VESTING_ABI = get_abi("Vesting")
 GAUGE_ABI = get_abi("Gauge")
 NOMAD_GATEWAY_ABI = get_abi("NomadRouterImpl")
@@ -188,3 +226,4 @@ GNOSIS_SAFE_ABI = get_abi("GnosisSafeImpl")
 POOL_REGISTRY_ABI = get_abi("PoolRegistry")
 MINICHEF_ABI = get_abi("MiniChefV2")
 SWAP_FLASH_LOAN_ABI = get_abi("SwapFlashLoan")
+META_SWAP_ABI = get_abi("MetaSwap")
