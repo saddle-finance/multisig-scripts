@@ -31,6 +31,7 @@ from helpers import (
     EVMOS_CELER_LIQUIDITY_BRIDGE_ABI,
 )
 from eth_abi.packed import encode_abi_packed
+from eth_abi import encode_abi
 from gnosis.safe.safe_tx import SafeTx
 from brownie import accounts, network, Contract, chain
 import json
