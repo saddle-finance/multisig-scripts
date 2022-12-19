@@ -1,5 +1,5 @@
 import json
-from webbrowser import get
+from enum import IntEnum
 
 from brownie.network.state import Chain
 
@@ -58,6 +58,10 @@ MASTER_REGISTRY_ADDRESSES = {
     CHAIN_IDS["ARBITRUM"]: "0xaB94A2c0D8F044AA439A5654f06b5797928396cF",
     CHAIN_IDS["OPTIMISM"]: "0x0E510c9b20a5D136E75f7FD2a5F344BD98f9d875",
     CHAIN_IDS["EVMOS"]: "0xBa684B8E05415726Ee1fFE197eaf1b82E4d44418",
+}
+
+POOL_REGISTRY_ADDRESSES = {
+    CHAIN_IDS["MAINNET"]: "0xFb4DE84c4375d7c8577327153dE88f58F69EeC81",
 }
 
 OPS_MULTISIG_ADDRESSES = {
@@ -174,6 +178,9 @@ HEDGEY_OTC = {
 # 59,300 SDL/day in seconds
 SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
 
+# PoolType enum to match pool registry's field
+PoolType = IntEnum('PoolType', ['BTC', 'ETH', 'USD', 'OTHERS'])
+
 
 def assert_filename(file: str):
     """Asserts that a file follows naming convention and is being executed on the expected network"""
@@ -219,3 +226,4 @@ GNOSIS_SAFE_ABI = get_abi("GnosisSafeImpl")
 POOL_REGISTRY_ABI = get_abi("PoolRegistry")
 MINICHEF_ABI = get_abi("MiniChefV2")
 SWAP_FLASH_LOAN_ABI = get_abi("SwapFlashLoan")
+META_SWAP_ABI = get_abi("MetaSwap")
