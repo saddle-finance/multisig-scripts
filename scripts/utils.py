@@ -4,10 +4,8 @@ from urllib.error import URLError
 
 import click
 from ape_safe import ApeSafe
-from brownie import network
 from gnosis.safe.safe_tx import SafeTx
-from helpers import (ARB_BRIDGE_INBOX, ARB_GATEWAY_ROUTER, CHAIN_IDS,
-                     MULTISIG_ADDRESSES)
+from helpers import ARB_BRIDGE_INBOX, ARB_GATEWAY_ROUTER, CHAIN_IDS, MULTISIG_ADDRESSES
 
 
 def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
@@ -15,8 +13,7 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
 
     current_nonce = 0
     try:
-        url = safe.base_url + \
-            f"/api/v1/safes/{safe.address}/multisig-transactions/"
+        url = safe.base_url + f"/api/v1/safes/{safe.address}/multisig-transactions/"
 
         # fetch list of txs from gnosis api
         response = urllib.request.urlopen(url)
@@ -28,10 +25,8 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
                 current_nonce = result["nonce"] + 1
                 break
     except (URLError) as err:
-        print(
-            f"Fetching txs from gnosis api failed with error: {err}")
-        current_nonce = click.prompt(
-            "Please input current nonce manually:", type=int)
+        print(f"Fetching txs from gnosis api failed with error: {err}")
+        current_nonce = click.prompt("Please input current nonce manually:", type=int)
 
     pending_nonce = safe.pending_nonce()
 
@@ -44,8 +39,8 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
             )
         ) == "N":
             return
-        else:
-            safe_tx.safe_nonce = None
+        # else:
+        # safe_tx.safe_nonce = None
     elif safe_nonce < current_nonce:
         print(
             f"Error: Your nonce ({safe_nonce}) is already used. "
@@ -82,3 +77,13 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
             should_post = click.confirm(
                 f"Post this gnosis safe transaction to {safe.address} on {safe.base_url}?"
             )
+
+
+def convert_string_to_bytes32(string: str) -> bytes:
+    """
+    Encodes a string to bytes32 format. 
+
+    If the string is shorter than 32 bytes, it will be right-padded with 0s. 
+    Otherwise, it will be truncated.
+    """
+    return string.encode("utf-8").ljust(32, b"\x00")
