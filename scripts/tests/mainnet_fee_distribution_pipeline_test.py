@@ -7,6 +7,7 @@ from ape_safe import ApeSafe
 from scripts.utils import (
     claim_admin_fees,
     convert_fees_to_USDC_saddle,
+    convert_fees_to_USDC_curve,
     convert_fees_to_USDC_uniswap,
     buy_weth_with_usdc,
     buy_sdl_with_usdc_sushi,
@@ -46,7 +47,12 @@ def main():
         OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
     )
 
-    collected_token_addresses = convert_fees_to_USDC_saddle(
+    convert_fees_to_USDC_saddle(
+        ops_multisig,
+        CHAIN_IDS[TARGET_NETWORK]
+    )
+
+    convert_fees_to_USDC_curve(
         ops_multisig,
         CHAIN_IDS[TARGET_NETWORK]
     )
@@ -54,7 +60,6 @@ def main():
     convert_fees_to_USDC_uniswap(
         ops_multisig,
         CHAIN_IDS[TARGET_NETWORK],
-        collected_token_addresses
     )
 
     ######## 2022_xx_xx_7_0_opsMsig_market_buy_WETH_with_USDC.py ########

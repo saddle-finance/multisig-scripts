@@ -1,5 +1,6 @@
 from helpers import (
     CHAIN_IDS,
+    get_abi
 )
 
 MAX_POOL_LENGTH = 32
@@ -16,6 +17,11 @@ UNIV3_QUOTER_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"
 }
 
+
+# CURVE_STABLESWAP_SBTC_V1_ADDRESS =  "0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714"
+# CURVE_STABLESWAP_SBTC_V2_ADDRESS = "0xf253f83AcA21aAbD2A20553AE0BF7F65C755A07F"
+# CURVE_STABLESWAP_TBTC_ADDRESS = "0xC25099792E9349C7DD09759744ea681C7de2cb66"
+# CURVE_MIXEDSWAP_TRICRYPTO2_ADDRESS = "0xD51a44d3FaE010294C616388b506AcdA1bfAAE46" 
 
 # chain_id -> token -> address
 token_addresses = {
@@ -94,11 +100,11 @@ token_to_swap_dicts_saddle = {
         # USX : USDC-USX Pool
         token_addresses[CHAIN_IDS["MAINNET"]]["USX"]: (token_addresses[CHAIN_IDS["MAINNET"]]["USDC"], "0x2bFf1B48CC01284416E681B099a0CDDCA0231d72"),
         # renBTC : wBTC
-        token_addresses[CHAIN_IDS["MAINNET"]]["RENBTC"]: (token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"], "0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2"),
+        #token_addresses[CHAIN_IDS["MAINNET"]]["RENBTC"]: (token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"], "0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2"),
         # sBTC : wBTC
-        token_addresses[CHAIN_IDS["MAINNET"]]["SBTC"]: (token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"], "0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2"),
+        #token_addresses[CHAIN_IDS["MAINNET"]]["SBTC"]: (token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"], "0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2"),
         # tBTC : wBTC
-        token_addresses[CHAIN_IDS["MAINNET"]]["TBTC"]: (token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"], "0xfa9ED0309Bf79Eb84C847819F0B3CB84F6d351Af"),
+        #token_addresses[CHAIN_IDS["MAINNET"]]["TBTC"]: (token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"], "0xfa9ED0309Bf79Eb84C847819F0B3CB84F6d351Af"),
         # alETH : WETH
         token_addresses[CHAIN_IDS["MAINNET"]]["ALETH"]: (token_addresses[CHAIN_IDS["MAINNET"]]["WETH"], "0xa6018520EAACC06C30fF2e1B3ee2c7c22e64196a"),
         # sETH : WETH
@@ -144,8 +150,26 @@ token_to_swap_dicts_saddle = {
     },
 }
 
+# defines which tokens to swap to which target tokens using which swap on curve
+# chain_id -> token_from -> (token_to, swap/metaswap)
+token_to_swap_dicts_curve = {
+    CHAIN_IDS["MAINNET"]: {
+        # renBTC : WBTC, Curve sBTC V1 pool 
+        token_addresses[CHAIN_IDS["MAINNET"]]["RENBTC"]: (token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"], "0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714"),
+        # sBTC : WBTC, Curve sBTC V1 pool
+        token_addresses[CHAIN_IDS["MAINNET"]]["SBTC"]: (token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"],"0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714"),
+        # wBTC : USDT Curve TriCrypto2 pool
+        #token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"]: (token_addresses[CHAIN_IDS["MAINNET"]]["USDT"], "0xD51a44d3FaE010294C616388b506AcdA1bfAAE46"),
+        # tBTC : tBTC Curve metapool
+        token_addresses[CHAIN_IDS["MAINNET"]]["TBTC"]: (token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"], "0xC25099792E9349C7DD09759744ea681C7de2cb66"),
+        # USDT: USDC Curve 3pool pool
+        #token_addresses[CHAIN_IDS["MAINNET"]]["USDT"]: (token_addresses[CHAIN_IDS["MAINNET"]]["USDC"], "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7"),
+    }
+}
+
+
 # chain_id -> swap -> metaswapDeposit dict
-swap_to_deposit_dicts = {
+swap_to_deposit_dicts_saddle = {
     CHAIN_IDS["MAINNET"]: {
         # FraxBP Pool
         "0x13Cc34Aa8037f722405285AD2C82FE570bfa2bdc": "",
@@ -226,6 +250,21 @@ swap_to_deposit_dicts = {
     }
 }
 
+swap_to_deposit_dicts_curve = {
+    CHAIN_IDS["MAINNET"]: {
+        # Curve sBTC V1 pool 
+         "0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714":"",
+        # sBTC : WBTC, Curve sBTC V1 pool
+        "0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714":"",
+        # TriCrypto2 pool
+        "0xD51a44d3FaE010294C616388b506AcdA1bfAAE46":"",
+        # Curve 3pool pool
+        "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7":"",
+        # Curve tBTC metapool
+        "0xC25099792E9349C7DD09759744ea681C7de2cb66":"0xaa82ca713D94bBA7A89CEAB55314F9EfFEdDc78c"
+    }
+}
+
 # token_from -> token_to dict, for using UniswapV3
 token_to_token_univ3_dicts = {
     CHAIN_IDS["MAINNET"]: {
@@ -233,6 +272,10 @@ token_to_token_univ3_dicts = {
         token_addresses[CHAIN_IDS["MAINNET"]]["LUSD"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
         # WBTC : USDC
         token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
+        # WBTC : USDC
+        token_addresses[CHAIN_IDS["MAINNET"]]["SBTC"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
+        # WBTC : USDC
+        token_addresses[CHAIN_IDS["MAINNET"]]["RENBTC"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
         # WETH : USDC
         token_addresses[CHAIN_IDS["MAINNET"]]["WETH"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
         # FEI: USDC
@@ -244,8 +287,9 @@ token_to_token_univ3_dicts = {
 univ3_route_type_tuples = {
     CHAIN_IDS["MAINNET"]: {
         # FEI to USDC (FEI -> DAI -> USDC)
-        token_addresses[CHAIN_IDS["MAINNET"]]["FEI"]:
-            ['address', 'uint24', 'address', 'uint24', 'address'],
+        token_addresses[CHAIN_IDS["MAINNET"]]["FEI"]:['address', 'uint24', 'address', 'uint24', 'address'],
+        token_addresses[CHAIN_IDS["MAINNET"]]["SBTC"]:['address', 'uint24', 'address', 'uint24', 'address'],
+        token_addresses[CHAIN_IDS["MAINNET"]]["RENBTC"]:['address', 'uint24', 'address', 'uint24', 'address'],
     },
 }
 
@@ -260,9 +304,12 @@ univ3_route_string_tuples = {
              str(token_addresses[CHAIN_IDS["MAINNET"]]["DAI"]),
                 univ3_fee_tier_dicts[CHAIN_IDS["MAINNET"]
                                      ][token_addresses[CHAIN_IDS["MAINNET"]]["DAI"]],
-             str(token_addresses[CHAIN_IDS["MAINNET"]]["USDC"]))
+             str(token_addresses[CHAIN_IDS["MAINNET"]]["USDC"])),
     }
 }
+
+
+
 
 
 # for Arbitrum single token bridging (not in use atm)
