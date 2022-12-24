@@ -3,12 +3,8 @@ import math
 from ape_safe import ApeSafe
 from brownie import ZERO_ADDRESS, accounts, network
 
-from helpers import (
-    CHAIN_IDS,
-    MINICHEF_ADDRESSES,
-    MULTISIG_ADDRESSES,
-    SIDECHAIN_TOTAL_EMISSION_RATE,
-)
+from helpers import (CHAIN_IDS, GNOSIS_SAFE_BASE_URLS, MINICHEF_ADDRESSES,
+                     MULTISIG_ADDRESSES, SIDECHAIN_TOTAL_EMISSION_RATE)
 from scripts.utils import confirm_posting_transaction
 
 TARGET_NETWORK = "ARBITRUM"
@@ -27,7 +23,7 @@ def main():
 
     multisig = ApeSafe(
         MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
-        base_url="https://safe-transaction-arbitrum.safe.global",
+        GNOSIS_SAFE_BASE_URLS[CHAIN_IDS[TARGET_NETWORK]],
     )
 
     ##### Update Minichef weights #####

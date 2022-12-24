@@ -3,12 +3,8 @@ import math
 from ape_safe import ApeSafe
 from brownie import ZERO_ADDRESS, Contract, accounts, history, network
 
-from helpers import (
-    CHAIN_IDS,
-    MINICHEF_ADDRESSES,
-    OPS_MULTISIG_ADDRESSES,
-    SIDECHAIN_TOTAL_EMISSION_RATE,
-)
+from helpers import (CHAIN_IDS, GNOSIS_SAFE_BASE_URLS, MINICHEF_ADDRESSES,
+                     OPS_MULTISIG_ADDRESSES, SIDECHAIN_TOTAL_EMISSION_RATE)
 from scripts.utils import confirm_posting_transaction
 
 TARGET_NETWORK = "OPTIMISM"
@@ -27,7 +23,7 @@ def main():
     ##### Update Minichef weights #####
     multisig = ApeSafe(
         OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
-        base_url="https://safe-transaction-optimism.safe.global",
+        GNOSIS_SAFE_BASE_URLS[CHAIN_IDS[TARGET_NETWORK]],
         multisend="0x998739BFdAAdde7C933B942a68053933098f9EDa",
     )
 
@@ -43,27 +39,32 @@ def main():
     # 0.07% for Optimism: FraxBP
     assert minichef.lpToken(1) == "0xf74ebe6e5586275dc4CeD78F5DBEF31B1EfbE7a5"
     if minichef.poolInfo(1)[2] != 7:
-        batch_calldata.append(minichef.set.encode_input(1, 7, ZERO_ADDRESS, False))
+        batch_calldata.append(
+            minichef.set.encode_input(1, 7, ZERO_ADDRESS, False))
 
     # 0.00% for Optimism: FraxBP-optUSD
     assert minichef.lpToken(2) == "0xfF5fa61Eb9b5cDD63bdFa16EF029d5313457925A"
     if minichef.poolInfo(2)[2] != 0:
-        batch_calldata.append(minichef.set.encode_input(2, 0, ZERO_ADDRESS, False))
+        batch_calldata.append(
+            minichef.set.encode_input(2, 0, ZERO_ADDRESS, False))
 
     # 0.06% for Optimism: FraxBP-USDT
     assert minichef.lpToken(3) == "0xb63d7B0D835ca6eFf89ab774498ed6dD0D71e93e"
     if minichef.poolInfo(3)[2] != 6:
-        batch_calldata.append(minichef.set.encode_input(3, 6, ZERO_ADDRESS, False))
+        batch_calldata.append(
+            minichef.set.encode_input(3, 6, ZERO_ADDRESS, False))
 
     # 0.24% for Optimism: FraxBP-SUSD
     assert minichef.lpToken(4) == "0x205c9B8c1fCa803B779b1eB4B887Aa0E00FE629F"
     if minichef.poolInfo(4)[2] != 24:
-        batch_calldata.append(minichef.set.encode_input(4, 24, ZERO_ADDRESS, False))
+        batch_calldata.append(
+            minichef.set.encode_input(4, 24, ZERO_ADDRESS, False))
 
     # 0.01% for Optimism: optUSD
     assert minichef.lpToken(5) == "0xcCf860874cbF2d615192a4C4455580B4d622D3B9"
     if minichef.poolInfo(5)[2] != 1:
-        batch_calldata.append(minichef.set.encode_input(5, 1, ZERO_ADDRESS, False))
+        batch_calldata.append(
+            minichef.set.encode_input(5, 1, ZERO_ADDRESS, False))
 
     # Should always be 0.00% for pid 6.
     # This is not a LP token address. Pool address was added by mistake.
@@ -73,7 +74,8 @@ def main():
     # 0.00% for Optimism: saddleOptUSX-FRAXBP
     assert minichef.lpToken(7) == "0xf349fB2b5eD45864e1d9ad34a483Eb37aC6e0034"
     if minichef.poolInfo(7)[2] != 0:
-        batch_calldata.append(minichef.set.encode_input(7, 0, ZERO_ADDRESS, False))
+        batch_calldata.append(
+            minichef.set.encode_input(7, 0, ZERO_ADDRESS, False))
 
     # Calculate new saddle per second on Optimism
     new_rate = math.floor(SIDECHAIN_TOTAL_EMISSION_RATE * 38 / 10000)
