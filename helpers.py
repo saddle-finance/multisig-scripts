@@ -84,7 +84,8 @@ SDL_ADDRESSES = {
     CHAIN_IDS["ARBITRUM"]: "0x75C9bC761d88f70156DAf83aa010E84680baF131",
 }
 
-ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]                  : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
+ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]
+    : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
 
 SDL_MINTER_ADDRESS = {
     CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
@@ -177,6 +178,14 @@ HEDGEY_OTC = {
 
 # 59,300 SDL/day in seconds
 SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
+
+GNOSIS_SAFE_BASE_URLS = {
+    CHAIN_IDS["MAINNET"]: "https://safe-transaction-mainnet.safe.global",
+    CHAIN_IDS["ARBITRUM"]: "https://safe-transaction-arbitrum.safe.global",
+    CHAIN_IDS["OPTIMISM"]: "https://safe-transaction-optimism.safe.global",
+    CHAIN_IDS["AURORA"]: "https://safe-transaction-aurora.safe.global",
+    CHAIN_IDS["EVMOS"]: "https://transaction.safe.evmos.org",
+}
 
 # PoolType enum to match pool registry's field
 PoolType = IntEnum('PoolType', ['BTC', 'ETH', 'USD', 'OTHERS'])
