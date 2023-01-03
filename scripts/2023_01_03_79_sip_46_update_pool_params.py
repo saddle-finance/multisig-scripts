@@ -6,7 +6,9 @@ from brownie import accounts, network
 from helpers import (
     CHAIN_IDS,
     MULTISIG_ADDRESSES,
+    SDL_ADDRESSES,
     SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS,
+    SDL_MINTER_ADDRESS,
 )
 from scripts.utils import confirm_posting_transaction
 
@@ -16,7 +18,8 @@ def main():
     https://snapshot.org/#/saddlefinance.eth/proposal/0xe894884108944bf43cd403b9cbc3493c879f601da37ae59f9b27dd52282d8d86
     """
     print(f"You are using the '{network.show_active()}' network")
-    multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
+    TARGET_NETWORK = "MAINNET"
+    multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
     pools_to_future_a = {
         "0x13Cc34Aa8037f722405285AD2C82FE570bfa2bdc": 1500,  # SaddleFraxBPPool
@@ -35,16 +38,23 @@ def main():
 
     # Claim SDL from vesting contract
     sdl_vesting_contract_proxy = multisig.contract(
-        SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS["MAINNET"]]
+        SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
     )
     sdl_vesting_contract_proxy.release()
+    # Send 3.5M SDL to SDL minter
+    sdl_contract = multisig.contract(SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
+    minter = multisig.contract(SDL_MINTER_ADDRESS[CHAIN_IDS[TARGET_NETWORK]])
+    deployer = accounts.load("deployer")
+
+    # Minter is currently owed 5_182_645, 3_5000_000 is sent by nonce 78, sending remaining
+    sdl_contract.transfer(minter.address, 1_682_646 * 1e18)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
     safe_tx.safe_nonce = 79
 
     # sign with private key
-    safe_tx.sign(accounts.load("deployer").private_key)
+    safe_tx.sign(deployer.private_key)
     multisig.preview(safe_tx, False)
 
     confirm_posting_transaction(multisig, safe_tx)
