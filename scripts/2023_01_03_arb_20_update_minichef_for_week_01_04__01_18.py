@@ -1,4 +1,5 @@
 import math
+from datetime import datetime, timedelta
 
 from ape_safe import ApeSafe
 from brownie import ZERO_ADDRESS, accounts, network
@@ -30,6 +31,23 @@ def main():
         MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
         GNOSIS_SAFE_BASE_URLS[CHAIN_IDS[TARGET_NETWORK]],
     )
+
+    ##### Ramp a-values #####
+
+    pools_to_future_a = {
+        "0x896935B02D3cBEb152192774e4F1991bb1D2ED3f": 1000,  # SaddleFraxBPPool
+        "0x1e491122f3C096392b40a4EA27aa1a29360d38a1": 200,  # SaddleFraxUSDsPool
+        "0x166680852ae9Dec3d63374c5eBf89E974448BFE9": 200,  # SaddleFraxUSDTPool
+    }
+    now = datetime.now()
+    # @dev delta must be min 14 days. Add a week buffer for multisig to sign.
+    now_plus_21_days = now + timedelta(days=21)
+    now_plus_21_days_seconds = int(
+        (now_plus_21_days - datetime(1970, 1, 1)).total_seconds()
+    )
+    for pool_addr, A in pools_to_future_a.items():
+        contract = multisig.contract(pool_addr)
+        contract.rampA(A, now_plus_21_days_seconds)
 
     ##### Update Minichef weights #####
 
