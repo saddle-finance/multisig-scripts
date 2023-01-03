@@ -35,9 +35,9 @@ def main():
     ##### Ramp a-values #####
 
     pools_to_future_a = {
-        "0x896935B02D3cBEb152192774e4F1991bb1D2ED3f": 1000,  # SaddleFraxBPPool
-        "0x1e491122f3C096392b40a4EA27aa1a29360d38a1": 200,  # SaddleFraxUSDsPool
-        "0x166680852ae9Dec3d63374c5eBf89E974448BFE9": 200,  # SaddleFraxUSDTPool
+        "0x401AFbc31ad2A3Bc0eD8960d63eFcDEA749b4849": 1000,  # SaddleFraxBPPool
+        "0xa5bD85ed9fA27ba23BfB702989e7218E44fd4706": 200,  # SaddleFraxUSDsPool
+        "0xf8504e92428d65E56e495684A38f679C1B1DC30b": 200,  # SaddleFraxUSDTPool
     }
     now = datetime.now()
     # @dev delta must be min 14 days. Add a week buffer for multisig to sign.
@@ -111,6 +111,6 @@ def main():
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)
-    multisig.preview(safe_tx)
+    multisig.preview(safe_tx, False)
 
     confirm_posting_transaction(multisig, safe_tx)

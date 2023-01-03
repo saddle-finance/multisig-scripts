@@ -3,8 +3,12 @@ from datetime import datetime, timedelta
 from ape_safe import ApeSafe
 from brownie import accounts, network
 
-from helpers import CHAIN_IDS, MULTISIG_ADDRESSES
-from scripts.utils import confirm_posting_transaction, fetch_current_nonce
+from helpers import (
+    CHAIN_IDS,
+    MULTISIG_ADDRESSES,
+    SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS,
+)
+from scripts.utils import confirm_posting_transaction
 
 
 def main():
@@ -12,7 +16,6 @@ def main():
     https://snapshot.org/#/saddlefinance.eth/proposal/0xe894884108944bf43cd403b9cbc3493c879f601da37ae59f9b27dd52282d8d86
     """
     print(f"You are using the '{network.show_active()}' network")
-    deployer = accounts.load("deployer")
     multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
 
     pools_to_future_a = {
@@ -30,13 +33,18 @@ def main():
         contract = multisig.contract(pool_addr)
         contract.rampA(A, now_plus_21_days_seconds)
 
+    # Claim SDL from vesting contract
+    sdl_vesting_contract_proxy = multisig.contract(
+        SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS["MAINNET"]]
+    )
+    sdl_vesting_contract_proxy.release()
+
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
-    safe_tx.current_nonce = fetch_current_nonce(multisig)
     safe_tx.safe_nonce = 79
 
     # sign with private key
-    safe_tx.sign(deployer.private_key)
-    multisig.preview(safe_tx, False)
+    safe_tx.sign(accounts.load("deployer").private_key)
+    # multisig.preview(safe_tx, False)
 
     confirm_posting_transaction(multisig, safe_tx)
