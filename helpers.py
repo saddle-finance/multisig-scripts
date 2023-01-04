@@ -1,7 +1,9 @@
 import json
 from enum import IntEnum
 
+from brownie import Contract
 from brownie.network.state import Chain
+from eth_account import Account
 
 CHAIN_IDS = {
     "MAINNET": 1,
@@ -84,8 +86,7 @@ SDL_ADDRESSES = {
     CHAIN_IDS["ARBITRUM"]: "0x75C9bC761d88f70156DAf83aa010E84680baF131",
 }
 
-ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]
-    : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
+ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]                  : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
 
 SDL_MINTER_ADDRESS = {
     CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
@@ -226,6 +227,12 @@ def get_deployment_details(chain_id: int, contract_name: str):
     contract_json = json.load(open(
         f"saddle-contract/deployments/{DEPLOYMENT_FOLDER_NAMES[chain_id]}/{contract_name}.json"))
     return contract_json["address"], contract_json["abi"]
+
+
+def get_contract_from_deployment(chain_id: int, contract_name: str, owner: Account = None):
+    """Returns the contract with the given name"""
+    address, abi = get_deployment_details(chain_id, contract_name)
+    return Contract.from_abi(contract_name, address, abi, owner)
 
 
 VESTING_ABI = get_abi("Vesting")
