@@ -84,8 +84,7 @@ SDL_ADDRESSES = {
     CHAIN_IDS["ARBITRUM"]: "0x75C9bC761d88f70156DAf83aa010E84680baF131",
 }
 
-ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]
-    : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
+ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]: "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
 
 SDL_MINTER_ADDRESS = {
     CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
@@ -179,6 +178,9 @@ HEDGEY_OTC = {
 # 59,300 SDL/day in seconds
 SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
 
+# Half of the above rate, per SIP 47
+FIRST_WEEK_HALVED_SIDECHAIN_TOTAL_EMISSION_RATE = 343171296296296296
+
 GNOSIS_SAFE_BASE_URLS = {
     CHAIN_IDS["MAINNET"]: "https://safe-transaction-mainnet.safe.global",
     CHAIN_IDS["ARBITRUM"]: "https://safe-transaction-arbitrum.safe.global",
@@ -188,7 +190,7 @@ GNOSIS_SAFE_BASE_URLS = {
 }
 
 # PoolType enum to match pool registry's field
-PoolType = IntEnum('PoolType', ['BTC', 'ETH', 'USD', 'OTHERS'])
+PoolType = IntEnum("PoolType", ["BTC", "ETH", "USD", "OTHERS"])
 
 
 def assert_filename(file: str):
@@ -223,8 +225,11 @@ def intersection(lst1, lst2):
 
 def get_deployment_details(chain_id: int, contract_name: str):
     """Returns the address and the ABI of the contract with the given name"""
-    contract_json = json.load(open(
-        f"saddle-contract/deployments/{DEPLOYMENT_FOLDER_NAMES[chain_id]}/{contract_name}.json"))
+    contract_json = json.load(
+        open(
+            f"saddle-contract/deployments/{DEPLOYMENT_FOLDER_NAMES[chain_id]}/{contract_name}.json"
+        )
+    )
     return contract_json["address"], contract_json["abi"]
 
 
