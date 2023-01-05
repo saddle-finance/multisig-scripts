@@ -1,7 +1,9 @@
 import json
 from enum import IntEnum
 
+from brownie import Contract
 from brownie.network.state import Chain
+from eth_account import Account
 
 CHAIN_IDS = {
     "MAINNET": 1,
@@ -84,7 +86,9 @@ SDL_ADDRESSES = {
     CHAIN_IDS["ARBITRUM"]: "0x75C9bC761d88f70156DAf83aa010E84680baF131",
 }
 
-ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]                  : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
+ALCX_ADDRESSES = {
+    CHAIN_IDS["MAINNET"]: "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"
+}
 
 SDL_MINTER_ADDRESS = {
     CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
@@ -178,6 +182,14 @@ HEDGEY_OTC = {
 # 59,300 SDL/day in seconds
 SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
 
+GNOSIS_SAFE_BASE_URLS = {
+    CHAIN_IDS["MAINNET"]: "https://safe-transaction-mainnet.safe.global",
+    CHAIN_IDS["ARBITRUM"]: "https://safe-transaction-arbitrum.safe.global",
+    CHAIN_IDS["OPTIMISM"]: "https://safe-transaction-optimism.safe.global",
+    CHAIN_IDS["AURORA"]: "https://safe-transaction-aurora.safe.global",
+    CHAIN_IDS["EVMOS"]: "https://transaction.safe.evmos.org",
+}
+
 # PoolType enum to match pool registry's field
 PoolType = IntEnum('PoolType', ['BTC', 'ETH', 'USD', 'OTHERS'])
 
@@ -217,6 +229,12 @@ def get_deployment_details(chain_id: int, contract_name: str):
     contract_json = json.load(open(
         f"saddle-contract/deployments/{DEPLOYMENT_FOLDER_NAMES[chain_id]}/{contract_name}.json"))
     return contract_json["address"], contract_json["abi"]
+
+
+def get_contract_from_deployment(chain_id: int, contract_name: str, owner: Account = None):
+    """Returns the contract with the given name"""
+    address, abi = get_deployment_details(chain_id, contract_name)
+    return Contract.from_abi(contract_name, address, abi, owner)
 
 
 VESTING_ABI = get_abi("Vesting")
