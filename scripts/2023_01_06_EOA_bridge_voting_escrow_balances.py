@@ -1,6 +1,7 @@
 import csv
 
-from brownie import accounts, history, network
+from brownie import Contract, accounts, history, network
+from brownie.network import max_fee, priority_fee
 
 from helpers import CHAIN_IDS, MULTISIG_ADDRESSES, get_contract_from_deployment
 
@@ -17,6 +18,8 @@ def main():
     ), f"Not on {TARGET_NETWORK} network"
 
     deployer_EOA = accounts.load("deployer")
+    priority_fee("auto")
+    max_fee(15000000000)
 
     root_oracle = get_contract_from_deployment(
         CHAIN_IDS[TARGET_NETWORK], "RootOracle")
@@ -45,9 +48,21 @@ def main():
             current_veSDL_holders.append(holder)
 
     # Bridge info for veSDL holders
+    calls = []
+
     for chain_id in chain_ids:
         for veSDL_holder in current_veSDL_holders:
-            root_oracle.push(chain_id, veSDL_holder, {"from": deployer_EOA})
+            calls.append([
+                root_oracle.address,
+                root_oracle.push.encode_input(chain_id, veSDL_holder)
+            ])
+
+    print(calls)
+
+    multicall = get_contract_from_deployment(
+        CHAIN_IDS[TARGET_NETWORK], "Multicall3")
+
+    multicall.aggregate(calls, {"from": deployer_EOA})
 
     for tx in history:
         tx.info()
