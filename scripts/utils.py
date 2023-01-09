@@ -503,6 +503,7 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
             if swap_to_deposit_dict[token_to_swap_dict[token_address][1]] == "":
                 is_metapool = False
                 swap_address = token_to_swap_dict[token_address][1]
+                print(f"Baseswap curve address is {swap_address}")
                 # Base swap for swapping
                 swap = Contract.from_abi(
                     "CurveSwap", swap_address, CURVE_BASE_POOL_ABI
@@ -554,10 +555,10 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
                 "ERC20", token_address, ERC20_ABI
             )
             print(
-                f"Approving {token_contract.symbol()} for curve pool"
+                f"Approving {token_contract.symbol()} for curve pool {swap.address}"
             )
             token_contract.approve(
-                swap_address,
+                swap.address,
                 amount_to_swap,
                 {"from": ops_multisig.address}
             )
