@@ -182,8 +182,11 @@ HEDGEY_OTC = {
 # 59,300 SDL/day in seconds
 SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
 
-# Half of the above rate, per SIP 47
+# Half of the SIDECHAIN_TOTAL_EMISSION_RATE, per SIP 47
 FIRST_WEEK_HALVED_SIDECHAIN_TOTAL_EMISSION_RATE = 343171296296296296
+
+# Half of FIRST_WEEK_HALVED_SIDECHAIN_TOTAL_EMISSION_RATE, per SIP 47
+SECOND_WEEK_HALVED_SIDECHAIN_TOTAL_EMISSION_RATE = 171585648148148148
 
 GNOSIS_SAFE_BASE_URLS = {
     CHAIN_IDS["MAINNET"]: "https://safe-transaction-mainnet.safe.global",
@@ -237,7 +240,9 @@ def get_deployment_details(chain_id: int, contract_name: str):
     return contract_json["address"], contract_json["abi"]
 
 
-def get_contract_from_deployment(chain_id: int, contract_name: str, owner: Account = None):
+def get_contract_from_deployment(
+    chain_id: int, contract_name: str, owner: Account = None
+):
     """Returns the contract with the given name"""
     address, abi = get_deployment_details(chain_id, contract_name)
     return Contract.from_abi(contract_name, address, abi, owner)
