@@ -1,5 +1,7 @@
 import json
 from enum import IntEnum
+from glob import glob
+from typing import Dict, List, Tuple
 
 from brownie import Contract
 from brownie.network.state import Chain
@@ -87,7 +89,7 @@ SDL_ADDRESSES = {
 }
 
 
-ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]: "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
+ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]                  : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
 
 
 SDL_MINTER_ADDRESS = {
@@ -227,7 +229,7 @@ def intersection(lst1, lst2):
     return lst3
 
 
-def get_deployment_details(chain_id: int, contract_name: str):
+def get_deployment_details(chain_id: int, contract_name: str) -> Tuple[str, List]:
     """Returns the address and the ABI of the contract with the given name"""
     contract_json = json.load(
         open(
@@ -237,10 +239,21 @@ def get_deployment_details(chain_id: int, contract_name: str):
     return contract_json["address"], contract_json["abi"]
 
 
-def get_contract_from_deployment(chain_id: int, contract_name: str, owner: Account = None):
+def get_contract_from_deployment(chain_id: int, contract_name: str, owner: Account = None) -> Contract:
     """Returns the contract with the given name"""
     address, abi = get_deployment_details(chain_id, contract_name)
     return Contract.from_abi(contract_name, address, abi, owner)
+
+
+def get_contracts_from_deployment(chain_id: int, contract_name_filter: str = "*", owner: Account = None) -> Dict[str, Contract]:
+    """Returns all contracts from the deployment"""
+    contracts = {}
+    for contract_path in glob(f"saddle-contract/deployments/{DEPLOYMENT_FOLDER_NAMES[chain_id]}/{contract_name_filter}.json"):
+        contract_name = contract_path.rsplit("/", 1)[1].split(".")[0]
+        contract_json = json.load(open(contract_path))
+        contracts[contract_name] = Contract.from_abi(
+            contract_name, contract_json["address"], contract_json["abi"], owner)
+    return contracts
 
 
 VESTING_ABI = get_abi("Vesting")
