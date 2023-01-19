@@ -118,11 +118,14 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
             )
 
 # claims admin fees and sends them to ops-multisig on the same chain
+
+
 def claim_admin_fees(multisig: ApeSafe, chain_id: int):
     ops_multisig_address = OPS_MULTISIG_ADDRESSES[chain_id]
     swap_to_deposit_dict = swap_to_deposit_dicts_saddle[chain_id]
 
-    collected_token_addresses,x = collect_token_addresses_saddle(multisig, swap_to_deposit_dict)
+    collected_token_addresses, x = collect_token_addresses_saddle(
+        multisig, swap_to_deposit_dict)
 
     # execute txs for claiming admin fees
     for swap_address in swap_to_deposit_dict:
@@ -233,6 +236,7 @@ def claim_admin_fees(multisig: ApeSafe, chain_id: int):
         assert token_contract.balanceOf(multisig.address) == 0
         assert token_contract.balanceOf(ops_multisig_address) >= balance
 
+
 def print_token_balances(multisig: ApeSafe, _token_addresses: set):
     for token_address in _token_addresses:
         token_contract = Contract.from_abi("ERC20", token_address, ERC20_ABI)
@@ -245,6 +249,8 @@ def print_token_balances(multisig: ApeSafe, _token_addresses: set):
 
 # collects token addresses used by saddle pools on a chain
 # @dev returns list of tokens and msig balances those tokens
+
+
 def collect_token_addresses_saddle(multisig: ApeSafe, swap_to_deposit_dict: dict):
     # comprehend set of underlying tokens used by pools on that chain
     collected_token_addresses = set()
@@ -253,32 +259,35 @@ def collect_token_addresses_saddle(multisig: ApeSafe, swap_to_deposit_dict: dict
     for swap_address in swap_to_deposit_dict:
         swap_contract = Contract.from_abi("Swap", swap_address, SWAP_ABI)
         # base pool
-        if swap_to_deposit_dict[swap_address] == "":  
+        if swap_to_deposit_dict[swap_address] == "":
             for index in range(MAX_POOL_LENGTH):
                 try:
                     address_to_add = swap_contract.getToken(index)
                     collected_token_addresses.add(address_to_add)
-                    token_balances[address_to_add] = Contract.from_abi("ERC20",address_to_add, ERC20_ABI).balanceOf(
+                    token_balances[address_to_add] = Contract.from_abi("ERC20", address_to_add, ERC20_ABI).balanceOf(
                         multisig.address)
                 except:
                     break
         # metapool
-        else:  
+        else:
             # first token in metapool is non-base-pool token
             address_to_add = swap_contract.getToken(0)
             collected_token_addresses.add(address_to_add)
             base_LP_addresses.add(swap_contract.getToken(1))
             collected_token_addresses.add(address_to_add)
-            token_balances[address_to_add] = Contract.from_abi("ERC20",address_to_add, ERC20_ABI).balanceOf(
+            token_balances[address_to_add] = Contract.from_abi("ERC20", address_to_add, ERC20_ABI).balanceOf(
                 multisig.address)
     return collected_token_addresses, token_balances
 
 # converts fees to USDC with saddle pools, if possible
+
+
 def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int):
     swap_to_deposit_dict = swap_to_deposit_dicts_saddle[chain_id]
     token_to_swap_dict = token_to_swap_dicts_saddle[chain_id]
 
-    collected_token_addresses, balances = collect_token_addresses_saddle(ops_multisig, swap_to_deposit_dict)
+    collected_token_addresses, balances = collect_token_addresses_saddle(
+        ops_multisig, swap_to_deposit_dict)
 
     # convert all collected fees to USDC/WETH/WBTC
     for token_address in token_to_swap_dict.keys():
@@ -369,7 +378,8 @@ def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int):
 def convert_fees_to_USDC_uniswap(ops_multisig: ApeSafe, chain_id: int):
     univ3_fee_tier_dict = univ3_fee_tier_dicts[chain_id]
     token_to_token_univ3_dict = token_to_token_univ3_dicts[chain_id]
-    collected_token_addresses, balances = collect_token_addresses_saddle(ops_multisig, swap_to_deposit_dicts_saddle[chain_id])
+    collected_token_addresses, balances = collect_token_addresses_saddle(
+        ops_multisig, swap_to_deposit_dicts_saddle[chain_id])
 
     print("Token balances before swapping with UniswapV3:")
     print_token_balances(ops_multisig, collected_token_addresses)
@@ -398,11 +408,11 @@ def convert_fees_to_USDC_uniswap(ops_multisig: ApeSafe, chain_id: int):
         amount_in = balances[token_from]
         sqrt_price_limit_X96 = 0
 
+        token_contract = Contract.from_abi("ERC20", token_address, ERC20_ABI)
         # approve Univ3 router
         print(
             f"Approve UniV3 router for ${token_contract.symbol()} {amount_in / (10 ** token_contract.decimals())}"
         )
-        token_contract = Contract.from_abi("ERC20", token_address, ERC20_ABI)
         token_contract.approve(
             UNIV3_ROUTER_ADDRESSES[chain_id],
             amount_in,
@@ -485,6 +495,7 @@ def convert_fees_to_USDC_uniswap(ops_multisig: ApeSafe, chain_id: int):
     )
     print_token_balances(ops_multisig, collected_token_addresses)
 
+
 def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
     swap_to_deposit_dict = swap_to_deposit_dicts_curve[chain_id]
     token_to_swap_dict = token_to_swap_dicts_curve[chain_id]
@@ -493,7 +504,8 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
     # swap using curve
     for token_address in token_to_swap_dict.keys():
         # amount to swap
-        amount_to_swap = Contract.from_abi("ERC20", token_address, ERC20_ABI).balanceOf(ops_multisig.address)
+        amount_to_swap = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI).balanceOf(ops_multisig.address)
 
         # skip if no fees were claimed
         if amount_to_swap > 0:
@@ -508,7 +520,7 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
                 swap = Contract.from_abi(
                     "CurveSwap", swap_address, CURVE_BASE_POOL_ABI
                 )
-                # get token indices from base pool contract 
+                # get token indices from base pool contract
                 # note: number of pool tokens (N_COINS) is a constant set at compile time, so assuming 100 max
                 for index in range(100):
                     try:
@@ -516,8 +528,8 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
                             token_index_from = index
                             break
                     except ValueError:
-                        break  
-                
+                        break
+
                 for index in range(100):
                     try:
                         if swap.coins(index) == token_to_swap_dict[token_address][0]:
@@ -535,24 +547,33 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
                 swap = Contract.from_abi(
                     "CurveMetaSwap", meta_swap_address, CURVE_META_POOL_ABI
                 )
-                base_swap = Contract.from_abi(
-                    "CurveBaseSwap", swap.base_pool(), CURVE_BASE_POOL_ABI
-                )
+                # tBTCv1 metapool doesn't expose base_pool(), so we use hardcoded address
+                if meta_swap_address == "0xfa65aa60a9D45623c57D383fb4cf8Fb8b854cC4D":
+                    base_swap = Contract.from_abi(
+                        "CurveBaseSwap", "0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714", CURVE_BASE_POOL_ABI
+                    )
+                else:
+                    base_swap = Contract.from_abi(
+                        "CurveBaseSwap", swap.base_pool(), CURVE_BASE_POOL_ABI
+                    )
                 for index in range(100):
-                    try: 
+                    try:
                         if base_swap.coins(index) == token_to_swap_dict[token_address][0]:
                             base_token_index_to = index
                             break
                     except ValueError:
                         break
                 # index 0 is non-base-pool token
-                token_index_from = 0  
+                token_index_from = 0
                 # offset by one for flattened 'to' token index
                 token_index_to = 1 + base_token_index_to
 
             # approve amount to swap
             token_contract = Contract.from_abi(
                 "ERC20", token_address, ERC20_ABI
+            )
+            print(
+                f"Balance of ops_msig of {token_contract.symbol()}: {token_contract.balanceOf(ops_multisig.address)}"
             )
             print(
                 f"Approving {token_contract.symbol()} for curve pool {swap.address}"
@@ -562,7 +583,9 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
                 amount_to_swap,
                 {"from": ops_multisig.address}
             )
-
+            print(
+                f"Approved {token_contract.symbol()} for curve pool {swap.address} for {token_contract.allowance(ops_multisig.address, swap.address)}"
+            )
             to_symbol = Contract.from_abi(
                 "ERC20", token_to_swap_dict[token_address][0], ERC20_ABI
             ).symbol()
@@ -572,7 +595,8 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
             )
             slippage_factor = 0.98
             if is_metapool:
-                print(f"Getting minAmount for indices {token_index_from} to {token_index_to} for {amount_to_swap}")
+                print(
+                    f"Getting minAmount for indices {token_index_from} to {token_index_to} for {amount_to_swap}")
                 # min amount to receive
                 min_amount = swap.get_dy_underlying(
                     token_index_from,
@@ -588,8 +612,9 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
                     {"from": ops_multisig.address}
                 )
             else:
-                print(f"Getting minAmount for indices {token_index_from} to {token_index_to} for {amount_to_swap}")
-                # min amount to receive      
+                print(
+                    f"Getting minAmount for indices {token_index_from} to {token_index_to} for {amount_to_swap}")
+                # min amount to receive
                 min_amount = swap.get_dy(
                     token_index_from,
                     token_index_to,
