@@ -77,7 +77,7 @@ univ3_fee_tier_dicts = {
         token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"]: int(3000),
         token_addresses[CHAIN_IDS["MAINNET"]]["FEI"]: int(500),
         token_addresses[CHAIN_IDS["MAINNET"]]["DAI"]: int(500),
-        token_addresses[CHAIN_IDS["MAINNET"]]["LUSD"]: int(500)
+        # token_addresses[CHAIN_IDS["MAINNET"]]["LUSD"]: int(500)
     }
 }
 
@@ -160,10 +160,12 @@ token_to_swap_dicts_curve = {
         token_addresses[CHAIN_IDS["MAINNET"]]["SBTC"]: (token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"], "0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714"),
         # wBTC : USDT Curve TriCrypto2 pool
         # token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"]: (token_addresses[CHAIN_IDS["MAINNET"]]["USDT"], "0xD51a44d3FaE010294C616388b506AcdA1bfAAE46"),
-        # tBTC : tBTC Curve metapool
+        # tBTC : wBTC Curve metapool
         token_addresses[CHAIN_IDS["MAINNET"]]["TBTC"]: (token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"], "0xfa65aa60a9D45623c57D383fb4cf8Fb8b854cC4D"),
         # USDT: USDC Curve 3pool pool
         # token_addresses[CHAIN_IDS["MAINNET"]]["USDT"]: (token_addresses[CHAIN_IDS["MAINNET"]]["USDC"], "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7"),
+        # LUSD : USDC Curve LUSD/3pool metapool
+        token_addresses[CHAIN_IDS["MAINNET"]]["LUSD"]: (token_addresses[CHAIN_IDS["MAINNET"]]["USDC"], "0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA"),
     }
 }
 
@@ -261,7 +263,9 @@ swap_to_deposit_dicts_curve = {
         # Curve 3pool pool
         "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7": "",
         # Curve tBTC metapool, note: deposit contract is for tBTVv2 (not tBTCv1), but doesnt matter
-        "0xfa65aa60a9D45623c57D383fb4cf8Fb8b854cC4D": "0xaa82ca713D94bBA7A89CEAB55314F9EfFEdDc78c"
+        "0xfa65aa60a9D45623c57D383fb4cf8Fb8b854cC4D": "0xaa82ca713D94bBA7A89CEAB55314F9EfFEdDc78c",
+        # Curve LUSD metapool, @dev: not actually a deposit contract, but doesnt matter (non-zero to indicate meta pool)
+        "0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA": "0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA"
     }
 }
 
@@ -269,7 +273,7 @@ swap_to_deposit_dicts_curve = {
 token_to_token_univ3_dicts = {
     CHAIN_IDS["MAINNET"]: {
         # LUSD : USDC
-        token_addresses[CHAIN_IDS["MAINNET"]]["LUSD"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
+        # token_addresses[CHAIN_IDS["MAINNET"]]["LUSD"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
         # WBTC : USDC
         token_addresses[CHAIN_IDS["MAINNET"]]["WBTC"]: token_addresses[CHAIN_IDS["MAINNET"]]["USDC"],
         # WBTC : USDC

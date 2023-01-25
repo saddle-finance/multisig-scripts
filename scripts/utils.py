@@ -32,6 +32,7 @@ from helpers import (
     EVMOS_CELER_LIQUIDITY_BRIDGE,
     EVMOS_CELER_LIQUIDITY_BRIDGE_ABI,
     CURVE_BASE_POOL_ABI,
+    CURVE_BASE_POOL_256_ABI,
     CURVE_META_POOL_ABI,
 )
 from eth_abi.packed import encode_abi_packed
@@ -547,10 +548,14 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
                 swap = Contract.from_abi(
                     "CurveMetaSwap", meta_swap_address, CURVE_META_POOL_ABI
                 )
-                # tBTCv1 metapool doesn't expose base_pool(), so we use hardcoded address
+                # tBTCv1 metapool and LUSD metapool don't expose base_pool(), so we usd hardcoded basepool addresses
                 if meta_swap_address == "0xfa65aa60a9D45623c57D383fb4cf8Fb8b854cC4D":
                     base_swap = Contract.from_abi(
                         "CurveBaseSwap", "0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714", CURVE_BASE_POOL_ABI
+                    )
+                elif meta_swap_address == "0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA":
+                    base_swap = Contract.from_abi(
+                        "CurveBaseSwap", "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7", CURVE_BASE_POOL_256_ABI
                     )
                 else:
                     base_swap = Contract.from_abi(
