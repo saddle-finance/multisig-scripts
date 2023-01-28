@@ -20,8 +20,8 @@ def main():
     ), f"Not on {TARGET_NETWORK} network"
 
     deployer_EOA = accounts.load("deployer")
-    priority_fee("auto")
-    max_fee(15000000000)
+    # priority_fee("auto")
+    # max_fee(15000000000)
 
     # List of calls to be used for Multicall3
     multicall3 = get_contract_from_deployment(
