@@ -9,6 +9,8 @@ from fee_distro_helpers import (
     token_to_token_univ3_dicts,
     univ3_route_type_tuples,
     univ3_route_string_tuples,
+    base_pool_abi_types_curve,
+    metaswap_to_base_swap_dicts_curve,
     MAX_POOL_LENGTH,
     UNIV3_ROUTER_ADDRESSES,
     UNIV3_QUOTER_ADDRESSES,
@@ -31,10 +33,12 @@ from helpers import (
     OPTIMISM_L2_STANDARD_BRIDGE_ABI,
     EVMOS_CELER_LIQUIDITY_BRIDGE,
     EVMOS_CELER_LIQUIDITY_BRIDGE_ABI,
-    CURVE_BASE_POOL_ABI,
+    CURVE_BASE_POOL_128_ABI,
     CURVE_BASE_POOL_256_ABI,
+    CURVE_BASE_POOL_MIXED_ABI,
     CURVE_META_POOL_ABI,
 )
+from collections import OrderedDict
 from eth_abi.packed import encode_abi_packed
 from eth_abi import encode_abi
 from gnosis.safe.safe_tx import SafeTx
@@ -507,7 +511,7 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
         # amount to swap
         amount_to_swap = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI).balanceOf(ops_multisig.address)
-
+        print(f"Going into swapping {amount_to_swap} of {token_address}")
         # skip if no fees were claimed
         if amount_to_swap > 0:
             # get swap and token indices
@@ -518,26 +522,11 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
                 swap_address = token_to_swap_dict[token_address][1]
                 print(f"Baseswap curve address is {swap_address}")
                 # Base swap for swapping
-                swap = Contract.from_abi(
-                    "CurveSwap", swap_address, CURVE_BASE_POOL_ABI
-                )
+                swap = instantiate_base_swap_curve(swap_address, chain_id)
                 # get token indices from base pool contract
-                # note: number of pool tokens (N_COINS) is a constant set at compile time, so assuming 100 max
-                for index in range(100):
-                    try:
-                        if swap.coins(index) == token_address:
-                            token_index_from = index
-                            break
-                    except ValueError:
-                        break
-
-                for index in range(100):
-                    try:
-                        if swap.coins(index) == token_to_swap_dict[token_address][0]:
-                            token_index_to = index
-                            break
-                    except ValueError:
-                        break
+                token_index_from = find_token_index_curve(swap, token_address)
+                token_index_to = find_token_index_curve(
+                    swap, token_to_swap_dict[token_address][0])
 
             # if metapool, use exchange_underlying for swapping
             else:
@@ -548,26 +537,16 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
                 swap = Contract.from_abi(
                     "CurveMetaSwap", meta_swap_address, CURVE_META_POOL_ABI
                 )
-                # tBTCv1 metapool and LUSD metapool don't expose base_pool(), so we usd hardcoded basepool addresses
-                if meta_swap_address == "0xfa65aa60a9D45623c57D383fb4cf8Fb8b854cC4D":
-                    base_swap = Contract.from_abi(
-                        "CurveBaseSwap", "0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714", CURVE_BASE_POOL_ABI
-                    )
-                elif meta_swap_address == "0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA":
-                    base_swap = Contract.from_abi(
-                        "CurveBaseSwap", "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7", CURVE_BASE_POOL_256_ABI
-                    )
-                else:
-                    base_swap = Contract.from_abi(
-                        "CurveBaseSwap", swap.base_pool(), CURVE_BASE_POOL_ABI
-                    )
-                for index in range(100):
-                    try:
-                        if base_swap.coins(index) == token_to_swap_dict[token_address][0]:
-                            base_token_index_to = index
-                            break
-                    except ValueError:
-                        break
+                # a few metapools don't expose base_pool(), so we use hardcoded basepool addresses in some cases
+                try:
+                    base_swap_address = metaswap_to_base_swap_dicts_curve[chain_id][meta_swap_address]
+                    base_swap = instantiate_base_swap_curve(
+                        base_swap_address, chain_id)
+                except ValueError:
+                    base_swap = instantiate_base_swap_curve(
+                        swap.base_pool(), chain_id)
+                base_token_index_to = find_token_index_curve(
+                    base_swap, token_to_swap_dict[token_address][0])
                 # index 0 is non-base-pool token
                 token_index_from = 0
                 # offset by one for flattened 'to' token index
@@ -594,11 +573,13 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
             to_symbol = Contract.from_abi(
                 "ERC20", token_to_swap_dict[token_address][0], ERC20_ABI
             ).symbol()
+
             # perform swap
             print(
                 f"Swapping {amount_to_swap / (10 ** token_contract.decimals())} {token_contract.symbol()} to {to_symbol} via curve pool on chain_id {chain_id}"
             )
-            slippage_factor = 0.98
+            # choose slippage factor to adjust min amount
+            slippage_factor = 0.95
             if is_metapool:
                 print(
                     f"Getting minAmount for indices {token_index_from} to {token_index_to} for {amount_to_swap}")
@@ -633,9 +614,59 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
                     min_amount,
                     {"from": ops_multisig.address}
                 )
+            to_contract = Contract.from_abi(
+                "ERC20", token_to_swap_dict[token_address][0], ERC20_ABI
+            )
+            print(
+                f"Balance of ops_msig of {to_symbol} after swap: {to_contract.balanceOf(ops_multisig.address)}")
+
+    # print out results
+    collected_token_addresses, balances = collect_token_addresses_saddle(
+        ops_multisig, swap_to_deposit_dicts_saddle[chain_id])
+    print_token_balances(ops_multisig, collected_token_addresses)
+    usdt_balance = Contract.from_abi(
+        "USDT", token_addresses[chain_id]["USDT"], ERC20_ABI).balanceOf(ops_multisig.address)
+    print(f"Balance of USDT: {usdt_balance}")
+
+
+def find_token_index_curve(swap, token_address):
+    # note: number of pool tokens (N_COINS) is a constant set at compile time, so assuming 100 max
+    for index in range(100):
+        try:
+            if swap.coins(index) == token_address:
+                token_index = index
+                break
+        except ValueError:
+            break
+    return token_index
+
+
+def instantiate_base_swap_curve(base_swap_address, chain_id):
+    # note: curve base pools differ on abi (on coins[], get_dy(), exchange())
+    try:
+        if base_pool_abi_types_curve[chain_id][base_swap_address] == "int128":
+            swap = Contract.from_abi(
+                "CurveSwap", base_swap_address, CURVE_BASE_POOL_128_ABI
+            )
+        elif base_pool_abi_types_curve[chain_id][base_swap_address] == "uint256":
+            swap = Contract.from_abi(
+                "CurveSwap", base_swap_address, CURVE_BASE_POOL_256_ABI
+            )
+        else:  # mixed
+            swap = Contract.from_abi(
+                "CurveSwap", base_swap_address, CURVE_BASE_POOL_MIXED_ABI
+            )
+    # default to uint256
+    except ValueError:
+        swap = Contract.from_abi(
+            "CurveSwap", base_swap_address, CURVE_BASE_POOL_256_ABI
+        )
+    return swap
 
 
 def buy_sdl_with_usdc_sushi(ops_multisig: ApeSafe, chain_id: int, divisor: int = 1):
+    print("\n\nBuying SDL tranche with USDC on SushiSwap \n\n")
+
     sushiswap_router = Contract.from_abi(
         "SushiSwapRouter",
         SUSHISWAP_ROUTER_ADDRESSES[chain_id],
@@ -653,7 +684,7 @@ def buy_sdl_with_usdc_sushi(ops_multisig: ApeSafe, chain_id: int, divisor: int =
     print(
         "Balances before swap:\n"
         f"USDC: {USDC_contract.balanceOf(ops_multisig.address)/ (10 ** USDC_decimals)}\n" +
-        f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}"
+        f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}\n"
     )
 
     # approve the router to spend ops_multisig's USDC
@@ -694,7 +725,7 @@ def buy_sdl_with_usdc_sushi(ops_multisig: ApeSafe, chain_id: int, divisor: int =
     print(
         "Balances after swap:\n"
         f"USDC: {USDC_contract.balanceOf(ops_multisig.address)/ (10 ** USDC_decimals)}\n" +
-        f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}"
+        f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}\n"
     )
 
 
@@ -704,6 +735,8 @@ def provide_sdl_eth_lp_sushi(
     chain_id: int,
     tolerance_factor: float = 0.5
 ):
+
+    print("\n\nProviding SDL-ETH LP on SushiSwap \n\n")
 
     sushiswap_router = Contract.from_abi(
         "SushiSwapRouter",
@@ -760,6 +793,13 @@ def provide_sdl_eth_lp_sushi(
     to = ops_multisig.address
     deadline = chain[-1].timestamp + 3600
 
+    print(
+        f"amount_a_desired: {amount_a_desired / (10 ** WETH_decimals)}\n" +
+        f"amount_b_desired: {amount_b_desired / (10 ** SDL_decimals)}\n" +
+        f"amount_a_min: {amount_a_min / (10 ** WETH_decimals)}\n" +
+        f"amount_b_min: {amount_b_min / (10 ** SDL_decimals)}\n\n"
+    )
+
     # perform swap
     sushiswap_router.addLiquidity(
         token_a,
@@ -774,7 +814,7 @@ def provide_sdl_eth_lp_sushi(
     )
 
     print(
-        "Balances after LP'ing:\n"
+        "\n\nBalances after LP'ing:\n"
         f"WETH: {WETH_contract.balanceOf(ops_multisig.address)/ (10 ** WETH_decimals)}\n" +
         f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}\n" +
         f"SUSHI/WETH SLP: {SLP_contract.balanceOf(ops_multisig.address)/ (10 ** SLP_decimals)}\n" +
@@ -792,7 +832,7 @@ def provide_sdl_eth_lp_sushi(
     assert SLP_contract.balanceOf(multisig.address) == balance
 
 
-def buy_weth_with_usdc(
+def buy_weth_with_usdc_univ3(
     ops_multisig: ApeSafe,
     chain_id,
     divisor: int = 2,
@@ -881,6 +921,81 @@ def buy_weth_with_usdc(
 
     assert (USDC_balance_after < 0.51 * USDC_balance_before * price_impact_factor and
             USDC_balance_after > 0.49 * USDC_balance_before * (1 - price_impact_factor))
+
+    print(
+        "Balances after swap:\n"
+        f"USDC: {USDC_contract.balanceOf(ops_multisig.address)/ (10 ** USDC_decimals)}\n" +
+        f"WETH: {WETH_contract.balanceOf(ops_multisig.address)/ (10 ** WETH_decimals)}"
+    )
+
+
+def buy_weth_with_usdc_sushi(
+    ops_multisig: ApeSafe,
+    chain_id,
+    divisor: int = 2,
+    price_impact_factor: float = 1.5,
+):
+    print("\n\nBuying WETH with USDC on SushiSwap\n\n")
+    print(f"Using price impact factor {price_impact_factor}")
+    sushiswap_router = Contract.from_abi(
+        "SushiSwapRouter",
+        SUSHISWAP_ROUTER_ADDRESSES[chain_id],
+        SUSHISWAP_ROUTER_ABI
+    )
+    WETH_contract = Contract.from_abi(
+        "WETH", token_addresses[chain_id]["WETH"], ERC20_ABI
+    )
+    USDC_contract = Contract.from_abi(
+        "USDC", token_addresses[chain_id]["USDC"], ERC20_ABI
+    )
+    USDC_decimals = USDC_contract.decimals()
+    WETH_decimals = WETH_contract.decimals()
+
+    print(
+        "Balances before swap:\n"
+        f"USDC: {USDC_contract.balanceOf(ops_multisig.address)/ (10 ** USDC_decimals)}\n" +
+        f"WETH: {WETH_contract.balanceOf(ops_multisig.address)/ (10 ** WETH_decimals)}\n\n"
+    )
+
+    # approve the router to spend ops_multisig's USDC
+    print(f"Approve SushiSwap router for USDC")
+    USDC_contract.approve(
+        SUSHISWAP_ROUTER_ADDRESSES[chain_id],
+        2 ** 256 - 1,
+        {"from": ops_multisig.address}
+    )
+
+    # swap ~50% of ops_multisig's USDC for WETH.
+    # price impact factor 1.0, since price impact neglible
+    amount_in = USDC_contract.balanceOf(
+        ops_multisig.address) / divisor * price_impact_factor
+
+    # path to use for swapping
+    path = [token_addresses[chain_id]["USDC"],
+            token_addresses[chain_id]["WETH"],
+            ]
+
+    # min amount of SDL to receive
+    amount_out_min = sushiswap_router.getAmountsOut(
+        amount_in,
+        path
+    )[1]
+
+    to = ops_multisig.address
+    deadline = chain[-1].timestamp + 3600
+
+    # perform swap
+    print(
+        f"Swap {amount_in / (10 ** USDC_decimals)} USDC for {amount_out_min / (10 ** WETH_decimals)} WETH on SushiSwap"
+    )
+    sushiswap_router.swapExactTokensForTokens(
+        amount_in,
+        amount_out_min,
+        path,
+        to,
+        deadline,
+        {"from": ops_multisig.address}
+    )
 
     print(
         "Balances after swap:\n"

@@ -9,7 +9,8 @@ from scripts.utils import (
     convert_fees_to_USDC_saddle,
     convert_fees_to_USDC_curve,
     convert_fees_to_USDC_uniswap,
-    buy_weth_with_usdc,
+    buy_weth_with_usdc_univ3,
+    buy_weth_with_usdc_sushi,
     buy_sdl_with_usdc_sushi,
     provide_sdl_eth_lp_sushi
 )
@@ -57,14 +58,15 @@ def main():
         CHAIN_IDS[TARGET_NETWORK]
     )
 
-    convert_fees_to_USDC_uniswap(
-        ops_multisig,
-        CHAIN_IDS[TARGET_NETWORK],
-    )
+    # convert_fees_to_USDC_uniswap(
+    #    ops_multisig,
+    #    CHAIN_IDS[TARGET_NETWORK],
+    # )
 
     ######## 2022_xx_xx_7_0_opsMsig_market_buy_WETH_with_USDC.py ########
 
-    buy_weth_with_usdc(ops_multisig, CHAIN_IDS[TARGET_NETWORK])
+    # buy_weth_with_usdc_univ3(ops_multisig, CHAIN_IDS[TARGET_NETWORK])
+    buy_weth_with_usdc_sushi(ops_multisig, CHAIN_IDS[TARGET_NETWORK])
 
     ######## 2022_xx_xx_7_1_opsMsig_market_buy_SDL_tranche_1.py #########
 
