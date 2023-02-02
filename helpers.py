@@ -1,7 +1,11 @@
 import json
 from enum import IntEnum
+from glob import glob
+from typing import Dict, List, Tuple
 
+from brownie import Contract
 from brownie.network.state import Chain
+from eth_account import Account
 
 CHAIN_IDS = {
     "MAINNET": 1,
@@ -28,6 +32,8 @@ DEPLOYER_ADDRESS = "0x5bdb37d0ddea3a90f233c7b7f6b9394b6b2eef34"
 ENG_EOA_ADDRESS = "0xA1DBb0A0388f105212C2a8d51fF37010f6A0C36A"
 
 INCITE_MULTISIG_ADDRESS = "0x4ba5B41c4378966f08E3E4F7dd80840191D54C69"
+
+ANYCALL_V6_ADDRESS = "0xC10Ef9F491C9B59f936957026020C321651ac078"
 
 # Addresses of 3/8 multisigs for administrational purposes
 MULTISIG_ADDRESSES = {
@@ -94,7 +100,9 @@ SDL_ADDRESSES = {
     CHAIN_IDS["ARBITRUM"]: "0x75C9bC761d88f70156DAf83aa010E84680baF131",
 }
 
+
 ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]                  : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
+
 
 SDL_MINTER_ADDRESS = {
     CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
@@ -216,8 +224,22 @@ HEDGEY_OTC = {
 # 59,300 SDL/day in seconds
 SIDECHAIN_TOTAL_EMISSION_RATE = 686342592592592592
 
+# Half of the SIDECHAIN_TOTAL_EMISSION_RATE, per SIP 47
+FIRST_WEEK_HALVED_SIDECHAIN_TOTAL_EMISSION_RATE = 343171296296296296
+
+# Half of FIRST_WEEK_HALVED_SIDECHAIN_TOTAL_EMISSION_RATE, per SIP 47
+SECOND_WEEK_HALVED_SIDECHAIN_TOTAL_EMISSION_RATE = 171585648148148148
+
+GNOSIS_SAFE_BASE_URLS = {
+    CHAIN_IDS["MAINNET"]: "https://safe-transaction-mainnet.safe.global",
+    CHAIN_IDS["ARBITRUM"]: "https://safe-transaction-arbitrum.safe.global",
+    CHAIN_IDS["OPTIMISM"]: "https://safe-transaction-optimism.safe.global",
+    CHAIN_IDS["AURORA"]: "https://safe-transaction-aurora.safe.global",
+    CHAIN_IDS["EVMOS"]: "https://transaction.safe.evmos.org",
+}
+
 # PoolType enum to match pool registry's field
-PoolType = IntEnum('PoolType', ['BTC', 'ETH', 'USD', 'OTHERS'])
+PoolType = IntEnum("PoolType", ["BTC", "ETH", "USD", "OTHERS"])
 
 
 def assert_filename(file: str):
@@ -250,11 +272,31 @@ def intersection(lst1, lst2):
     return lst3
 
 
-def get_deployment_details(chain_id: int, contract_name: str):
+def get_deployment_details(chain_id: int, contract_name: str) -> Tuple[str, List]:
     """Returns the address and the ABI of the contract with the given name"""
-    contract_json = json.load(open(
-        f"saddle-contract/deployments/{DEPLOYMENT_FOLDER_NAMES[chain_id]}/{contract_name}.json"))
+    contract_json = json.load(
+        open(
+            f"saddle-contract/deployments/{DEPLOYMENT_FOLDER_NAMES[chain_id]}/{contract_name}.json"
+        )
+    )
     return contract_json["address"], contract_json["abi"]
+
+
+def get_contract_from_deployment(chain_id: int, contract_name: str, owner: Account = None) -> Contract:
+    """Returns the contract with the given name"""
+    address, abi = get_deployment_details(chain_id, contract_name)
+    return Contract.from_abi(contract_name, address, abi, owner)
+
+
+def get_contracts_from_deployment(chain_id: int, contract_name_filter: str = "*", owner: Account = None) -> Dict[str, Contract]:
+    """Returns all contracts from the deployment"""
+    contracts = {}
+    for contract_path in glob(f"saddle-contract/deployments/{DEPLOYMENT_FOLDER_NAMES[chain_id]}/{contract_name_filter}.json"):
+        contract_name = contract_path.rsplit("/", 1)[1].split(".")[0]
+        contract_json = json.load(open(contract_path))
+        contracts[contract_name] = Contract.from_abi(
+            contract_name, contract_json["address"], contract_json["abi"], owner)
+    return contracts
 
 
 VESTING_ABI = get_abi("Vesting")
