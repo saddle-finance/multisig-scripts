@@ -5,9 +5,9 @@ from helpers import (
 from ape_safe import ApeSafe
 from brownie import accounts, network
 from scripts.utils import (
-    confirm_posting_transaction, 
-    convert_fees_to_USDC_saddle, 
-    convert_fees_to_USDC_curve, 
+    confirm_posting_transaction,
+    convert_fees_to_USDC_saddle,
+    convert_fees_to_USDC_curve,
     convert_fees_to_USDC_uniswap
 )
 from brownie import history
@@ -36,10 +36,10 @@ def main():
         CHAIN_IDS[TARGET_NETWORK]
     )
 
-    convert_fees_to_USDC_uniswap(
-        ops_multisig,
-        CHAIN_IDS[TARGET_NETWORK]
-    )
+    # convert_fees_to_USDC_uniswap(
+    #    ops_multisig,
+    #    CHAIN_IDS[TARGET_NETWORK]
+    # )
 
     # combine history into multisend txn
     # TODO: set 'safe_nonce'

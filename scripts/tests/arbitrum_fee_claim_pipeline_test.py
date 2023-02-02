@@ -34,18 +34,10 @@ def main():
 
     ops_multisig = ApeSafe(OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
-    # Run any pending transactions before simulating any more transactions
-    # ops_multisig.preview_pending()
-
-    # Arbitrum L2 gateway router
-    gateway_router = ops_multisig.contract(
-        ARB_GATEWAY_ROUTER[CHAIN_IDS[TARGET_NETWORK]]
-    )
-
     # convert fees to USDC
     convert_fees_to_USDC_saddle(ops_multisig, CHAIN_IDS[TARGET_NETWORK])
 
-    bridge_usdc_to_mainnet(ops_multisig, CHAIN_IDS[TARGET_NETWORK])
+    # bridge_usdc_to_mainnet(ops_multisig, CHAIN_IDS[TARGET_NETWORK])
 
     for tx in history:
         tx.info()

@@ -378,6 +378,8 @@ def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int):
                 deadline,
                 {"from": ops_multisig.address}
             )
+    print("Token balances after swapping with saddle pools:")
+    print_token_balances(ops_multisig, collected_token_addresses)
 
 
 def convert_fees_to_USDC_uniswap(ops_multisig: ApeSafe, chain_id: int):
@@ -1005,9 +1007,11 @@ def buy_weth_with_usdc_sushi(
 
 
 def bridge_usdc_to_mainnet(ops_multisig: ApeSafe, chain_id: int):
+    print("\n\nBridging USDC from chain_id {chain_id} to mainnet\n\n")
+
     if chain_id == CHAIN_IDS["ARBITRUM"]:
         # Arbitrum L2 gateway router
-        gateway_router = ops_multisig.contract(
+        gateway_router = Contract.from_explorer(
             ARB_GATEWAY_ROUTER[chain_id]
         )
 

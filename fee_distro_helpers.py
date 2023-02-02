@@ -294,7 +294,7 @@ swap_to_deposit_dicts_curve = {
 }
 
 # some older curve metaswaps don't expose base_pool, so we need to hardcode them
-# metaswap -> (base_pool, coins_array_argument_type)
+# metaswap -> base_pool
 metaswap_to_base_swap_dicts_curve = {
     CHAIN_IDS["MAINNET"]: OrderedDict([
         # tBTC V1 pool : sBTC base pool
