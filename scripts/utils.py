@@ -206,7 +206,7 @@ def claim_admin_fees(multisig: ApeSafe, chain_id: int):
                         {"from": multisig.address}
                     )
 
-    # capture and log token balances of msig after swapping
+    # capture and log token balances of msig after burning LP tokens
     token_balances_after = {}
     for token_address in collected_token_addresses:
         token_contract = Contract.from_abi(
@@ -218,7 +218,7 @@ def claim_admin_fees(multisig: ApeSafe, chain_id: int):
             multisig.address)
         decimals = token_contract.decimals()
         print(
-            f"Balance of {symbol} after swapping: {token_balances_after[token_address] / (10 ** decimals)}"
+            f"Balance of {symbol} after burning LPs: {token_balances_after[token_address] / (10 ** decimals)}"
         )
 
     # send tokens to ops multisig
@@ -1007,7 +1007,7 @@ def buy_weth_with_usdc_sushi(
 
 
 def bridge_usdc_to_mainnet(ops_multisig: ApeSafe, chain_id: int):
-    print("\n\nBridging USDC from chain_id {chain_id} to mainnet\n\n")
+    print(f"\n\nBridging USDC from chain_id {chain_id} to mainnet\n\n")
 
     if chain_id == CHAIN_IDS["ARBITRUM"]:
         # Arbitrum L2 gateway router
