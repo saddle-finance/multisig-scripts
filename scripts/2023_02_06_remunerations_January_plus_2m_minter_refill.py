@@ -5,6 +5,9 @@ from helpers import (
     MULTISIG_ADDRESSES,
     SDL_ADDRESSES,
     GNOSIS_SAFE_BASE_URLS,
+    SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS,
+    SDL_MINTER_ADDRESS,
+    VESTING_ABI
 )
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract
@@ -16,8 +19,12 @@ TARGET_NETWORK = "MAINNET"
 
 def main():
     """
-    Send last batch of ~1.69m SDL (5% of total) for January 2023 
+    - Send last batch of ~1.69m SDL (5% of total) for January 2023 
     to affected LPs according to https://snapshot.org/#/saddlefinance.eth/proposal/0xf27b07ef7025aa23edb2a84d56825511ea7adff8d6164cd09a23c63c42cdc01a
+
+    - Claim SDL from vesting contract 
+
+    - Transfer 2_000_000 SDL to minter
     """
 
     print(f"You are using the '{network.show_active()}' network")
@@ -60,8 +67,21 @@ def main():
     print(f"Total amount to be refunded: {total} SDL")
     sdl_contract = Contract.from_explorer(SDL_ADDRESSES[CHAIN_IDS["MAINNET"]])
     for address, amount in refunds.items():
-        sdl_contract.transfer(address, amount * 1e18,
-                              {"from": multisig.address})
+        sdl_contract.transfer(
+            address,
+            amount * 1e18,
+            {"from": multisig.address}
+        )
+
+    sdl_vesting_contract_proxy = multisig.get_contract(
+        SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
+    )
+
+    # Claim SDL from vesting contract
+    sdl_vesting_contract_proxy.release()
+
+    # Transfer minter debts
+    sdl_contract.transfer(SDL_MINTER_ADDRESS[CHAIN_IDS["MAINNET"]], 2_000_000)
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
