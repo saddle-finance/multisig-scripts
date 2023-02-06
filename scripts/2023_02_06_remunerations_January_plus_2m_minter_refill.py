@@ -79,7 +79,8 @@ def main():
     sdl_vesting_contract_proxy.release()
 
     # Transfer 2m SDL to minter
-    sdl_contract.transfer(SDL_MINTER_ADDRESS[CHAIN_IDS["MAINNET"]], 2_000_000)
+    sdl_contract.transfer(SDL_MINTER_ADDRESS[CHAIN_IDS["MAINNET"]], 2_000_000, {
+                          "from": multisig.address})
 
     # combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
