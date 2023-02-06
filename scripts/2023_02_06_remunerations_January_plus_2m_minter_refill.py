@@ -21,9 +21,7 @@ def main():
     """
     - Send last batch of ~1.69m SDL (5% of total) for January 2023 
     to affected LPs according to https://snapshot.org/#/saddlefinance.eth/proposal/0xf27b07ef7025aa23edb2a84d56825511ea7adff8d6164cd09a23c63c42cdc01a
-
     - Claim SDL from vesting contract 
-
     - Transfer 2_000_000 SDL to minter
     """
 
@@ -80,7 +78,7 @@ def main():
     # Claim SDL from vesting contract
     sdl_vesting_contract_proxy.release()
 
-    # Transfer minter debts
+    # Transfer 2m SDL to minter
     sdl_contract.transfer(SDL_MINTER_ADDRESS[CHAIN_IDS["MAINNET"]], 2_000_000)
 
     # combine history into multisend txn
