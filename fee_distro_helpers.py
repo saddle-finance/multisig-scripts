@@ -117,7 +117,7 @@ token_to_swap_dicts_saddle = {
         # nUSD : Arb USD Pool
         token_addresses[CHAIN_IDS["ARBITRUM"]]["nUSD"]: (token_addresses[CHAIN_IDS["ARBITRUM"]]["USDC"], "0xBea9F78090bDB9e662d8CB301A00ad09A5b756e9"),
         # USDs : Arb FRAXBP/USDS Metapool
-        token_addresses[CHAIN_IDS["ARBITRUM"]]["USDs"]: (token_addresses[CHAIN_IDS["ARBITRUM"]]["USDC"], "0xa5bD85ed9fA27ba23BfB702989e7218E44fd4706"),
+        # token_addresses[CHAIN_IDS["ARBITRUM"]]["USDs"]: (token_addresses[CHAIN_IDS["ARBITRUM"]]["USDC"], "0xa5bD85ed9fA27ba23BfB702989e7218E44fd4706"),
     },
     CHAIN_IDS["OPTIMISM"]: {
         # USDC : Opt FRAXBP Pool
@@ -189,17 +189,20 @@ swap_to_deposit_dicts_saddle = {
         ("0xBea9F78090bDB9e662d8CB301A00ad09A5b756e9", ""),
         # Arb USDV2 Pool
         ("0xfeEa4D1BacB0519E8f952460A70719944fe56Ee0", ""),
-        # Arb USDS Metapool
-        ("0x5dD186f8809147F96D3ffC4508F3C82694E58c9c",
-         "0xDCA5b16A96f984ffb2A3022cfF339eb049126101"),
         # Arb FRAXBP Pool
         ("0x401AFbc31ad2A3Bc0eD8960d63eFcDEA749b4849", ""),
-        # Arb FRAXBP/USDS Metapool
-        ("0xa5bD85ed9fA27ba23BfB702989e7218E44fd4706",
-         "0x1D434f50acf16BA013BE3536e9A3CDb5D7d4e694"),
         # Arb FRAXBP/USDT Metapool
         ("0xf8504e92428d65E56e495684A38f679C1B1DC30b",
          "0xc8DFCFC329E19fDAF43a338aD6038dBA02a5079B"),
+
+        # USDs pools skipped due to being paused because of USDs hack
+
+        # Arb USDS Metapool
+        # ("0x5dD186f8809147F96D3ffC4508F3C82694E58c9c",
+        # "0xDCA5b16A96f984ffb2A3022cfF339eb049126101"),
+        # Arb FRAXBP/USDS Metapool
+        # ("0xa5bD85ed9fA27ba23BfB702989e7218E44fd4706",
+        # "0x1D434f50acf16BA013BE3536e9A3CDb5D7d4e694"),
     ]),
     CHAIN_IDS["OPTIMISM"]: OrderedDict([
         # Opt USD Pool
