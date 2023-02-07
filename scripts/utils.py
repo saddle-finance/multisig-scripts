@@ -125,11 +125,11 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
 # claims admin fees and sends them to ops-multisig on the same chain
 
 
-def claim_admin_fees(multisig: ApeSafe, chain_id: int):
-    ops_multisig_address = OPS_MULTISIG_ADDRESSES[chain_id]
+def claim_admin_fees(multisig: ApeSafe, chain_id: int, min_amounts_delay_factor=0.7):
+    ops_multisig = ApeSafe(OPS_MULTISIG_ADDRESSES[chain_id])
     swap_to_deposit_dict = swap_to_deposit_dicts_saddle[chain_id]
 
-    collected_token_addresses, x = collect_token_addresses_saddle(
+    collected_token_addresses, balances, base_lp_addresses = collect_token_addresses_saddle(
         multisig, swap_to_deposit_dict)
 
     # execute txs for claiming admin fees
@@ -144,85 +144,17 @@ def claim_admin_fees(multisig: ApeSafe, chain_id: int):
         pool = Contract.from_abi("Swap", swap_address, SWAP_ABI)
         pool.withdrawAdminFees({"from": multisig.address})
 
-    # burn LP tokens of base pools gained from claiming for USDC
-    for swap_address in swap_to_deposit_dict:
-        metaswap_deposit_address = swap_to_deposit_dict[swap_address]
-        if metaswap_deposit_address != "":
-            metaswap_contract = Contract.from_abi(
-                "MetaSwap", swap_address, META_SWAP_ABI
-            )
-            metaswap_deposit_contract = Contract.from_abi(
-                "MetaSwapDeposit", metaswap_deposit_address, META_SWAP_DEPOSIT_ABI
-            )
-            base_pool_LP_address = metaswap_contract.getToken(1)
-            base_pool_LP_contract = Contract.from_abi(
-                "LPToken", base_pool_LP_address, ERC20_ABI
-            )
-            LP_balance = base_pool_LP_contract.balanceOf(multisig.address)
-            if LP_balance > 0:
-                base_swap_address = metaswap_deposit_contract.baseSwap()
-                base_swap = Contract.from_abi(
-                    "BaseSwap", base_swap_address, SWAP_ABI
-                )
-                # approve amount to burn
-                print(
-                    f"Approving base pool for {base_pool_LP_contract.symbol()} {LP_balance}"
-                )
-                base_pool_LP_contract.approve(
-                    base_swap,
-                    LP_balance,
-                    {"from": multisig.address}
-                )
-                print(
-                    f"Burning {LP_balance} {base_pool_LP_contract.symbol()} for USDC or underlyings"
-                )
-                deadline = chain[chain.height].timestamp + 3600
-                # if on mainnet, burn for individual underlyings
-                if chain_id == 1:
-                    # calculate min amounts to receive
-                    min_amounts = base_swap.calculateRemoveLiquidity(
-                        LP_balance
-                    )
-                    base_swap.removeLiquidity(
-                        LP_balance,
-                        min_amounts,
-                        deadline,
-                        {"from": multisig.address}
-                    )
-                # if on side chains, burn for USDC only
-                else:
-                    token_index_USDC = base_swap.getTokenIndex(
-                        token_addresses[chain_id]["USDC"])
-                    min_amount = base_swap.calculateRemoveLiquidityOneToken(
-                        LP_balance,
-                        token_index_USDC
-                    )
-
-                    base_swap.removeLiquidityOneToken(
-                        LP_balance,
-                        token_index_USDC,
-                        min_amount,
-                        deadline,
-                        {"from": multisig.address}
-                    )
-
-    # capture and log token balances of msig after burning LP tokens
-    token_balances_after = {}
-    for token_address in collected_token_addresses:
-        token_contract = Contract.from_abi(
-            "ERC20", token_address, ERC20_ABI
-        )
-        symbol = token_contract.symbol()
-        balance = token_contract.balanceOf(multisig.address)
-        token_balances_after[token_address] = token_contract.balanceOf(
-            multisig.address)
-        decimals = token_contract.decimals()
-        print(
-            f"Balance of {symbol} after burning LPs: {token_balances_after[token_address] / (10 ** decimals)}"
-        )
-
     # send tokens to ops multisig
-    for token_address in collected_token_addresses:
+    send_tokens_to_ops_multisig(
+        collected_token_addresses, multisig, ops_multisig, chain_id
+    )
+    send_tokens_to_ops_multisig(
+        base_lp_addresses, multisig, ops_multisig, chain_id
+    )
+
+
+def send_tokens_to_ops_multisig(tokens: set, multisig: ApeSafe, ops_multisig: ApeSafe, chain_id: int):
+    for token_address in tokens:
         token_contract = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
         )
@@ -234,12 +166,12 @@ def claim_admin_fees(multisig: ApeSafe, chain_id: int):
                 f"Sending {balance / (10 ** decimals)} {symbol} to ops multisig"
             )
             token_contract.transfer(
-                ops_multisig_address,
+                ops_multisig.address,
                 balance,
                 {"from": multisig.address}
             )
         assert token_contract.balanceOf(multisig.address) == 0
-        assert token_contract.balanceOf(ops_multisig_address) >= balance
+        assert token_contract.balanceOf(ops_multisig.address) >= balance
 
 
 def print_token_balances(multisig: ApeSafe, _token_addresses: set):
@@ -279,20 +211,100 @@ def collect_token_addresses_saddle(multisig: ApeSafe, swap_to_deposit_dict: dict
             address_to_add = swap_contract.getToken(0)
             collected_token_addresses.add(address_to_add)
             base_LP_addresses.add(swap_contract.getToken(1))
+            # collected_token_addresses.add(swap_contract.getToken(1))
             collected_token_addresses.add(address_to_add)
             token_balances[address_to_add] = Contract.from_abi("ERC20", address_to_add, ERC20_ABI).balanceOf(
                 multisig.address)
-    return collected_token_addresses, token_balances
+            token_balances[swap_contract.getToken(1)] = Contract.from_abi("ERC20", swap_contract.getToken(1), ERC20_ABI).balanceOf(
+                multisig.address)
+    return collected_token_addresses, token_balances, base_LP_addresses
 
 # converts fees to USDC with saddle pools, if possible
 
 
-def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int):
+def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int, min_amounts_delay_factor: float = 0.8):
     swap_to_deposit_dict = swap_to_deposit_dicts_saddle[chain_id]
     token_to_swap_dict = token_to_swap_dicts_saddle[chain_id]
 
-    collected_token_addresses, balances = collect_token_addresses_saddle(
+    collected_token_addresses, balances, base_lp_addresses = collect_token_addresses_saddle(
         ops_multisig, swap_to_deposit_dict)
+
+    # burn LP tokens of base pools gained from claiming for USDC
+    for swap_address in swap_to_deposit_dict:
+        metaswap_deposit_address = swap_to_deposit_dict[swap_address]
+        if metaswap_deposit_address != "":
+            metaswap_contract = Contract.from_abi(
+                "MetaSwap", swap_address, META_SWAP_ABI
+            )
+            metaswap_deposit_contract = Contract.from_abi(
+                "MetaSwapDeposit", metaswap_deposit_address, META_SWAP_DEPOSIT_ABI
+            )
+            base_pool_LP_address = metaswap_contract.getToken(1)
+            base_pool_LP_contract = Contract.from_abi(
+                "LPToken", base_pool_LP_address, ERC20_ABI
+            )
+            LP_balance = base_pool_LP_contract.balanceOf(ops_multisig.address)
+            if LP_balance > 0:
+                base_swap_address = metaswap_deposit_contract.baseSwap()
+                base_swap = Contract.from_abi(
+                    "BaseSwap", base_swap_address, SWAP_ABI
+                )
+                # approve amount to burn
+                print(
+                    f"Approving base pool for {base_pool_LP_contract.symbol()} {LP_balance}"
+                )
+                base_pool_LP_contract.approve(
+                    base_swap,
+                    LP_balance,
+                    {"from": ops_multisig.address}
+                )
+                print(
+                    f"Burning {LP_balance} {base_pool_LP_contract.symbol()} for USDC or underlyings"
+                )
+                deadline = chain[chain.height].timestamp + 3600 * 72
+                # if on mainnet, burn for individual underlyings
+                if chain_id == 1:
+                    # calculate min amounts to receive
+                    min_amounts = base_swap.calculateRemoveLiquidity(
+                        LP_balance
+                    )
+                    base_swap.removeLiquidity(
+                        LP_balance,
+                        min_amounts,
+                        deadline,
+                        {"from": ops_multisig.address}
+                    )
+                # if on side chains, burn for USDC only
+                else:
+                    token_index_USDC = base_swap.getTokenIndex(
+                        token_addresses[chain_id]["USDC"])
+                    min_amount = base_swap.calculateRemoveLiquidityOneToken(
+                        LP_balance,
+                        token_index_USDC
+                    ) * min_amounts_delay_factor
+
+                    base_swap.removeLiquidityOneToken(
+                        LP_balance,
+                        token_index_USDC,
+                        min_amount,
+                        deadline,
+                        {"from": ops_multisig.address}
+                    )
+
+    # capture and log token balances of ops msig after burning LP tokens
+    token_balances_after = {}
+    for token_address in collected_token_addresses:
+        token_contract = Contract.from_abi(
+            "ERC20", token_address, ERC20_ABI
+        )
+        symbol = token_contract.symbol()
+        balance = token_contract.balanceOf(ops_multisig.address)
+        token_balances_after[token_address] = token_contract.balanceOf(
+            ops_multisig.address)
+        decimals = token_contract.decimals()
+        print(
+            f"Balance of {symbol} after burning LPs: {token_balances_after[token_address] / (10 ** decimals)}"
+        )
 
     # convert all collected fees to USDC/WETH/WBTC
     for token_address in token_to_swap_dict.keys():
@@ -385,7 +397,7 @@ def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int):
 def convert_fees_to_USDC_uniswap(ops_multisig: ApeSafe, chain_id: int):
     univ3_fee_tier_dict = univ3_fee_tier_dicts[chain_id]
     token_to_token_univ3_dict = token_to_token_univ3_dicts[chain_id]
-    collected_token_addresses, balances = collect_token_addresses_saddle(
+    collected_token_addresses, balances, base_lp_addresses = collect_token_addresses_saddle(
         ops_multisig, swap_to_deposit_dicts_saddle[chain_id])
 
     print("Token balances before swapping with UniswapV3:")
@@ -623,7 +635,7 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
                 f"Balance of ops_msig of {to_symbol} after swap: {to_contract.balanceOf(ops_multisig.address)}")
 
     # print out results
-    collected_token_addresses, balances = collect_token_addresses_saddle(
+    collected_token_addresses, balances, base_lp_addresses = collect_token_addresses_saddle(
         ops_multisig, swap_to_deposit_dicts_saddle[chain_id])
     print_token_balances(ops_multisig, collected_token_addresses)
     usdt_balance = Contract.from_abi(
