@@ -4,11 +4,10 @@ from brownie import Contract, accounts, network
 from helpers import (
     CHAIN_IDS,
     ENG_EOA_ADDRESS,
-    INCITE_MULTISIG_ADDRESS,
     MULTISIG_ADDRESSES,
     SDL_ADDRESSES,
     SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS,
-    VESTING_ABI,
+    SDL_MINTER_ADDRESS
 )
 from scripts.utils import confirm_posting_transaction
 
@@ -23,36 +22,51 @@ def main():
 
     print(f"You are using the '{network.show_active()}' network")
     assert network.chain.id == CHAIN_IDS[TARGET_NETWORK], f"Not on {TARGET_NETWORK}"
-    multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
-    sdl = multisig.get_contract(SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
-    sdl_vesting_contract_proxy = multisig.get_contract(
-        SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
-    )
 
-    # Claim SDL from vesting contract
-    sdl_vesting_contract_proxy.release()
+multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
-    # Send needed SDL to EOA for bridging to minichefs
-    arbitrum_minichef_debt = 50077104116351310467768  # SDL owed to arbitrum
-    optimism_minichef_debt = 75042837369470445854120  # SDL owed to optimism
-    sidechain_minichef_debt = (
-        arbitrum_minichef_debt + optimism_minichef_debt
-    )  # SDL owed to optimism & arbitrum
+sdl = multisig.get_contract(SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
-    # L2 Minichefs (optimism & arbitrum)
-    sdl_balance = sdl.balanceOf(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
-    sdl.transfer(ENG_EOA_ADDRESS, sidechain_minichef_debt)
-    assert sdl_balance > sdl.balanceOf(
-        MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]]
-    ), "SDL not sent to EOA"
+sdl_vesting_contract_proxy = multisig.get_contract(
+    SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
+)
 
-    # combine history into multisend txn
-    safe_tx = multisig.multisend_from_receipts()
-    safe_tx.safe_nonce = 84
+# Claim SDL from vesting contract
+sdl_vesting_contract_proxy.release()
 
-    # sign with private key
-    safe_tx.sign(accounts.load("deployer").private_key)
-    multisig.preview(safe_tx)
+# Send needed SDL to EOA for bridging to minichefs
+arbitrum_minichef_debt = 50077104116351310467768  # SDL owed to arbitrum
+optimism_minichef_debt = 75042837369470445854120  # SDL owed to optimism
+sidechain_minichef_debt = (
+    arbitrum_minichef_debt + optimism_minichef_debt
+)
 
-    confirm_posting_transaction(multisig, safe_tx)
+sdl_balance = sdl.balanceOf(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
+sdl.transfer(
+    ENG_EOA_ADDRESS,
+    sidechain_minichef_debt,
+    {"from": multisig.address}
+)
+
+# Send 1.3m SDL to minter
+sdl_to_minter = 1_300_000 * 1e18
+
+sdl.transfer(
+    SDL_MINTER_ADDRESS[CHAIN_IDS[TARGET_NETWORK]],
+    sdl_to_minter,
+    {"from": multisig.address}
+)
+assert sdl_balance > sdl.balanceOf(
+    MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]]
+), "SDL not sent to EOA"
+
+# combine history into multisend txn
+safe_tx = multisig.multisend_from_receipts()
+safe_tx.safe_nonce = 84
+
+# sign with private key
+safe_tx.sign(accounts.load("deployer").private_key)
+multisig.preview(safe_tx)
+
+confirm_posting_transaction(multisig, safe_tx)
