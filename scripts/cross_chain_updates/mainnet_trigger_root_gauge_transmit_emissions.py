@@ -1,11 +1,9 @@
-import csv
 import traceback
 
-from brownie import ZERO_ADDRESS, Contract, Wei, accounts, history, network
+from brownie import Wei, accounts, history, network
 from brownie.network import max_fee, priority_fee
 
-from helpers import (CHAIN_IDS, MULTISIG_ADDRESSES,
-                     get_contract_from_deployment,
+from helpers import (CHAIN_IDS, get_contract_from_deployment,
                      get_contracts_from_deployment)
 
 TARGET_NETWORK = "MAINNET"
@@ -14,7 +12,7 @@ TARGET_NETWORK = "MAINNET"
 def main():
     """
     Individually calls RGF.transmit_emissions() on all RootGauges on mainnet
-    Also tops up RootGauges for Arbitrum 
+    Also tops up RootGauges for Arbitrum that are low on ETH for bridging
     """
     print(f"You are using the '{network.show_active()}' network")
     assert (
