@@ -23,29 +23,26 @@ def main():
 
     print(f"You are using the '{network.show_active()}' network")
     assert network.chain.id == CHAIN_IDS[TARGET_NETWORK], f"Not on {TARGET_NETWORK}"
-    multisig = ApeSafe(
-        MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
-        base_url="https://safe-transaction-mainnet.safe.global",
-    )
-    sdl = Contract.from_explorer(SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
+    multisig = ApeSafe(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
+    sdl = multisig.get_contract(SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
 
-    sdl_vesting_contract_proxy = Contract.from_explorer(
+    sdl_vesting_contract_proxy = multisig.get_contract(
         SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
     )
 
     # Claim SDL from vesting contract
-    sdl_vesting_contract_proxy.release({"from": multisig.address})
+    sdl_vesting_contract_proxy.release()
 
     # Send needed SDL to EOA for bridging to minichefs
     arbitrum_minichef_debt = 50077104116351310467768  # SDL owed to arbitrum
     optimism_minichef_debt = 75042837369470445854120  # SDL owed to optimism
-    sidechain_minichef_debt = arbitrum_minichef_debt + \
-        optimism_minichef_debt  # SDL owed to optimism & arbitrum
+    sidechain_minichef_debt = (
+        arbitrum_minichef_debt + optimism_minichef_debt
+    )  # SDL owed to optimism & arbitrum
 
     # L2 Minichefs (optimism & arbitrum)
     sdl_balance = sdl.balanceOf(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
-    sdl.transfer(ENG_EOA_ADDRESS, sidechain_minichef_debt,
-                 {"from": multisig.address})
+    sdl.transfer(ENG_EOA_ADDRESS, sidechain_minichef_debt)
     assert sdl_balance > sdl.balanceOf(
         MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]]
     ), "SDL not sent to EOA"
