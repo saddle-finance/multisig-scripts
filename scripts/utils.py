@@ -353,7 +353,7 @@ def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int, min_amount
                 token_index_to = 1 + base_token_index_to
 
             # deadline 1h from now
-            deadline = chain[chain.height].timestamp + 3600
+            deadline = chain[chain.height].timestamp + 3600 * 72
 
             # min amount to receive
             min_amount = swap.calculateSwap(
@@ -423,7 +423,7 @@ def convert_fees_to_USDC_uniswap(ops_multisig: ApeSafe, chain_id: int):
         token_to = token_to_token_univ3_dict[token_address]
         fee = univ3_fee_tier_dict[token_from]
         recipient = ops_multisig.address
-        deadline = chain[chain.height].timestamp + 3600
+        deadline = chain[chain.height].timestamp + 3600 * 72
         amount_in = balances[token_from]
         sqrt_price_limit_X96 = 0
 
@@ -724,7 +724,7 @@ def buy_sdl_with_usdc_sushi(ops_multisig: ApeSafe, chain_id: int, divisor: int =
     )[2]
 
     to = ops_multisig.address
-    deadline = chain[-1].timestamp + 3600
+    deadline = chain[-1].timestamp + 3600 * 72
 
     # perform swap
     sushiswap_router.swapExactTokensForTokens(
@@ -805,7 +805,7 @@ def provide_sdl_eth_lp_sushi(
     amount_b_min = SDL_contract.balanceOf(
         ops_multisig.address) * tolerance_factor
     to = ops_multisig.address
-    deadline = chain[-1].timestamp + 3600
+    deadline = chain[-1].timestamp + 3600 * 72
 
     print(
         f"amount_a_desired: {amount_a_desired / (10 ** WETH_decimals)}\n" +
@@ -874,7 +874,7 @@ def buy_weth_with_usdc_univ3(
     token_to_address = token_addresses[chain_id]["WETH"]
     fee = 500
     recipient = ops_multisig.address
-    deadline = chain[chain.height].timestamp + 3600  # 1 hour
+    deadline = chain[chain.height].timestamp + 3600 * 72  # 1 hour
     sqrt_price_limit_X96 = 0
 
     # Swap ~50% of ops_multisig's USDC for WETH.
@@ -996,7 +996,7 @@ def buy_weth_with_usdc_sushi(
     )[1]
 
     to = ops_multisig.address
-    deadline = chain[-1].timestamp + 3600
+    deadline = chain[-1].timestamp + 3600 * 72
 
     # perform swap
     print(

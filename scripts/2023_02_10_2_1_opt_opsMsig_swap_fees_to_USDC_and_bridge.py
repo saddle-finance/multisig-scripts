@@ -27,7 +27,6 @@ def main():
 
     ops_multisig = ApeSafe(
         OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
-        base_url='https://safe-transaction-optimism.safe.global'
     )
 
     # convert fees to USDC
