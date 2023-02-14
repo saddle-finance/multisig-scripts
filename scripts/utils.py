@@ -125,7 +125,7 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
 # claims admin fees and sends them to ops-multisig on the same chain
 
 
-def claim_admin_fees(multisig: ApeSafe, chain_id: int, min_amounts_delay_factor=0.95):
+def claim_admin_fees(multisig: ApeSafe, chain_id: int):
     ops_multisig = ApeSafe(OPS_MULTISIG_ADDRESSES[chain_id])
     swap_to_deposit_dict = swap_to_deposit_dicts_saddle[chain_id]
 
@@ -222,7 +222,7 @@ def collect_token_addresses_saddle(multisig: ApeSafe, swap_to_deposit_dict: dict
 # converts fees to USDC with saddle pools, if possible
 
 
-def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int, min_amounts_delay_factor: float = 0.95):
+def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int, min_amounts_delay_factor: float = 0.80):
     swap_to_deposit_dict = swap_to_deposit_dicts_saddle[chain_id]
     token_to_swap_dict = token_to_swap_dicts_saddle[chain_id]
 
@@ -1071,13 +1071,14 @@ def bridge_usdc_to_mainnet(ops_multisig: ApeSafe, chain_id: int):
             ]
         ).hex() + '00000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000'
 
-        ops_multisig.account.transfer(
-            to=ARB_GATEWAY_ROUTER[chain_id],
-            amount=0,
-            data=calldata
-        )
+        print(f"Calldata for bridging tx: {calldata}")
+        #ops_multisig.account.transfer(
+        #    to=ARB_GATEWAY_ROUTER[chain_id],
+        #    amount=0,
+        #    data=calldata
+        #)
 
-        assert USDC.balanceOf(ops_multisig.address) == 0
+        #assert USDC.balanceOf(ops_multisig.address) == 0
 
     elif chain_id == CHAIN_IDS["OPTIMISM"]:
         # Optimism L2 Standard Bridge

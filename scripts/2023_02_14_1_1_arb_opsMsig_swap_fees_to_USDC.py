@@ -35,7 +35,7 @@ def main():
     # bridge USDC to mainnet Saddle multisig
 
     # note: done manually for now
-    # bridge_usdc_to_mainnet(ops_multisig, CHAIN_IDS[TARGET_NETWORK])
+    bridge_usdc_to_mainnet(ops_multisig, CHAIN_IDS[TARGET_NETWORK])
 
     # combine history into multisend txn
     # TODO: set 'safe_nonce'
