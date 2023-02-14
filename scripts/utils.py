@@ -125,7 +125,7 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
 # claims admin fees and sends them to ops-multisig on the same chain
 
 
-def claim_admin_fees(multisig: ApeSafe, chain_id: int, min_amounts_delay_factor=0.7):
+def claim_admin_fees(multisig: ApeSafe, chain_id: int, min_amounts_delay_factor=0.95):
     ops_multisig = ApeSafe(OPS_MULTISIG_ADDRESSES[chain_id])
     swap_to_deposit_dict = swap_to_deposit_dicts_saddle[chain_id]
 
@@ -222,7 +222,7 @@ def collect_token_addresses_saddle(multisig: ApeSafe, swap_to_deposit_dict: dict
 # converts fees to USDC with saddle pools, if possible
 
 
-def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int, min_amounts_delay_factor: float = 0.8):
+def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int, min_amounts_delay_factor: float = 0.95):
     swap_to_deposit_dict = swap_to_deposit_dicts_saddle[chain_id]
     token_to_swap_dict = token_to_swap_dicts_saddle[chain_id]
 
@@ -289,7 +289,7 @@ def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int, min_amount
                         min_amount,
                         deadline,
                         {"from": ops_multisig.address}
-                    )
+                    ) 
 
     # capture and log token balances of ops msig after burning LP tokens
     token_balances_after = {}
@@ -360,7 +360,7 @@ def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int, min_amount
                 token_index_from,
                 token_index_to,
                 amount_to_swap
-            )
+            ) * min_amounts_delay_factor
 
             # approve amount to swap
             token_contract = Contract.from_abi(
@@ -515,7 +515,7 @@ def convert_fees_to_USDC_uniswap(ops_multisig: ApeSafe, chain_id: int):
     print_token_balances(ops_multisig, collected_token_addresses)
 
 
-def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
+def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int, slippage_factor: float = 0.95):
     swap_to_deposit_dict = swap_to_deposit_dicts_curve[chain_id]
     token_to_swap_dict = token_to_swap_dicts_curve[chain_id]
     # collected_token_addresses, balances = collect_token_addresses_saddle(ops_multisig, swap_to_deposit_dict)
@@ -592,8 +592,7 @@ def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int):
             print(
                 f"Swapping {amount_to_swap / (10 ** token_contract.decimals())} {token_contract.symbol()} to {to_symbol} via curve pool on chain_id {chain_id}"
             )
-            # choose slippage factor to adjust min amount
-            slippage_factor = 0.95
+
             if is_metapool:
                 print(
                     f"Getting minAmount for indices {token_index_from} to {token_index_to} for {amount_to_swap}")
