@@ -313,7 +313,7 @@ def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int, min_amount
         #    continue
 
         # amount to swap
-        amount_to_swap = balances[token_address]
+        amount_to_swap = token_balances_after[token_address]
 
         # skip if no fees were claimed
         if amount_to_swap > 0:

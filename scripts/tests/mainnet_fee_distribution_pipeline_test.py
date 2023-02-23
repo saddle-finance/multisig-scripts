@@ -88,5 +88,5 @@ def main():
 
     provide_sdl_eth_lp_sushi(ops_multisig, multisig, CHAIN_IDS[TARGET_NETWORK])
 
-    for tx in history:
-        tx.info()
+    #for tx in history:
+    #    tx.info()
