@@ -1166,6 +1166,87 @@ def bridge_usdc_to_mainnet(ops_multisig: ApeSafe, chain_id: int):
             assert ceUSDC_contract.balanceOf(ops_multisig.address) == 0
 
 
+def swap_curve(
+    multisig: ApeSafe, 
+    chain_id: int, 
+    pool_address: int, 
+    is_metapool: bool, 
+    i: int, 
+    j: int, 
+    amount: int,
+    slippage_factor: float = 0.995
+):
+    assert chain_id == network.chain.id, "Dev: wrong network"
+    print(f"Swapping {amount} of index {i} to {j} on Curve pool {pool_address} on chain {chain_id}")
+    swap = None
+    if not is_metapool:
+        swap = instantiate_base_swap_curve(pool_address, chain_id)
+    else:   
+        swap = Contract.from_abi(
+            "CurveMetaSwap", pool_address, CURVE_META_POOL_ABI
+        )
+    token_from = Contract.from_abi(
+        "ERC20", swap.coins(i), ERC20_ABI
+    )
+    token_to = Contract.from_abi(
+        "ERC20", swap.coins(j), ERC20_ABI
+    )
+    print(
+        f"Balance before of {token_from.symbol()}: {token_from.balanceOf(multisig.address)}\n"
+        f"Balance before of {token_to.symbol()}: {token_to.balanceOf(multisig.address)}"
+    )
+    # approve amount to swap
+    print(
+        f"Approving {token_from.symbol()} for curve pool {swap.address}"
+    )
+    token_from.approve(
+        swap.address,
+        amount,
+        {"from": multisig.address}
+    )
+    # perform swap
+    print(
+        f"Swapping {amount / (10 ** token_from.decimals())} {token_from.symbol()} to {token_to.symbol()} via curve pool on chain_id {chain_id}"
+    )
+    if is_metapool:
+        print(
+            f"Getting minAmount for indices {i} to {j} for {amount}")
+        # min amount to receive
+        min_amount = swap.get_dy_underlying(
+            i,
+            j,
+            amount
+        ) * slippage_factor
+        print(f"Min amount to receive: {min_amount}")
+        swap.exchange_underlying(
+            i,
+            j,
+            amount,
+            min_amount,
+            {"from": multisig.address}
+        )
+    else:
+        print(
+            f"Getting minAmount for indices {i} to {j} for {amount}")
+        # min amount to receive
+        min_amount = swap.get_dy(
+            i,
+            j,
+            amount
+        ) * slippage_factor
+        print(f"Min amount to receive: {min_amount}")
+        swap.exchange(
+            i,
+            j,
+            amount,
+            min_amount,
+            {"from":multisig.address}
+        )
+    print(
+        f"Balance after of {token_from.symbol()}: {token_from.balanceOf(multisig.address)}\n"
+        f"Balance after of {token_to.symbol()}: {token_to.balanceOf(multisig.address)}"
+    )
+
 def convert_string_to_bytes32(string: str) -> bytes:
     """
     Encodes a string to bytes32 format. 
