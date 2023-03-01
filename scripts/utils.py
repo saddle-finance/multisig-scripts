@@ -4,8 +4,9 @@ from urllib.error import URLError
 
 import click
 from ape_safe import ApeSafe
+from brownie import Contract
 from gnosis.safe.safe_tx import SafeTx
-from helpers import ARB_BRIDGE_INBOX, ARB_GATEWAY_ROUTER, CHAIN_IDS, MULTISIG_ADDRESSES
+from helpers import ARB_BRIDGE_INBOX, ARB_GATEWAY_ROUTER, CHAIN_IDS, MULTISIG_ADDRESSES, PERMISSIONLESS_POOLS, PERMISSIONLESS_POOL_ABI
 
 
 def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
@@ -78,6 +79,16 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
                 f"Post this gnosis safe transaction to {safe.address} on {safe.base_url}?"
             )
 
+
+def claim_fees_permissionless_pools(multisig: ApeSafe, chain_id: int):
+    """
+    This function claims fees from permissionless pools
+    """
+    pools = PERMISSIONLESS_POOLS[chain_id]
+    for pool in pools:
+        pool = Contract.from_abi("pool", pool, PERMISSIONLESS_POOL_ABI)
+        pool.withdrawAdminFees({"from": multisig.address})
+    
 
 def convert_string_to_bytes32(string: str) -> bytes:
     """
