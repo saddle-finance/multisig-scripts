@@ -1249,7 +1249,7 @@ def swap_curve(
         f"Balance after of {token_to.symbol()}: {token_to.balanceOf(multisig.address)}"
     )
 
-def claim_fees_permissionless_pools(multisig: ApeSafe, chain_id: int, threshold: int = 30):
+def claim_fees_permissionless_pools(multisig: ApeSafe, chain_id: int, threshold: int = 500):
     """
     This function claims fees from permissionless pools
     """
