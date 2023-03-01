@@ -37,6 +37,8 @@ from helpers import (
     CURVE_BASE_POOL_256_ABI,
     CURVE_BASE_POOL_MIXED_ABI,
     CURVE_META_POOL_ABI,
+    PERMISSIONLESS_POOL_ABI,
+    get_contract_from_deployment
 )
 from collections import OrderedDict
 from eth_abi.packed import encode_abi_packed
@@ -1246,6 +1248,26 @@ def swap_curve(
         f"Balance after of {token_from.symbol()}: {token_from.balanceOf(multisig.address)}\n"
         f"Balance after of {token_to.symbol()}: {token_to.balanceOf(multisig.address)}"
     )
+
+def claim_fees_permissionless_pools(multisig: ApeSafe, chain_id: int, threshold: int = 30):
+    """
+    This function claims fees from permissionless pools
+    """
+    print(f"Claiming fees from permissionless pools on chain {chain_id}, with threshold {threshold}")
+    pool_registry = get_contract_from_deployment(chain_id, "PoolRegistry", MULTISIG_ADDRESSES[chain_id])
+    for i in range(pool_registry.getPoolsLength()):
+        pool_data = pool_registry.getPoolDataAtIndex(i)
+        pool_address = pool_data[0]
+        pool = Contract.from_abi("pool", pool_address, PERMISSIONLESS_POOL_ABI)
+        # if pool not owned by saddle, assume it's permissionless
+        if pool.owner() != MULTISIG_ADDRESSES[chain_id] and pool.owner() != OPS_MULTISIG_ADDRESSES[chain_id]:
+            token_0 = Contract.from_abi("ERC20",pool.getToken(0), ERC20_ABI)
+            if pool.getAdminBalance(0) > (threshold * (10**token_0.decimals())):
+                print(f"Claiming fees from {pool_address}")
+                print(f"Admin balance  of token 0 before: {pool.getAdminBalance(0) / (10 ** token_0.decimals())}")
+                pool.withdrawAdminFees({"from": multisig.address})
+                print(f"Admin balance  of token 0 after: {pool.getAdminBalance(0) / (10 ** token_0.decimals())}")
+ 
 
 def convert_string_to_bytes32(string: str) -> bytes:
     """
