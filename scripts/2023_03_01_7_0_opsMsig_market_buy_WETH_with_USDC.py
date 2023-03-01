@@ -35,7 +35,11 @@ def main():
     )
 
     # buy WETH with half of the Ops-multisig's USDC balance
-    buy_weth_with_usdc_sushi(ops_multisig, CHAIN_IDS[TARGET_NETWORK])
+    buy_weth_with_usdc_sushi(
+        ops_multisig, 
+        CHAIN_IDS[TARGET_NETWORK],
+        price_impact_factor = 1.45
+    )
 
     # TODO: set 'safe_nonce'
     safe_tx = ops_multisig.multisend_from_receipts()
