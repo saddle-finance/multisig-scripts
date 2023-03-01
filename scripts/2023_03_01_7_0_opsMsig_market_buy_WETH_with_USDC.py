@@ -4,7 +4,7 @@ from helpers import (
 )
 from ape_safe import ApeSafe
 from brownie import accounts, network
-from scripts.utils import confirm_posting_transaction, buy_weth_with_usdc
+from scripts.utils import confirm_posting_transaction, buy_weth_with_usdc_sushi, swap_curve
 from brownie import history
 
 
@@ -22,12 +22,24 @@ def main():
         OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
     )
 
+    # swap remaining USDT from last step to USDC using curve
+    CURVE_3POOL_MAINNET = "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7"
+    swap_curve(
+        ops_multisig, 
+        CHAIN_IDS[TARGET_NETWORK],
+        CURVE_3POOL_MAINNET, 
+        False,
+        2,
+        1,
+        468291048
+    )
+
     # buy WETH with half of the Ops-multisig's USDC balance
-    buy_weth_with_usdc(ops_multisig, CHAIN_IDS[TARGET_NETWORK])
+    buy_weth_with_usdc_sushi(ops_multisig, CHAIN_IDS[TARGET_NETWORK])
 
     # TODO: set 'safe_nonce'
     safe_tx = ops_multisig.multisend_from_receipts()
-    safe_nonce = 0
+    safe_nonce = 2
 
     safe_tx.safe_nonce = safe_nonce
 

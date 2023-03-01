@@ -40,7 +40,7 @@ def main():
         MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]],
     )
 
-    claim_admin_fees(multisig, CHAIN_IDS[TARGET_NETWORK])
+    #claim_admin_fees(multisig, CHAIN_IDS[TARGET_NETWORK])
 
     ############# 2022_xx_xx_6_opsMsig_swap_fees_to_USDC.py #############
 
@@ -48,15 +48,15 @@ def main():
         OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
     )
 
-    convert_fees_to_USDC_saddle(
-        ops_multisig,
-        CHAIN_IDS[TARGET_NETWORK]
-    )
+    #convert_fees_to_USDC_saddle(
+    #    ops_multisig,
+    #   CHAIN_IDS[TARGET_NETWORK]
+    #)
 
-    convert_fees_to_USDC_curve(
-        ops_multisig,
-        CHAIN_IDS[TARGET_NETWORK]
-    )
+    #convert_fees_to_USDC_curve(
+    #    ops_multisig,
+    #    CHAIN_IDS[TARGET_NETWORK]
+    #)
 
     # convert_fees_to_USDC_uniswap(
     #    ops_multisig,
@@ -66,7 +66,11 @@ def main():
     ######## 2022_xx_xx_7_0_opsMsig_market_buy_WETH_with_USDC.py ########
 
     # buy_weth_with_usdc_univ3(ops_multisig, CHAIN_IDS[TARGET_NETWORK])
-    buy_weth_with_usdc_sushi(ops_multisig, CHAIN_IDS[TARGET_NETWORK])
+    buy_weth_with_usdc_sushi(
+        ops_multisig, 
+        CHAIN_IDS[TARGET_NETWORK],
+        price_impact_factor = 1.45
+    )
 
     ######## 2022_xx_xx_7_1_opsMsig_market_buy_SDL_tranche_1.py #########
 
@@ -86,7 +90,12 @@ def main():
 
     ######### 2022_xx_xx_8_opsMsig_LP_SDL_WETH_in_sushi_pool.py #########
 
-    provide_sdl_eth_lp_sushi(ops_multisig, multisig, CHAIN_IDS[TARGET_NETWORK])
+    provide_sdl_eth_lp_sushi(
+        ops_multisig, 
+        multisig, 
+        CHAIN_IDS[TARGET_NETWORK],
+        tolerance_factor = 0.8
+    )
 
     #for tx in history:
     #    tx.info()
