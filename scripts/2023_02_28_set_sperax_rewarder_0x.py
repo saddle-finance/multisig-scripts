@@ -17,13 +17,13 @@ def main():
     multisig.preview_pending()
 
     minichef = multisig.get_contract(MINICHEF_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
-    minichef.set(3, 0, ZERO_ADDRESS, True)
+    minichef.set(5, 0, ZERO_ADDRESS, True)
 
 
     # combine history into multisend txn
     # TODO: set 'safe_nonce'
     safe_tx = multisig.multisend_from_receipts()
-    safe_tx.safe_nonce = 3
+    safe_tx.safe_nonce = 4
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key) # prompts for password
