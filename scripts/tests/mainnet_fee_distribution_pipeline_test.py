@@ -65,11 +65,10 @@ def main():
 
     ######## 2022_xx_xx_7_0_opsMsig_market_buy_WETH_with_USDC.py ########
 
-    # buy_weth_with_usdc_univ3(ops_multisig, CHAIN_IDS[TARGET_NETWORK])
     buy_weth_with_usdc_sushi(
         ops_multisig, 
         CHAIN_IDS[TARGET_NETWORK],
-        price_impact_factor = 1.45
+        price_impact_factor = 1.48
     )
 
     ######## 2022_xx_xx_7_1_opsMsig_market_buy_SDL_tranche_1.py #########
