@@ -4,7 +4,7 @@ build
 reports
 contracts
 interfaces
-tests
+tests/abi.json
 *.local
 **/.DS_Store
 .env
