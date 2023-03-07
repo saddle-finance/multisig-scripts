@@ -15,6 +15,7 @@ from fee_distro_helpers import (
     UNIV3_ROUTER_ADDRESSES,
     UNIV3_QUOTER_ADDRESSES,
     SUSHI_SDL_SLP_ADDRESSES,
+    FRAXSWAP_ROUTER_ADDRESSES
 )
 from helpers import (
     ERC20_ABI,
@@ -813,6 +814,100 @@ def buy_sdl_with_usdc_sushi_custom_amount(
     return SDL_contract.balanceOf(ops_multisig.address)
 
 
+def buy_sdl_with_usdc_fraxswap_custom_amount(
+    ops_multisig: ApeSafe, 
+    chain_id: int, 
+    usdc_amount: int,
+):
+    print(f"\n\nBuying {usdc_amount/10**6} USDC worth of SDL on FraxSwap \n\n")
+    
+    fraxswap_router = Contract.from_abi(
+        "FraxSwapRouter",
+        FRAXSWAP_ROUTER_ADDRESSES[chain_id],
+        SUSHISWAP_ROUTER_ABI # dev: same ABI as SushiSwap
+    )
+    SDL_contract = Contract.from_abi(
+        "SDL", SDL_ADDRESSES[chain_id], ERC20_ABI
+    )
+    USDC_contract = Contract.from_abi(
+        "USDC", token_addresses[chain_id]["USDC"], ERC20_ABI
+    )
+    FRAX_contract = Contract.from_abi(
+        "FRAX", token_addresses[chain_id]["FRAX"], ERC20_ABI
+    )
+    USDC_decimals = USDC_contract.decimals()
+    SDL_decimals = SDL_contract.decimals()
+    FRAX_decimals = FRAX_contract.decimals()
+
+    balance_before = SDL_contract.balanceOf(ops_multisig.address)
+    print(
+        "Balances before swap:\n"
+        f"USDC: {USDC_contract.balanceOf(ops_multisig.address)/ (10 ** USDC_decimals)}\n" +
+        f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}\n"
+    )
+
+    FRAXBP_CURVE = "0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2"
+
+    # swap USDC to FRAX using curve
+    frax_amount = swap_curve(
+        ops_multisig,
+        chain_id,
+        FRAXBP_CURVE,
+        False, 
+        1,
+        0,
+        usdc_amount,
+        slippage_factor= 0.995
+    )
+    
+    # approve FRAX for fraxswap router
+    FRAX_contract.approve(
+        FRAXSWAP_ROUTER_ADDRESSES[chain_id],
+        2 ** 256 - 1,
+        {"from": ops_multisig.address}
+    )
+
+    # call sync() on FRAX/SDL fraxpair twamm
+    fraxpair_twamm = Contract.from_explorer("0xCCB26b5CC4e1Ce29521DA281a0107A6672bfe099")
+    fraxpair_twamm.sync({"from": ops_multisig.address})
+
+    # swap FRAX to SDL using fraxswap
+    amount_in = frax_amount
+
+    # path to use for swapping
+    path = [token_addresses[chain_id]["FRAX"],
+            SDL_ADDRESSES[chain_id]
+            ]
+
+    # min amount of SDL to receive
+    amount_out_min = fraxswap_router.getAmountsOut(
+        amount_in,
+        path
+    )[1]
+    print(f"amount_out_min: {amount_out_min}")
+
+    to = ops_multisig.address
+    deadline = chain[-1].timestamp + 3600 * 72
+
+    # perform swap
+    sdl_amount = fraxswap_router.swapExactTokensForTokens(
+        amount_in,
+        amount_out_min,
+        path,
+        to,
+        deadline,
+        {"from": ops_multisig.address}
+    )
+
+    print(
+        "Balances after swap:\n"
+        f"USDC: {USDC_contract.balanceOf(ops_multisig.address)/ (10 ** USDC_decimals)}\n" +
+        f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}\n"
+    )
+    balance_after = SDL_contract.balanceOf(ops_multisig.address)
+    return balance_after - balance_before
+
+
 def provide_sdl_eth_lp_sushi(
     ops_multisig: ApeSafe,
     multisig: ApeSafe,
@@ -917,7 +1012,6 @@ def provide_sdl_eth_lp_sushi(
 
 def provide_sdl_eth_lp_sushi_custom_amounts(
     ops_multisig: ApeSafe,
-    multisig: ApeSafe,
     chain_id: int,
     weth_amount: int,
     sdl_amount: int,
@@ -1007,13 +1101,13 @@ def provide_sdl_eth_lp_sushi_custom_amounts(
     )
 
     # send SLP back to main multisig
-    balance = SLP_contract.balanceOf(ops_multisig.address)
-    SLP_contract.transfer(
-        multisig.address,
-        balance,
-        {"from": ops_multisig.address}
-    )
-    assert SLP_contract.balanceOf(ops_multisig.address) == 0
+    #balance = SLP_contract.balanceOf(ops_multisig.address)
+    #SLP_contract.transfer(
+    #    multisig.address,
+    #    balance,
+    #    {"from": ops_multisig.address}
+    #)
+    #assert SLP_contract.balanceOf(ops_multisig.address) == 0
     #assert SLP_contract.balanceOf(multisig.address) == balance
 
 
@@ -1121,7 +1215,7 @@ def buy_weth_with_usdc_sushi(
     divisor: int = 2,
     price_impact_factor: float = 1.48,
 ):
-    print("\n\nBuying WETH with USDC on SushiSwap\n\n")
+    print(f"\n\nBuying WETH with USDC on SushiSwap\n\n")
     print(f"Using price impact factor {price_impact_factor}")
     sushiswap_router = Contract.from_abi(
         "SushiSwapRouter",
@@ -1194,7 +1288,7 @@ def buy_weth_with_usdc_sushi_custom_amount(
     chain_id,
     usdc_amount: int,
 ):
-    print("\n\nBuying WETH with USDC on SushiSwap\n\n")
+    print(f"\n\nBuying {usdc_amount / 10**6} USDC worth of WETH on SushiSwap\n\n")
     sushiswap_router = Contract.from_abi(
         "SushiSwapRouter",
         SUSHISWAP_ROUTER_ADDRESSES[chain_id],
@@ -1454,6 +1548,7 @@ def swap_curve(
     token_to = Contract.from_abi(
         "ERC20", swap.coins(j), ERC20_ABI
     )
+    balance_before = token_to.balanceOf(multisig.address)
     print(
         f"Balance before of {token_from.symbol()}: {token_from.balanceOf(multisig.address)}\n"
         f"Balance before of {token_to.symbol()}: {token_to.balanceOf(multisig.address)}"
@@ -1498,17 +1593,19 @@ def swap_curve(
             amount
         ) * slippage_factor
         print(f"Min amount to receive: {min_amount}")
-        swap.exchange(
+        out_amount = swap.exchange(
             i,
             j,
             amount,
             min_amount,
             {"from":multisig.address}
         )
+    balance_after = token_to.balanceOf(multisig.address)
     print(
         f"Balance after of {token_from.symbol()}: {token_from.balanceOf(multisig.address)}\n"
         f"Balance after of {token_to.symbol()}: {token_to.balanceOf(multisig.address)}"
     )
+    return balance_after - balance_before
 
 def claim_fees_permissionless_pools(multisig: ApeSafe, chain_id: int, threshold: int = 500):
     """
