@@ -743,6 +743,75 @@ def buy_sdl_with_usdc_sushi(ops_multisig: ApeSafe, chain_id: int, divisor: int =
         f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}\n"
     )
 
+def buy_sdl_with_usdc_sushi_custom_amount(
+    ops_multisig: ApeSafe, 
+    chain_id: int, 
+    usdc_amount: int,
+):
+    print(f"\n\nBuying {usdc_amount/10**6} USDC worth of SDL on SushiSwap \n\n")
+
+    sushiswap_router = Contract.from_abi(
+        "SushiSwapRouter",
+        SUSHISWAP_ROUTER_ADDRESSES[chain_id],
+        SUSHISWAP_ROUTER_ABI
+    )
+    SDL_contract = Contract.from_abi(
+        "SDL", SDL_ADDRESSES[chain_id], ERC20_ABI
+    )
+    USDC_contract = Contract.from_abi(
+        "USDC", token_addresses[chain_id]["USDC"], ERC20_ABI
+    )
+    USDC_decimals = USDC_contract.decimals()
+    SDL_decimals = SDL_contract.decimals()
+
+    print(
+        "Balances before swap:\n"
+        f"USDC: {USDC_contract.balanceOf(ops_multisig.address)/ (10 ** USDC_decimals)}\n" +
+        f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}\n"
+    )
+
+    # approve the router to spend ops_multisig's USDC
+    USDC_contract.approve(
+        SUSHISWAP_ROUTER_ADDRESSES[chain_id],
+        2 ** 256 - 1,
+        {"from": ops_multisig.address}
+    )
+
+    # swap custom amount of ops_multisig's USDC balance to SDL
+    amount_in = usdc_amount
+
+    # path to use for swapping
+    path = [token_addresses[chain_id]["USDC"],
+            token_addresses[chain_id]["WETH"],
+            SDL_ADDRESSES[chain_id]
+            ]
+
+    # min amount of SDL to receive
+    amount_out_min = sushiswap_router.getAmountsOut(
+        amount_in,
+        path
+    )[2]
+
+    to = ops_multisig.address
+    deadline = chain[-1].timestamp + 3600 * 72
+
+    # perform swap
+    sdl_amount = sushiswap_router.swapExactTokensForTokens(
+        amount_in,
+        amount_out_min,
+        path,
+        to,
+        deadline,
+        {"from": ops_multisig.address}
+    )
+
+    print(
+        "Balances after swap:\n"
+        f"USDC: {USDC_contract.balanceOf(ops_multisig.address)/ (10 ** USDC_decimals)}\n" +
+        f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}\n"
+    )
+    return SDL_contract.balanceOf(ops_multisig.address)
+
 
 def provide_sdl_eth_lp_sushi(
     ops_multisig: ApeSafe,
@@ -846,6 +915,108 @@ def provide_sdl_eth_lp_sushi(
     assert SLP_contract.balanceOf(ops_multisig.address) == 0
     assert SLP_contract.balanceOf(multisig.address) == balance
 
+def provide_sdl_eth_lp_sushi_custom_amounts(
+    ops_multisig: ApeSafe,
+    multisig: ApeSafe,
+    chain_id: int,
+    weth_amount: int,
+    sdl_amount: int,
+    tolerance_factor: float = 0.95
+):
+
+    print("\n\nProviding SDL-ETH LP on SushiSwap \n\n")
+
+    sushiswap_router = Contract.from_abi(
+        "SushiSwapRouter",
+        SUSHISWAP_ROUTER_ADDRESSES[chain_id],
+        SUSHISWAP_ROUTER_ABI
+    )
+    SDL_contract = Contract.from_abi(
+        "SDL", SDL_ADDRESSES[chain_id], ERC20_ABI
+    )
+    WETH_contract = Contract.from_abi(
+        "USDC", token_addresses[chain_id]["WETH"], ERC20_ABI
+    )
+    SLP_contract = Contract.from_abi(
+        "SLP", SUSHI_SDL_SLP_ADDRESSES[chain_id], ERC20_ABI
+    )
+    WETH_decimals = WETH_contract.decimals()
+    SDL_decimals = SDL_contract.decimals()
+    SLP_decimals = SLP_contract.decimals()
+
+    print(
+        "Balances before LP'ing:\n"
+        f"WETH: {WETH_contract.balanceOf(ops_multisig.address)/ (10 ** WETH_decimals)}\n" +
+        f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}\n" +
+        f"SUSHI/WETH SLP: {SLP_contract.balanceOf(ops_multisig.address)/ (10 ** SLP_decimals)}\n" +
+        f"SUSHI/WETH SLP total supply: {SLP_contract.totalSupply()/ (10 ** SLP_decimals)}\n\n"
+    )
+
+    # approve the router to spend the ops_multisig's WETH
+    WETH_contract.approve(
+        SUSHISWAP_ROUTER_ADDRESSES[chain_id],
+        2 ** 256 - 1,
+        {"from": ops_multisig.address}
+    )
+
+    # approve the router to spend the ops_multisig's SDL
+    SDL_contract.approve(
+        SUSHISWAP_ROUTER_ADDRESSES[chain_id],
+        2 ** 256 - 1,
+        {"from": ops_multisig.address}
+    )
+
+    # paramters for addLiquidity tx
+    token_a = token_addresses[chain_id]["WETH"]
+    token_b = SDL_ADDRESSES[chain_id]
+    amount_a_desired = weth_amount
+    amount_b_desired = sdl_amount
+    amount_a_min = WETH_contract.balanceOf(
+        ops_multisig.address) * tolerance_factor
+    amount_b_min = SDL_contract.balanceOf(
+        ops_multisig.address) * tolerance_factor
+    to = ops_multisig.address
+    deadline = chain[-1].timestamp + 3600 * 72
+
+    print(
+        f"amount_a_desired: {amount_a_desired / (10 ** WETH_decimals)}\n" +
+        f"amount_b_desired: {amount_b_desired / (10 ** SDL_decimals)}\n" +
+        f"amount_a_min: {amount_a_min / (10 ** WETH_decimals)}\n" +
+        f"amount_b_min: {amount_b_min / (10 ** SDL_decimals)}\n\n"
+    )
+
+    # perform swap
+    sushiswap_router.addLiquidity(
+        token_a,
+        token_b,
+        amount_a_desired,
+        amount_b_desired,
+        amount_a_min,
+        amount_b_min,
+        to,
+        deadline,
+        {"from": ops_multisig.address}
+    )
+
+    print(
+        "\n\nBalances after LP'ing:\n"
+        f"WETH: {WETH_contract.balanceOf(ops_multisig.address)/ (10 ** WETH_decimals)}\n" +
+        f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}\n" +
+        f"SUSHI/WETH SLP: {SLP_contract.balanceOf(ops_multisig.address)/ (10 ** SLP_decimals)}\n" +
+        f"SUSHI/WETH SLP total supply: {SLP_contract.totalSupply()/ (10 ** SLP_decimals)}\n\n"
+    )
+
+    # send SLP back to main multisig
+    balance = SLP_contract.balanceOf(ops_multisig.address)
+    SLP_contract.transfer(
+        multisig.address,
+        balance,
+        {"from": ops_multisig.address}
+    )
+    assert SLP_contract.balanceOf(ops_multisig.address) == 0
+    #assert SLP_contract.balanceOf(multisig.address) == balance
+
+
 
 def buy_weth_with_usdc_univ3(
     ops_multisig: ApeSafe,
@@ -948,7 +1119,7 @@ def buy_weth_with_usdc_sushi(
     ops_multisig: ApeSafe,
     chain_id,
     divisor: int = 2,
-    price_impact_factor: float = 1.5,
+    price_impact_factor: float = 1.48,
 ):
     print("\n\nBuying WETH with USDC on SushiSwap\n\n")
     print(f"Using price impact factor {price_impact_factor}")
@@ -1018,6 +1189,96 @@ def buy_weth_with_usdc_sushi(
         f"WETH: {WETH_contract.balanceOf(ops_multisig.address)/ (10 ** WETH_decimals)}"
     )
 
+def buy_weth_with_usdc_sushi_custom_amount(
+    ops_multisig: ApeSafe,
+    chain_id,
+    usdc_amount: int,
+):
+    print("\n\nBuying WETH with USDC on SushiSwap\n\n")
+    sushiswap_router = Contract.from_abi(
+        "SushiSwapRouter",
+        SUSHISWAP_ROUTER_ADDRESSES[chain_id],
+        SUSHISWAP_ROUTER_ABI
+    )
+    WETH_contract = Contract.from_abi(
+        "WETH", token_addresses[chain_id]["WETH"], ERC20_ABI
+    )
+    USDC_contract = Contract.from_abi(
+        "USDC", token_addresses[chain_id]["USDC"], ERC20_ABI
+    )
+    USDC_decimals = USDC_contract.decimals()
+    WETH_decimals = WETH_contract.decimals()
+
+    print(
+        "Balances before swap:\n"
+        f"USDC: {USDC_contract.balanceOf(ops_multisig.address)/ (10 ** USDC_decimals)}\n" +
+        f"WETH: {WETH_contract.balanceOf(ops_multisig.address)/ (10 ** WETH_decimals)}\n\n"
+    )
+
+    # approve the router to spend ops_multisig's USDC
+    print(f"Approve SushiSwap router for USDC")
+    USDC_contract.approve(
+        SUSHISWAP_ROUTER_ADDRESSES[chain_id],
+        2 ** 256 - 1,
+        {"from": ops_multisig.address}
+    )
+
+    # custom USDC amount
+    amount_in = usdc_amount
+
+    # path to use for swapping
+    path = [token_addresses[chain_id]["USDC"],
+            token_addresses[chain_id]["WETH"],
+            ]
+
+    # min amount of SDL to receive
+    amount_out_min = sushiswap_router.getAmountsOut(
+        amount_in,
+        path
+    )[1]
+
+    to = ops_multisig.address
+    deadline = chain[-1].timestamp + 3600 * 72
+
+    # perform swap
+    print(
+        f"Swap {amount_in / (10 ** USDC_decimals)} USDC for {amount_out_min / (10 ** WETH_decimals)} WETH on SushiSwap"
+    )
+    sushiswap_router.swapExactTokensForTokens(
+        amount_in,
+        amount_out_min,
+        path,
+        to,
+        deadline,
+        {"from": ops_multisig.address}
+    )
+
+    print(
+        "Balances after swap:\n"
+        f"USDC: {USDC_contract.balanceOf(ops_multisig.address)/ (10 ** USDC_decimals)}\n" +
+        f"WETH: {WETH_contract.balanceOf(ops_multisig.address)/ (10 ** WETH_decimals)}"
+    )
+    return WETH_contract.balanceOf(ops_multisig.address)
+
+def get_sdl_value_in_usdc_sushi(chain_id: int, sdl_amount: int):
+    sushiswap_router = Contract.from_abi(
+        "SushiSwapRouter",
+        SUSHISWAP_ROUTER_ADDRESSES[chain_id],
+        SUSHISWAP_ROUTER_ABI
+    )
+    # path to use for swapping
+    path = [token_addresses[chain_id]["SDL"],
+            token_addresses[chain_id]["WETH"],       
+            token_addresses[chain_id]["USDC"],
+            ]
+    # min amount of SDL to receive
+    amount_out_min = sushiswap_router.getAmountsOut(
+        sdl_amount,
+        path
+    )[2]
+    print(f"SDL value in USDC: {amount_out_min}")
+    return amount_out_min
+    
 
 def bridge_usdc_to_mainnet(ops_multisig: ApeSafe, chain_id: int):
     print(f"\n\nBridging USDC from chain_id {chain_id} to mainnet\n\n")
