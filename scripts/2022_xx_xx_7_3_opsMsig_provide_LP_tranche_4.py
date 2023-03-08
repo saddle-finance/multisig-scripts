@@ -89,7 +89,7 @@ def main():
 
     # TODO: set 'safe_nonce'
     safe_tx = ops_multisig.multisend_from_receipts()
-    safe_nonce = 3
+    safe_nonce = 6
 
     safe_tx.safe_nonce = safe_nonce
 
