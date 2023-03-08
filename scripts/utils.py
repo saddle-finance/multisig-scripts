@@ -748,6 +748,7 @@ def buy_sdl_with_usdc_sushi_custom_amount(
     ops_multisig: ApeSafe, 
     chain_id: int, 
     usdc_amount: int,
+    min_amount_delay_factor: float = 0.98
 ):
     print(f"\n\nBuying {usdc_amount/10**6} USDC worth of SDL on SushiSwap \n\n")
 
@@ -791,7 +792,7 @@ def buy_sdl_with_usdc_sushi_custom_amount(
     amount_out_min = sushiswap_router.getAmountsOut(
         amount_in,
         path
-    )[2]
+    )[2] * min_amount_delay_factor
 
     to = ops_multisig.address
     deadline = chain[-1].timestamp + 3600 * 72
@@ -818,6 +819,7 @@ def buy_sdl_with_usdc_fraxswap_custom_amount(
     ops_multisig: ApeSafe, 
     chain_id: int, 
     usdc_amount: int,
+    min_amount_delay_factor: float = 0.98
 ):
     print(f"\n\nBuying {usdc_amount/10**6} USDC worth of SDL on FraxSwap \n\n")
     
@@ -857,7 +859,7 @@ def buy_sdl_with_usdc_fraxswap_custom_amount(
         1,
         0,
         usdc_amount,
-        slippage_factor= 0.995
+        slippage_factor= 0.98
     )
     
     # approve FRAX for fraxswap router
@@ -883,7 +885,7 @@ def buy_sdl_with_usdc_fraxswap_custom_amount(
     amount_out_min = fraxswap_router.getAmountsOut(
         amount_in,
         path
-    )[1]
+    )[1] * min_amount_delay_factor
     print(f"amount_out_min: {amount_out_min}")
 
     to = ops_multisig.address
@@ -1287,6 +1289,7 @@ def buy_weth_with_usdc_sushi_custom_amount(
     ops_multisig: ApeSafe,
     chain_id,
     usdc_amount: int,
+    min_amount_delay_factor: float = 0.98
 ):
     print(f"\n\nBuying {usdc_amount / 10**6} USDC worth of WETH on SushiSwap\n\n")
     sushiswap_router = Contract.from_abi(
@@ -1329,7 +1332,7 @@ def buy_weth_with_usdc_sushi_custom_amount(
     amount_out_min = sushiswap_router.getAmountsOut(
         amount_in,
         path
-    )[1]
+    )[1] * min_amount_delay_factor
 
     to = ops_multisig.address
     deadline = chain[-1].timestamp + 3600 * 72
