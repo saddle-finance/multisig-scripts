@@ -1,7 +1,9 @@
 from helpers import (
     CHAIN_IDS,
     OPS_MULTISIG_ADDRESSES,
+    ERC20_ABI
 )
+from fee_distro_helpers import token_addresses
 from ape_safe import ApeSafe
 from brownie import accounts, network
 from scripts.utils import (
@@ -86,6 +88,11 @@ def main():
         sdl_amount,
         tolerance_factor = 0.95
     )
+
+    USDC = Contract.from_abi(
+        "USDC",token_addresses[CHAIN_IDS[TARGET_NETWORK]]["USDC"], ERC20_ABI
+    )
+    print(f"USDC balance: {USDC.balanceOf(ops_multisig.address)/1e6} USDC")
 
     # TODO: set 'safe_nonce'
     safe_tx = ops_multisig.multisend_from_receipts()
