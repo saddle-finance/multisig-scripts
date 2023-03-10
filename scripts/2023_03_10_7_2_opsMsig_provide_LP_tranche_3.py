@@ -90,7 +90,7 @@ def main():
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)  # prompts for password
-    # ops_multisig.preview(safe_tx)
-    for tx in history:
-        tx.info()
+    ops_multisig.preview(safe_tx)
+    #for tx in history:
+    #    tx.info()
     confirm_posting_transaction(ops_multisig, safe_tx)
