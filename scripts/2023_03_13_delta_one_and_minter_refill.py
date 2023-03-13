@@ -1,5 +1,5 @@
 from ape_safe import ApeSafe
-from brownie import accounts, network
+from brownie import accounts, history, network
 
 from helpers import (CHAIN_IDS, MULTISIG_ADDRESSES, SDL_ADDRESSES,
                      SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS,
@@ -32,16 +32,16 @@ def main():
     sdl_vesting_contract_proxy.release()
 
     # Sanity check for SDL balance in multisig
-    sdl_balance = sdl.balanceOf(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
+    sdl_balance = sdl.balanceOf(multisig.address)
     print(f"SDL balance in multisig before transfer: {sdl_balance / 1e18}")
 
     # Transfer 1.5M SDL, weekly amount to Minter
-    sdl.transfer(SDL_MINTER_ADDRESS[CHAIN_IDS["MAINNET"]], 1_500_000)
+    sdl.transfer(SDL_MINTER_ADDRESS[CHAIN_IDS["MAINNET"]], 1_500_000 * 1e18)
     # Transfer 750k SDL to Delta One Deployer
-    sdl.transfer(DELTA_ONE_DEPLOYER, 750_000)
+    sdl.transfer(DELTA_ONE_DEPLOYER, 750_000 * 1e18)
 
     # Sanity check for SDL balance in multisig
-    sdl_balance = sdl.balanceOf(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
+    sdl_balance = sdl.balanceOf(multisig.address)
     print(f"SDL balance in multisig after transfer: {sdl_balance / 1e18}")
 
     # Combine history into multisend txn
