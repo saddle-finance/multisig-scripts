@@ -301,17 +301,12 @@ def get_contracts_from_deployment(chain_id: int, contract_name_filter: str = "*"
     return contracts
 
 
-def read_csv_to_dict(filename):
-    with open(filename, 'r') as csvfile:
-        reader = csv.DictReader(csvfile)
-        data = {}
-        for row in reader:
-            for header, value in row.items():
-                if header in data:
-                    data[header].append(value)
-                else:
-                    data[header] = [value]
-        return data
+def read_two_column_csv_to_dict(filename):
+    with open(filename) as f:
+        next(f)  # Skip the header
+        reader = csv.reader(f, skipinitialspace=True)
+        result = dict(reader)
+    return result
 
 
 VESTING_ABI = get_abi("Vesting")

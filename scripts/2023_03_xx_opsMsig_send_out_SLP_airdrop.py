@@ -2,7 +2,7 @@ from helpers import (
     CHAIN_IDS,
     OPS_MULTISIG_ADDRESSES,
     ERC20_ABI,
-    read_csv_to_dict
+    read_two_column_csv_to_dict
 )
 from ape_safe import ApeSafe
 from brownie import accounts, network, Contract
@@ -31,17 +31,20 @@ def main():
     SLP_ADDRESS = "0x0C6F06b32E6Ae0C110861b8607e67dA594781961"
     SLP = Contract.from_abi("SLP", SLP_ADDRESS, ERC20_ABI)
 
-    airdrop_dict = read_csv_to_dict("../csv/veSDL_aidrop_amounts.csv")
+    airdrop_dict = read_two_column_csv_to_dict(
+        "../csv/veSDL_airdrop_amounts.csv")
     total_SLP_sent = 0
-    for address, amount in airdrop_dict:
-        total_SLP_sent += amount
-        SLP.transfer(address, amount)
 
-    print(f"Total SLP sent: {total_SLP_sent/1e18}")
+    for address in airdrop_dict.keys():
+        amount = float(airdrop_dict[address])
+        total_SLP_sent += amount
+        SLP.transfer(address, amount * SLP.decimals())
+
+    print(f"Total SLP sent: {total_SLP_sent}")
 
     # TODO: set 'safe_nonce'
     safe_tx = ops_multisig.multisend_from_receipts()
-    safe_nonce = 5
+    safe_nonce = 6
 
     safe_tx.safe_nonce = safe_nonce
 
