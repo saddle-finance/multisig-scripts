@@ -36,7 +36,7 @@ def main():
         OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
     )
 
-    # buy $15k worth of WETH and SDL each with USDC and provide LP to sushi pool
+    # buy $48k worth of WETH and SDL each with USDC and provide LP to sushi pool
     price_impact_factor = 1.95
     total_usdc_amount_to_buy_sdl = 48_000 * 1e6
     sushi_percentage = 0.45
@@ -84,13 +84,13 @@ def main():
 
     # TODO: set 'safe_nonce'
     safe_tx = ops_multisig.multisend_from_receipts()
-    safe_nonce = 4
+    safe_nonce = 5
 
     safe_tx.safe_nonce = safe_nonce
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)  # prompts for password
-    ops_multisig.preview(safe_tx)
-    #for tx in history:
-    #    tx.info()
+    #ops_multisig.preview(safe_tx)
+    for tx in history:
+        tx.info()
     confirm_posting_transaction(ops_multisig, safe_tx)
