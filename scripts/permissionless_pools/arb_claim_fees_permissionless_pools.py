@@ -2,6 +2,7 @@ from helpers import (
     CHAIN_IDS,
     MULTISIG_ADDRESSES,
 )
+
 from ape_safe import ApeSafe
 from brownie import accounts, network
 from brownie import history
@@ -24,6 +25,7 @@ def main():
 
     # claim fees on permissionless pools
     claim_fees_permissionless_pools(multisig, CHAIN_IDS[TARGET_NETWORK])
+
 
     # TODO: set 'safe_nonce'
     safe_tx = multisig.multisend_from_receipts()
