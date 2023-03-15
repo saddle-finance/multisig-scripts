@@ -72,13 +72,12 @@ def main():
         CHAIN_IDS[TARGET_NETWORK],
         weth_amount,
         sdl_amount,
-        tolerance_factor = 0.6
+        tolerance_factor = 0.95
     )
 
     # TODO: set 'safe_nonce'
     safe_tx = ops_multisig.multisend_from_receipts()
-    safe_nonce = 3
-
+    safe_nonce = 4
     safe_tx.safe_nonce = safe_nonce
 
     # sign with private key

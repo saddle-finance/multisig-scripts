@@ -1,7 +1,9 @@
 from helpers import (
     CHAIN_IDS,
     OPS_MULTISIG_ADDRESSES,
+    ERC20_ABI
 )
+from fee_distro_helpers import token_addresses
 from ape_safe import ApeSafe
 from brownie import accounts, network
 from scripts.utils import (
@@ -13,7 +15,7 @@ from scripts.utils import (
     get_sdl_value_in_usdc_sushi,
     buy_sdl_with_usdc_fraxswap_custom_amount
 )
-from brownie import history
+from brownie import history, Contract
 
 
 TARGET_NETWORK = "MAINNET"
@@ -21,7 +23,7 @@ TARGET_NETWORK = "MAINNET"
 
 def main():
     """
-    1. Buy $15k total SDL on sushi and fraxswap in given ratio
+    1. Buy $40k total SDL on sushi and fraxswap in given ratio
     2. Buy required WETH on sushi to match SDL value for LPing
     3. Provide LP on sushi
     """
@@ -34,23 +36,11 @@ def main():
         OPS_MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]]
     )
 
-    # swap remaining USDT from last step to USDC using curve
-    CURVE_3POOL_MAINNET = "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7"
-    swap_curve(
-        ops_multisig, 
-        CHAIN_IDS[TARGET_NETWORK],
-        CURVE_3POOL_MAINNET, 
-        False,
-        2,
-        1,
-        468291048
-    )
-
-    # buy $15k worth of WETH and SDL each with USDC and provide LP to sushi pool
-    price_impact_factor = 1.55
-    total_usdc_amount_to_buy_sdl = 15_000 * 1e6
-    sushi_percentage = 0.3
-    fraxswap_percentage = 0.7
+    # buy $48k worth of WETH and SDL each with USDC and provide LP to sushi pool
+    price_impact_factor = 1.95
+    total_usdc_amount_to_buy_sdl = 48_000 * 1e6
+    sushi_percentage = 0.45
+    fraxswap_percentage = 0.55
 
     # buy SDL on sushi
     sdl_amount = buy_sdl_with_usdc_sushi_custom_amount(
@@ -84,18 +74,23 @@ def main():
         CHAIN_IDS[TARGET_NETWORK],
         weth_amount,
         sdl_amount,
-        tolerance_factor = 0.95
+        tolerance_factor = 0.6
     )
+
+    USDC = Contract.from_abi(
+        "USDC",token_addresses[CHAIN_IDS[TARGET_NETWORK]]["USDC"], ERC20_ABI
+    )
+    print(f"USDC balance: {USDC.balanceOf(ops_multisig.address)/1e6} USDC")
 
     # TODO: set 'safe_nonce'
     safe_tx = ops_multisig.multisend_from_receipts()
-    safe_nonce = 6
+    safe_nonce = 5
 
     safe_tx.safe_nonce = safe_nonce
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)  # prompts for password
-    # ops_multisig.preview(safe_tx)
+    #ops_multisig.preview(safe_tx)
     for tx in history:
         tx.info()
     confirm_posting_transaction(ops_multisig, safe_tx)
