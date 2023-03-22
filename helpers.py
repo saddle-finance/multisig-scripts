@@ -1,4 +1,5 @@
 import json
+import csv
 from enum import IntEnum
 from glob import glob
 from typing import Dict, List, Tuple
@@ -101,7 +102,8 @@ SDL_ADDRESSES = {
 }
 
 
-ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]                  : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
+ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]
+    : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
 
 
 SDL_MINTER_ADDRESS = {
@@ -293,6 +295,14 @@ def get_contracts_from_deployment(chain_id: int, contract_name_filter: str = "*"
         contracts[contract_name] = Contract.from_abi(
             contract_name, contract_json["address"], contract_json["abi"], owner)
     return contracts
+
+
+def read_two_column_csv_to_dict(filename):
+    with open(filename) as f:
+        next(f)  # Skip the header
+        reader = csv.reader(f, skipinitialspace=True)
+        result = dict(reader)
+    return result
 
 
 VESTING_ABI = get_abi("Vesting")
