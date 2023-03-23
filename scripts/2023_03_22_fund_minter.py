@@ -34,9 +34,9 @@ def main():
     sdl_balance = sdl.balanceOf(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
     print(f"SDL balance in multisig before transfer: {sdl_balance / 1e18}")
 
-    # Transfer SDL such that multisig has extra room with 800k SDL
+    # Transfer 1.5M SDL to minter
     sdl.transfer(
-        SDL_MINTER_ADDRESS[CHAIN_IDS["MAINNET"]], sdl_balance - 800_000 * 1e18)
+        SDL_MINTER_ADDRESS[CHAIN_IDS["MAINNET"]], 1_500_000 * 1e18)
 
     # Sanity check for SDL balance in multisig
     sdl_balance = sdl.balanceOf(MULTISIG_ADDRESSES[CHAIN_IDS["MAINNET"]])
