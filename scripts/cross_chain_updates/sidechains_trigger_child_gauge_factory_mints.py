@@ -1,5 +1,3 @@
-
-
 from brownie import Wei, accounts, history, network
 from brownie.network import max_fee, priority_fee
 
@@ -7,7 +5,6 @@ from helpers import (CHAIN_IDS, get_contract_from_deployment,
                      get_contracts_from_deployment)
 
 SUPPORTED_SIDECHAIN_NETWORKS = ["ARBITRUM", "OPTIMISM"]
-
 
 def main():
     """
@@ -67,15 +64,26 @@ def main():
 
     # Calls mint() on the ChildGaugeFactory with the child gauge addresses
     # Encode the call data for Multicall3
+    bad_gauges = [] # place the addresses of any failed gauges here
     for child_gauge in all_child_gauges.values():
+        if child_gauge.address in bad_gauges:
+            print(f"Skipping {child_gauge.address} because it's bad")
+            continue
+        print(child_gauge)
         muticall3_calls.append([
             childGaugeFactory.address,
             childGaugeFactory.mint.encode_input(child_gauge)
         ])
 
     # Call all mint() calls in one Multicall3 transaction
-    multicall3.tryAggregate(False, muticall3_calls, {"from": deployer_EOA})
+    print(muticall3_calls)
 
+    # Call all mint() calls in one Multicall3 transaction
+    multicall3.tryAggregate(False, muticall3_calls, {"from": deployer_EOA, "gas_limit": 4_000_000, "allow_revert": True})
+
+    print(multicall3.tryAggregate.encode_input(False, muticall3_calls)) #, {"from": deployer_EOA, "gas_limit": 10_000_000})
+    # print(deployer_EOA.address)
+    # print(multicall3.address)
     for tx in history:
         tx.info()
     return
