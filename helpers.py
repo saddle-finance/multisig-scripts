@@ -1,4 +1,5 @@
 import json
+import csv
 from enum import IntEnum
 from glob import glob
 from typing import Dict, List, Tuple
@@ -84,6 +85,16 @@ MASTER_REGISTRY_ADDRESSES = {
     CHAIN_IDS["EVMOS"]: "0xBa684B8E05415726Ee1fFE197eaf1b82E4d44418",
 }
 
+# TODO: create OPS multisig on all chains
+OPS_MULTISIG_ADDRESSES = {
+    # temporarily using random EOA with ETH as ops multisig
+    CHAIN_IDS["MAINNET"]: "0x4802CedbDF865382dbaED8D5e41a65C8AB840676",
+    CHAIN_IDS["HARDHAT"]: "0x10ceF5D0DBA82335C0Baf9c189223657638b2e43",
+    CHAIN_IDS["ARBITRUM"]: "0x6d9b26C25993358dCa0ABE9BF6A26Ddb18583200",
+    CHAIN_IDS["EVMOS"]: "0x8A0BB6E3456008195219Bf71E1Bb6E37b909c153",
+    CHAIN_IDS["OPTIMISM"]: "0x55F51A0DF2714F3CcA7acBcd9d3552A66FF5953B",
+}
+
 SDL_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0xf1Dc500FdE233A4055e25e5BbF516372BC4F6871",
     CHAIN_IDS["OPTIMISM"]: "0xAe31207aC34423C41576Ff59BFB4E036150f9cF7",
@@ -91,7 +102,8 @@ SDL_ADDRESSES = {
 }
 
 
-ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]                  : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
+ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]
+    : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
 
 
 SDL_MINTER_ADDRESS = {
@@ -121,12 +133,31 @@ DISPERSE_APP_ADDRESSES = {
     CHAIN_IDS["MAINNET"]: "0xD152f549545093347A162Dce210e7293f1452150",
 }
 
-ARBITRUM_L2_BRIDGE_ROUTER = {
+OPTIMISM_STANDARD_BRIDGE = {
+    CHAIN_IDS["MAINNET"]: "0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1",
+    CHAIN_IDS["OPTIMISM"]: "0x4200000000000000000000000000000000000010",
+}
+
+ARB_GATEWAY_ROUTER = {
     CHAIN_IDS["MAINNET"]: "0x72Ce9c846789fdB6fC1f34aC4AD25Dd9ef7031ef",
+    CHAIN_IDS["ARBITRUM"]: "0x5288c571Fd7aD117beA99bF60FE0846C4E84F933",
+}
+
+ARB_GENERIC_GATEWAY = {
+    CHAIN_IDS["MAINNET"]: "0xa3A7B6F88361F48403514059F1F16C8E78d60EeC",
+}
+
+ARB_BRIDGE_INBOX = {
+    CHAIN_IDS["MAINNET"]: "0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f",
 }
 
 EVMOS_NOMAD_ERC20_BRIDGE_ROUTER = {
     CHAIN_IDS["MAINNET"]: "0x88A69B4E698A4B090DF6CF5Bd7B2D47325Ad30A3",
+}
+
+EVMOS_CELER_LIQUIDITY_BRIDGE = {
+    CHAIN_IDS["MAINNET"]: "0x5427FEFA711Eff984124bFBB1AB6fbf5E3DA1820",
+    CHAIN_IDS["EVMOS"]: "0x5F52B9d1C0853da636e178169e6B426E4cCfA813"
 }
 
 JUMP_RECEIVER_ADDRESS = {
@@ -149,6 +180,10 @@ MINTER = {
     CHAIN_IDS["MAINNET"]: "0x358fE82370a1B9aDaE2E3ad69D6cF9e503c96018",
 }
 
+SUSHISWAP_ROUTER_ADDRESSES = {
+    CHAIN_IDS["MAINNET"]: "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F",
+}
+
 # Multisig owners
 OWNERS = [
     "0xD131F1BcDd547e067Af447dD3C36C99d6be9FdEB",  # Weston_Nelson
@@ -168,6 +203,7 @@ OPTIMISM_STANDARD_BRIDGE = {
 
 ARB_GATEWAY_ROUTER = {
     CHAIN_IDS["MAINNET"]: "0x72Ce9c846789fdB6fC1f34aC4AD25Dd9ef7031ef",
+    CHAIN_IDS["ARBITRUM"]: "0x5288c571Fd7aD117beA99bF60FE0846C4E84F933",
 }
 
 ARB_GENERIC_GATEWAY = {
@@ -261,6 +297,14 @@ def get_contracts_from_deployment(chain_id: int, contract_name_filter: str = "*"
     return contracts
 
 
+def read_two_column_csv_to_dict(filename):
+    with open(filename) as f:
+        next(f)  # Skip the header
+        reader = csv.reader(f, skipinitialspace=True)
+        result = dict(reader)
+    return result
+
+
 VESTING_ABI = get_abi("Vesting")
 GAUGE_ABI = get_abi("Gauge")
 NOMAD_GATEWAY_ABI = get_abi("NomadRouterImpl")
@@ -268,4 +312,19 @@ GNOSIS_SAFE_ABI = get_abi("GnosisSafeImpl")
 POOL_REGISTRY_ABI = get_abi("PoolRegistry")
 MINICHEF_ABI = get_abi("MiniChefV2")
 SWAP_FLASH_LOAN_ABI = get_abi("SwapFlashLoan")
+UNIV3_ROUTER_ABI = get_abi("UniV3Router")
+UNIV3_QUOTER_ABI = get_abi("UniV3Quoter")
 META_SWAP_ABI = get_abi("MetaSwap")
+ERC20_ABI = get_abi("ERC20")
+META_SWAP_ABI = get_abi("MetaSwap")
+META_SWAP_DEPOSIT_ABI = get_abi("MetaSwapDeposit")
+SWAP_ABI = get_abi("Swap")
+OPTIMISM_L2_STANDARD_BRIDGE_ABI = get_abi("OptimismL2StandardBridge")
+ARBITRUM_GATEWAY_ROUTER_ABI = get_abi("ArbitrumGatewayRouter")
+SUSHISWAP_ROUTER_ABI = get_abi("SushiSwapRouter")
+EVMOS_CELER_LIQUIDITY_BRIDGE_ABI = get_abi("CelerEvmosLiquidityBridge")
+CURVE_BASE_POOL_128_ABI = get_abi("CurveBasePool128")
+CURVE_BASE_POOL_256_ABI = get_abi("CurveBasePool256")
+CURVE_BASE_POOL_MIXED_ABI = get_abi("CurveBasePoolMixed")
+CURVE_META_POOL_ABI = get_abi("CurveMetaPool")
+PERMISSIONLESS_POOL_ABI = get_abi("PermissionlessPool")

@@ -5,7 +5,7 @@ from helpers import (
     MINICHEF_ADDRESSES,
     MULTISIG_ADDRESSES,
     SDL_ADDRESSES,
-    ARBITRUM_L2_BRIDGE_ROUTER,
+    ARB_GATEWAY_ROUTER,
     EVMOS_NOMAD_ERC20_BRIDGE_ROUTER,
     SDL_MINTER_ADDRESS,
 )
@@ -32,7 +32,7 @@ def main():
     minichef = multisig.contract(MINICHEF_ADDRESSES[CHAIN_IDS["MAINNET"]])
     sdl_contract = multisig.contract(SDL_ADDRESSES[CHAIN_IDS["MAINNET"]])
     arbitrum_L1_Gateway = multisig.contract(
-        ARBITRUM_L2_BRIDGE_ROUTER[CHAIN_IDS["MAINNET"]]
+        ARB_GATEWAY_ROUTER[CHAIN_IDS["MAINNET"]]
     )
     evmos_L1_Gateway = multisig.contract(
         EVMOS_NOMAD_ERC20_BRIDGE_ROUTER[CHAIN_IDS["MAINNET"]]
@@ -61,7 +61,8 @@ def main():
     sdl_contract.approve(sdlGatewayAddress, amountToSendArbitrumMiniChef)
     arb_encoded = (
         "0x"
-        + eth_abi.encode_abi(["uint256", "bytes32[]"], [maxSubmisstionCostL2, []]).hex()
+        + eth_abi.encode_abi(["uint256", "bytes32[]"],
+                             [maxSubmisstionCostL2, []]).hex()
     )
 
     arbitrum_L1_Gateway.outboundTransfer(

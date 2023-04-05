@@ -45,8 +45,9 @@ def main():
     deployer_EOA = accounts.load("deployer")
 
     # Disable the dynamic fee settings if using ganache v6 / pre-london fork
-    priority_fee("auto")
-    max_fee(Wei("25 gwei"))
+    if network.chain.id == CHAIN_IDS["ARBITRUM"]:
+        priority_fee("auto")
+        max_fee(Wei("15 gwei"))
 
     # List of calls to be used for Multicall3
     multicall3 = get_contract_from_deployment(
