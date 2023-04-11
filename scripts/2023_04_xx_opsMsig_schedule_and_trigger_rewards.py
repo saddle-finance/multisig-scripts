@@ -36,12 +36,14 @@ def main():
         CHAIN_IDS[TARGET_NETWORK], "RewardScheduler_ChildGauge_CommunityfUSDCLPToken_SDL", ops_multisig.account)
 
     # Approve each token to be used by the reward schedulers
-    fusdc.approve(rewardScheduler_fUSDC, 10_000 * 1e18 / 12)
+    fusdc.approve(rewardScheduler_fUSDC, 10_000 * 1e6 / 12)
     sdl.approve(rewardScheduler_sdl, 1_000_000 * 1e18 / 12)
 
+    print(f"Ops msig fUSDC balance: {fusdc.balanceOf(ops_multisig.address)}")
+
     # Schedule rewards for 1 week.
-    rewardScheduler_fUSDC.scheduleRewards(10_000 * 1e18 / 12, 1, True)
-    rewardScheduler_sdl.scheduleRewards(1_000_000 * 1e18 / 12, 1, True)
+    rewardScheduler_fUSDC.scheduleReward(10_000 * 1e6 / 12, 1, True)
+    rewardScheduler_sdl.scheduleReward(1_000_000 * 1e18 / 12, 1, True)
 
     safe_tx = ops_multisig.multisend_from_receipts()
     safe_nonce = 5
