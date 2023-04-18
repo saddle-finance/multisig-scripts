@@ -14,7 +14,6 @@ TARGET_NETWORK = "MAINNET"
 def main():
     """
     Send 1.5M SDL to Minter contract.
-    Reduce Minter rate to 625_000 SDL per week according to SIP-51.
     Kill old root gauge.
     Add the new fUSDC Root Gauge to the Gauge Controller contract.
     """
@@ -28,14 +27,12 @@ def main():
     sdl_vesting_contract_proxy = multisig.get_contract(
         SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
     )
-    minter = get_contract_from_deployment(
-        CHAIN_IDS[TARGET_NETWORK], "Minter", multisig.account)
     gauge_controller = get_contract_from_deployment(
         CHAIN_IDS[TARGET_NETWORK], "GaugeController", multisig.account)
     old_root_gauge = get_contract_from_deployment(
         CHAIN_IDS[TARGET_NETWORK], "RootGauge_42161_CommunityfUSDCPoolLPToken", multisig.account)
     new_root_gauge = get_contract_from_deployment(
-        CHAIN_IDS[TARGET_NETWORK], "RootGauge_42161_CommunityfUSDCPoolLPToken_2", multisig.account)
+        CHAIN_IDS[TARGET_NETWORK], "RootGauge_42161_CommunityfUSDCPoolLPTokenV2", multisig.account)
 
     # Claim SDL from vesting contract
     sdl_vesting_contract_proxy.release()
@@ -51,9 +48,6 @@ def main():
     # Sanity check for SDL balance in multisig
     sdl_balance = sdl.balanceOf(MULTISIG_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
     print(f"SDL balance in multisig after transfer: {sdl_balance / 1e18}")
-
-    # Reduce SDL minter rate to 15,000,000 / 24 = 625000 SDL per week
-    minter.commit_next_emission(625_000 * 1e18)
 
     # mark root gauge as killed
     old_root_gauge.set_killed(True)
