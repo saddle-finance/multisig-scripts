@@ -31,8 +31,6 @@ def main():
         CHAIN_IDS[TARGET_NETWORK], "GaugeController", multisig.account)
     old_root_gauge = get_contract_from_deployment(
         CHAIN_IDS[TARGET_NETWORK], "RootGauge_42161_CommunityfUSDCPoolLPToken", multisig.account)
-    new_root_gauge = get_contract_from_deployment(
-        CHAIN_IDS[TARGET_NETWORK], "RootGauge_42161_CommunityfUSDCPoolLPTokenV2", multisig.account)
 
     # Claim SDL from vesting contract
     sdl_vesting_contract_proxy.release()
@@ -51,9 +49,6 @@ def main():
 
     # mark root gauge as killed
     old_root_gauge.set_killed(True)
-
-    # add new root gauge to gauge controller
-    gauge_controller.add_gauge(new_root_gauge, 0, 0)
 
     # Combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
