@@ -18,7 +18,6 @@ def main():
     2. Set Implementation of RootGauge to RootGaugeV2 in RootGaugeFactory
     3. Deploy fUSDC gauge
     4. Add fUSDC gauge to GaugeController
-    5. Approves BAO multisig on the smart wallet checker
     """
 
     print(f"You are using the '{network.show_active()}' network")
