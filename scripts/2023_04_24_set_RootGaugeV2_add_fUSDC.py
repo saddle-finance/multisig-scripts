@@ -73,14 +73,6 @@ def main():
     # add fUSDC gauge to gauge controller
     gauge_controller.add_gauge(fUSDC_gauge_address, 0, 0)
 
-    # whitelisting wallet addresses
-    smart_wallet_checker = get_contract_from_deployment(
-        CHAIN_IDS[TARGET_NETWORK], "SmartWalletChecker", multisig.account
-    )
-    # BAO
-    smart_wallet_checker.approveWallet(
-        "0x3dfc49e5112005179da613bde5973229082dac35")
-
     # Combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
     # safe_tx.safe_nonce = 0 # uncomment if you want to use a specific nonce
