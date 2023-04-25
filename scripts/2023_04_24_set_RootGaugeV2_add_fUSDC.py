@@ -38,19 +38,19 @@ def main():
 
     # set root gauge implementation
     root_gauge_factory.set_implementation(root_gaugeV2_implementation.address)
-    
+
     # deploy fUSDC gauge
     # ethers.utils.keccak256(ethers.utils.formatBytes32String("fUSDC-USDC poolV2"))
     registryNameToSalt = "0x1f8f6a8a01c5b62778eeab7f342d60fcf69ff477bd14114f0c8cfcb8589a5bf6"
-    root_gauge_factory.deploy_gauge(
+    deploy_tx = root_gauge_factory.deploy_gauge(
         CHAIN_IDS["ARBITRUM"],
         registryNameToSalt,
         "CommunityfUSDCPoolLPTokenV2"
     )
+    fUSDC_gauge_address = deploy_tx.events['DeployedGauge']['_gauge']
+
     # add fUSDC gauge to gauge controller
-    address, abi = get_deployment_details(
-        CHAIN_IDS["MAINNET"], "RootGauge_42161_CommunityfUSDCPoolLPTokenV2")
-    gauge_controller.add_gauge(address, 0, 0)
+    gauge_controller.add_gauge(fUSDC_gauge_address, 0, 0)
 
     # Combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
