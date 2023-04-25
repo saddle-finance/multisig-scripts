@@ -14,9 +14,11 @@ TARGET_NETWORK = "MAINNET"
 
 def main():
     """
-    1. Set Implementation of RootGauge to RootGaugeV2 in RootGaugeFactory
-    2. Deploy fUSDC gauge
-    3. Add fUSDC gauge to GaugeController
+    1. Claims vesting SDL and refills Minter
+    2. Set Implementation of RootGauge to RootGaugeV2 in RootGaugeFactory
+    3. Deploy fUSDC gauge
+    4. Add fUSDC gauge to GaugeController
+    5. Approves BAO multisig on the smart wallet checker
     """
 
     print(f"You are using the '{network.show_active()}' network")
@@ -36,6 +38,26 @@ def main():
         CHAIN_IDS[TARGET_NETWORK], "RootGaugeV2", multisig.account
     )
 
+    sdl = multisig.get_contract(SDL_ADDRESSES[CHAIN_IDS[TARGET_NETWORK]])
+
+    sdl_vesting_contract_proxy = multisig.get_contract(
+        SDL_DAO_COMMUNITY_VESTING_PROXY_ADDRESS[CHAIN_IDS[TARGET_NETWORK]]
+    )
+
+    # Claim SDL from vesting contract
+    sdl_vesting_contract_proxy.release()
+
+    # Sanity check for SDL balance in multisig
+    sdl_balance = sdl.balanceOf(multisig.address)
+    print(f"SDL balance in multisig before transfer: {sdl_balance / 1e18}")
+
+    # Transfer 1.5M SDL, weekly amount to Minter
+    sdl.transfer(SDL_MINTER_ADDRESS[CHAIN_IDS["MAINNET"]], 1_500_000 * 1e18)
+
+    # Sanity check for SDL balance in multisig
+    sdl_balance = sdl.balanceOf(multisig.address)
+    print(f"SDL balance in multisig after transfer: {sdl_balance / 1e18}")
+
     # set root gauge implementation
     root_gauge_factory.set_implementation(root_gaugeV2_implementation.address)
 
@@ -51,6 +73,14 @@ def main():
 
     # add fUSDC gauge to gauge controller
     gauge_controller.add_gauge(fUSDC_gauge_address, 0, 0)
+
+    # whitelisting wallet addresses
+    smart_wallet_checker = get_contract_from_deployment(
+        CHAIN_IDS[TARGET_NETWORK], "SmartWalletChecker", multisig.account
+    )
+    # BAO
+    smart_wallet_checker.approveWallet(
+        "0x3dfc49e5112005179da613bde5973229082dac35")
 
     # Combine history into multisend txn
     safe_tx = multisig.multisend_from_receipts()
