@@ -14,10 +14,8 @@ TARGET_NETWORK = "MAINNET"
 
 def main():
     """
-    1. Claims vesting SDL and refills Minter
-    2. Set Implementation of RootGauge to RootGaugeV2 in RootGaugeFactory
-    3. Deploy fUSDC gauge
-    4. Add fUSDC gauge to GaugeController
+    1. Kills old fUSDC RootGaugeV2
+    2. Adds new fUSDC RootGaugeV3
     """
 
     print(f"You are using the '{network.show_active()}' network")
