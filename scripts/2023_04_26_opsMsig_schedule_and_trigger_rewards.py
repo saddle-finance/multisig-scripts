@@ -47,7 +47,7 @@ def main():
     sdl.transfer(child_gauge_fusdc, 1_000_000 * 1e18 / 12)
 
     safe_tx = ops_multisig.multisend_from_receipts()
-    safe_nonce = 7
+    safe_nonce = 6
 
     safe_tx.safe_nonce = safe_nonce
 
