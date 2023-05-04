@@ -44,7 +44,7 @@ def main():
     print(f"Ops msig fUSDC balance: {fusdc.balanceOf(ops_multisig.address)}")
 
     # Schedule rewards for 11 weeks.
-    rewardScheduler_fUSDC.scheduleReward("8335805400", 11, False)
+    rewardScheduler_fUSDC.scheduleReward(fUSDCBalance, 10, False)
     # Inject additional SDL reward for this epoch
     # Next mint call for this gauge will count this SDL as rewards emitted from gauge votes
     sdl.transfer(child_gauge_fusdc, 1_000_000 * 1e18 / 12)
