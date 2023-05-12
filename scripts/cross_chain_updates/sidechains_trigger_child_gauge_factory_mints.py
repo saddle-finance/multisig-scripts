@@ -6,6 +6,7 @@ from helpers import (CHAIN_IDS, get_contract_from_deployment,
 
 SUPPORTED_SIDECHAIN_NETWORKS = ["ARBITRUM", "OPTIMISM"]
 
+
 def main():
     """
     Calls mint() on ChildGaugeFactory with all ChildGauge addresses
@@ -64,7 +65,7 @@ def main():
 
     # Calls mint() on the ChildGaugeFactory with the child gauge addresses
     # Encode the call data for Multicall3
-    bad_gauges = [] # place the addresses of any failed gauges here
+    bad_gauges = []  # place the addresses of any failed gauges here
     for child_gauge in all_child_gauges.values():
         if child_gauge.address in bad_gauges:
             print(f"Skipping {child_gauge.address} because it's bad")
@@ -76,14 +77,8 @@ def main():
         ])
 
     # Call all mint() calls in one Multicall3 transaction
-    print(muticall3_calls)
+    multicall3.tryAggregate(False, muticall3_calls, {"from": deployer_EOA})
 
-    # Call all mint() calls in one Multicall3 transaction
-    multicall3.tryAggregate(False, muticall3_calls, {"from": deployer_EOA, "gas_limit": 4_000_000, "allow_revert": True})
-
-    print(multicall3.tryAggregate.encode_input(False, muticall3_calls)) #, {"from": deployer_EOA, "gas_limit": 10_000_000})
-    # print(deployer_EOA.address)
-    # print(multicall3.address)
     for tx in history:
         tx.info()
     return

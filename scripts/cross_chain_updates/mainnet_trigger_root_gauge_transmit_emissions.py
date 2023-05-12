@@ -23,7 +23,7 @@ def main():
 
     # Disable the dynamic fee settings if using ganache v6 / pre-london fork
     priority_fee("auto")
-    max_fee(Wei("25 gwei"))
+    max_fee(Wei("70 gwei"))
 
     # RootGaugeFactory contract
     rootGaugeFactory = get_contract_from_deployment(
