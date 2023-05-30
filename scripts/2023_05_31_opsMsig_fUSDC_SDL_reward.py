@@ -11,7 +11,7 @@ TARGET_NETWORK = "ARBITRUM"
 
 def main():
     """
-    Send 83,333 * 2 SDL to fUSDC Child gauge for this epoch and the previous one (2 epochs)
+    Send 83,333 SDL to fUSDC Child gauge for this epoch 
     """
 
     print(f"You are using the '{network.show_active()}' network")
@@ -28,7 +28,7 @@ def main():
     child_gauge_fusdc = get_contract_from_deployment(
         CHAIN_IDS[TARGET_NETWORK], "ChildGauge_CommunityfUSDCPoolLPTokenV3", ops_multisig.account)
 
-    sdl.transfer(child_gauge_fusdc, 1_000_000 * 1e18 / 12 * 2)
+    sdl.transfer(child_gauge_fusdc, 1_000_000 * 1e18 / 12)
 
     safe_tx = ops_multisig.multisend_from_receipts()
 
