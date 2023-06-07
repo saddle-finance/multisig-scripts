@@ -44,11 +44,18 @@ assert_filename(__file__)
 
 
 ## Troubleshooting
-Blow up all deps and try again
+Ensure you have ganache v7 installation
+```sh
+> ganache-cli --version
+ganache v7.7.3 (@ganache/cli: 0.8.2, @ganache/core: 0.8.2)
+```
+If you are using ganache v6, follow the upgrade guide below to install ganache v7
+https://github.com/trufflesuite/ganache/blob/develop/UPGRADE-GUIDE.md
+
+If pip installation fails inside a venv, try removing all pip packages and reinstalling.
+
 ```sh
 git checkout origin/master requirements.txt
 pip uninstall -y -r <(pip freeze)
 pip install --no-deps -r requirements.txt
-npm uninstall ganache --global
-npm install ganache-cli --global
 ```
