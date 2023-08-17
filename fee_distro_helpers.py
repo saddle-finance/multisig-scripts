@@ -1,8 +1,6 @@
-from helpers import (
-    CHAIN_IDS,
-    get_abi
-)
 from collections import OrderedDict
+
+from helpers import CHAIN_IDS, get_abi
 
 MAX_POOL_LENGTH = 32
 
@@ -42,7 +40,7 @@ token_addresses = {
         "TBTC": "0x18084fbA666a33d37592fA2633fD49a74DD93a88",
         "ALETH": "0x0100546F2cD4C9D97f798fFC9755E47865FF7Ee6",
         "SETH": "0x5e74C9036fb86BD7eCdcb084a0673EFc32eA31cb",
-        "SDL":"0xf1Dc500FdE233A4055e25e5BbF516372BC4F6871"
+        "SDL": "0xf1Dc500FdE233A4055e25e5BbF516372BC4F6871"
     },
     CHAIN_IDS["ARBITRUM"]: {
         "USDC": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
@@ -187,7 +185,42 @@ swap_to_deposit_dicts_saddle = {
         ("0xa6018520EAACC06C30fF2e1B3ee2c7c22e64196a", ""),
         # Saddle TBTC Metapool
         ("0xfa9ED0309Bf79Eb84C847819F0B3CB84F6d351Af",
-         "0x4946DE721ce70D4B7aa226aA0Fe869C935769388")
+         "0x4946DE721ce70D4B7aa226aA0Fe869C935769388"),
+        # Saddle 4pool outdated
+        ("0x101CD330D088634B6F64c2eb4276e63Bf1BbfDE3", ""),
+        # Saddle BP BTC v2 Meta pool
+        ("0x8B2DB87142dA4D5Ecfa9B416E592DF9155A38c2D",
+         "0x83F87E73148EE05F669293C2f90163b6D0d261ed"),
+        # Saddle BTC BP pool
+        ("0xCcbE39ffC56915fd88e1AAB58010d305441Bab26", ""),
+        # Saddle SUSD Metapool oudated
+        ("0x0C8BAe14c9f9BF2c953997C881BEfaC7729FD314",
+         "0x1e35ebF875f8A2185EDf22da02e7dBCa0F5558aB"),
+        # Saddle BTC pool outdated
+        ("0x4f6A43Ad7cba042606dECaCA730d4CE0A57ac62e", ""),
+        # Saddle sUSD Metapool oudated
+        ("0x824dcd7b044d60df2e89b1bb888e66d8bcf41491",
+         "0xc66Ed5d7800579220c71f21B1cCa2006B3a95900"),
+        # TBTC Metapool outdated
+        ("0xa0b4a2667dd60d5cdd7ecff1084f0ceb8dd84326",
+         "0x05383312655856E25b851c15fA856dB7e270F0cF"),
+        # USD pool outdated
+        ("0x3911F80530595fBd01Ab1516Ab61255d75AEb066", ""),
+        # vETH2 pool outdated
+        ("0xdec2157831D6ABC3Ec328291119cc91B337272b5", ""),
+        # Vesper frax pool outdated
+        ("0x9AC17f026f0599F77b3513a0A35f0258B0ec77f3",
+         "0x500D0B10a85D9e03f87a5D2E59a681A6631dD6D0"),
+        # Saddle TBTC metapool outdated
+        ("0xf74ebe6e5586275dc4CeD78F5DBEF31B1EfbE7a5",
+         "0xee1ec4e1C6e39C31dAaf3db2A62A397bdf3fe2f1"),
+        # WCUSD Metapool updated
+        ("0xc02D481B52Ae04Ebc76a8882441cfAED45eb8342",
+         "0x9898D87368DE0Bf1f10bbea8dE46c00cC3a2F9F1"),
+        # WCUSD Metapool v3
+        ("0xB62222B941e9B652BE3632EEa062cb0ff66b1d1c",
+         "0x671D5942F901F5C60e4EbaD1c3bF284A4d28c675")
+
     ]),
     CHAIN_IDS["ARBITRUM"]: OrderedDict([
         # Arb USD Pool
@@ -199,15 +232,19 @@ swap_to_deposit_dicts_saddle = {
         # Arb FRAXBP/USDT Metapool
         ("0xf8504e92428d65E56e495684A38f679C1B1DC30b",
          "0xc8DFCFC329E19fDAF43a338aD6038dBA02a5079B"),
-
-        # USDs pools skipped due to being paused because of USDs hack
-
+        # Arb D4 pool
+        ("0xf2839e0b30b5e96083085f498b14bbc12530b734", ""),
+        # fUSDC-USDC pool
+        ("0x773f9144969fa19cdb4cae1ef19d7a381f5f6922", ""),
         # Arb USDS Metapool
-        # ("0x5dD186f8809147F96D3ffC4508F3C82694E58c9c",
-        # "0xDCA5b16A96f984ffb2A3022cfF339eb049126101"),
+        ("0x5dD186f8809147F96D3ffC4508F3C82694E58c9c",
+         "0xDCA5b16A96f984ffb2A3022cfF339eb049126101"),
         # Arb FRAXBP/USDS Metapool
-        # ("0xa5bD85ed9fA27ba23BfB702989e7218E44fd4706",
-        # "0x1D434f50acf16BA013BE3536e9A3CDb5D7d4e694"),
+        ("0xa5bD85ed9fA27ba23BfB702989e7218E44fd4706",
+         "0x1D434f50acf16BA013BE3536e9A3CDb5D7d4e694"),
+        # Arb USX/FRAXBP Metapool
+        ("0xb2a2764D0DCAB445E24f4b813bE3f6ef8AE5f84D",
+         "0x18d2469A9788FAFD0df277a0044Da5ea637a3760"),
     ]),
     CHAIN_IDS["OPTIMISM"]: OrderedDict([
         # Opt USD Pool
