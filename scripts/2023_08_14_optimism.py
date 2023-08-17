@@ -28,14 +28,6 @@ def main():
 
     claim_admin_fees(multisig, CHAIN_IDS[TARGET_NETWORK])
 
-    # Send other tokens to ops multisig
-    tokens_to_transfer = [
-        "0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF",  # ALCX
-        "0xCe391315b414D4c7555956120461D21808A69F3A",  # Bao
-        "0x5fAa989Af96Af85384b8a938c2EdE4A7378D9875",  # GAL
-        "0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F",  # SNX
-    ]
-
     safe_tx = multisig.multisend_from_receipts()
 
     # sign with private key
