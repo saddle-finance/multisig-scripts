@@ -1,12 +1,10 @@
-from helpers import (
-    CHAIN_IDS,
-    MULTISIG_ADDRESSES,
-)
 from ape_safe import ApeSafe
-from brownie import accounts, network, Contract, chain
-from scripts.utils import confirm_posting_transaction, claim_admin_fees
-from brownie import history
+from brownie import Contract, accounts, chain, history, network
 
+from helpers import (CHAIN_IDS, ERC20_ABI, MULTISIG_ADDRESSES,
+                     OPS_MULTISIG_ADDRESSES)
+from scripts.utils import (claim_admin_fees, confirm_posting_transaction,
+                           pause_all_pools)
 
 TARGET_NETWORK = "OPTIMISM"
 
@@ -25,14 +23,12 @@ def main():
     # Run any pending transactions before simulating any more transactions
     # multisig.preview_pending()
 
+    # Pause all pools
+    pause_all_pools(multisig, CHAIN_IDS[TARGET_NETWORK])
+
     claim_admin_fees(multisig, CHAIN_IDS[TARGET_NETWORK])
 
-    # combine history into multisend txn
-    # TODO: set 'safe_nonce'
     safe_tx = multisig.multisend_from_receipts()
-    safe_nonce = 1
-
-    safe_tx.safe_nonce = safe_nonce
 
     # sign with private key
     safe_tx.sign(accounts.load("deployer").private_key)  # prompts for password

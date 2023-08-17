@@ -1,5 +1,5 @@
-import json
 import csv
+import json
 from enum import IntEnum
 from glob import glob
 from typing import Dict, List, Tuple
@@ -17,6 +17,7 @@ CHAIN_IDS = {
     "EVMOS": 9001,
     "KAVA": 2222,
     "AURORA": 1313161554,
+    "FANTOM": 250,
 }
 
 DEPLOYMENT_FOLDER_NAMES = {
@@ -26,6 +27,7 @@ DEPLOYMENT_FOLDER_NAMES = {
     CHAIN_IDS["EVMOS"]: "evmos_mainnet",
     CHAIN_IDS["KAVA"]: "kava_mainnet",
     CHAIN_IDS["AURORA"]: "aurora_mainnet",
+    CHAIN_IDS["FANTOM"]: "fantom_mainnet",
 }
 
 DEPLOYER_ADDRESS = "0x5bdb37d0ddea3a90f233c7b7f6b9394b6b2eef34"
@@ -93,6 +95,7 @@ OPS_MULTISIG_ADDRESSES = {
     CHAIN_IDS["ARBITRUM"]: "0x6d9b26C25993358dCa0ABE9BF6A26Ddb18583200",
     CHAIN_IDS["EVMOS"]: "0x8A0BB6E3456008195219Bf71E1Bb6E37b909c153",
     CHAIN_IDS["OPTIMISM"]: "0x55F51A0DF2714F3CcA7acBcd9d3552A66FF5953B",
+    CHAIN_IDS["AURORA"]: "0xeae45E6958C2808a4C8b8bC2f3E8E99d2c65b734",
 }
 
 SDL_ADDRESSES = {
@@ -102,8 +105,7 @@ SDL_ADDRESSES = {
 }
 
 
-ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]
-    : "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
+ALCX_ADDRESSES = {CHAIN_IDS["MAINNET"]: "0xdbdb4d16eda451d0503b854cf79d55697f90c8df"}
 
 
 SDL_MINTER_ADDRESS = {
@@ -319,6 +321,7 @@ ERC20_ABI = get_abi("ERC20")
 META_SWAP_ABI = get_abi("MetaSwap")
 META_SWAP_DEPOSIT_ABI = get_abi("MetaSwapDeposit")
 SWAP_ABI = get_abi("Swap")
+LEGACY_SWAP_ABI = get_abi("LegacySwap")
 OPTIMISM_L2_STANDARD_BRIDGE_ABI = get_abi("OptimismL2StandardBridge")
 ARBITRUM_GATEWAY_ROUTER_ABI = get_abi("ArbitrumGatewayRouter")
 SUSHISWAP_ROUTER_ABI = get_abi("SushiSwapRouter")
@@ -328,3 +331,11 @@ CURVE_BASE_POOL_256_ABI = get_abi("CurveBasePool256")
 CURVE_BASE_POOL_MIXED_ABI = get_abi("CurveBasePoolMixed")
 CURVE_META_POOL_ABI = get_abi("CurveMetaPool")
 PERMISSIONLESS_POOL_ABI = get_abi("PermissionlessPool")
+WENTOKENS_ABI = [{"inputs": [{"internalType": "contract IERC20", "name": "_token", "type": "address"}, {"internalType": "address[]", "name": "_recipients", "type": "address[]"}, {"internalType": "uint256[]", "name": "_amounts", "type": "uint256[]"}, {"internalType": "uint256", "name": "_total", "type": "uint256"}],
+                  "name": "airdropERC20", "outputs": [], "stateMutability":"nonpayable", "type":"function"}, {"inputs": [{"internalType": "address[]", "name": "_recipients", "type": "address[]"}, {"internalType": "uint256[]", "name": "_amounts", "type": "uint256[]"}], "name": "airdropETH", "outputs": [], "stateMutability":"payable", "type":"function"}]
+
+LEGACY_SWAP_LIST = [
+    "0x4f6A43Ad7cba042606dECaCA730d4CE0A57ac62e",
+    "0x3911F80530595fBd01Ab1516Ab61255d75AEb066",
+    "0xdec2157831D6ABC3Ec328291119cc91B337272b5",
+]

@@ -1,64 +1,49 @@
-from helpers import CHAIN_IDS
-from fee_distro_helpers import (
-    swap_to_deposit_dicts_saddle,
-    swap_to_deposit_dicts_curve,
-    token_addresses,
-    token_to_swap_dicts_saddle,
-    token_to_swap_dicts_curve,
-    univ3_fee_tier_dicts,
-    token_to_token_univ3_dicts,
-    univ3_route_type_tuples,
-    univ3_route_string_tuples,
-    base_pool_abi_types_curve,
-    metaswap_to_base_swap_dicts_curve,
-    MAX_POOL_LENGTH,
-    UNIV3_ROUTER_ADDRESSES,
-    UNIV3_QUOTER_ADDRESSES,
-    SUSHI_SDL_SLP_ADDRESSES,
-    FRAXSWAP_ROUTER_ADDRESSES
-)
-from helpers import (
-    ERC20_ABI,
-    META_SWAP_DEPOSIT_ABI,
-    SWAP_ABI,
-    META_SWAP_ABI,
-    MULTISIG_ADDRESSES,
-    OPS_MULTISIG_ADDRESSES,
-    UNIV3_ROUTER_ABI,
-    UNIV3_QUOTER_ABI,
-    SUSHISWAP_ROUTER_ADDRESSES,
-    SUSHISWAP_ROUTER_ABI,
-    SDL_ADDRESSES,
-    ARB_GATEWAY_ROUTER,
-    OPTIMISM_STANDARD_BRIDGE,
-    OPTIMISM_L2_STANDARD_BRIDGE_ABI,
-    EVMOS_CELER_LIQUIDITY_BRIDGE,
-    EVMOS_CELER_LIQUIDITY_BRIDGE_ABI,
-    CURVE_BASE_POOL_128_ABI,
-    CURVE_BASE_POOL_256_ABI,
-    CURVE_BASE_POOL_MIXED_ABI,
-    CURVE_META_POOL_ABI,
-    PERMISSIONLESS_POOL_ABI,
-    get_contract_from_deployment
-)
-from collections import OrderedDict
-from eth_abi.packed import encode_abi_packed
-from eth_abi import encode_abi
-from gnosis.safe.safe_tx import SafeTx
-from brownie import accounts, network, Contract, chain
 import json
 import urllib.request
+from collections import OrderedDict
 from urllib.error import URLError
+
 import click
-from ape_safe import ApeSafe
+import pandas as pd
+from brownie import Contract, accounts, chain, network
+from brownie_safe import BrownieSafe
+from eth_abi import encode_abi
+from eth_abi.packed import encode_abi_packed
+from gnosis.safe.safe_tx import SafeTx
+
+from fee_distro_helpers import (FRAXSWAP_ROUTER_ADDRESSES, MAX_POOL_LENGTH,
+                                SUSHI_SDL_SLP_ADDRESSES,
+                                UNIV3_QUOTER_ADDRESSES, UNIV3_ROUTER_ADDRESSES,
+                                base_pool_abi_types_curve,
+                                metaswap_to_base_swap_dicts_curve,
+                                swap_to_deposit_dicts_curve,
+                                swap_to_deposit_dicts_saddle, token_addresses,
+                                token_to_swap_dicts_curve,
+                                token_to_swap_dicts_saddle,
+                                token_to_token_univ3_dicts,
+                                univ3_fee_tier_dicts,
+                                univ3_route_string_tuples,
+                                univ3_route_type_tuples)
+from helpers import (ARB_GATEWAY_ROUTER, CHAIN_IDS, CURVE_BASE_POOL_128_ABI,
+                     CURVE_BASE_POOL_256_ABI, CURVE_BASE_POOL_MIXED_ABI,
+                     CURVE_META_POOL_ABI, ERC20_ABI,
+                     EVMOS_CELER_LIQUIDITY_BRIDGE,
+                     EVMOS_CELER_LIQUIDITY_BRIDGE_ABI, LEGACY_SWAP_ABI,
+                     LEGACY_SWAP_LIST, META_SWAP_ABI, META_SWAP_DEPOSIT_ABI,
+                     MULTISIG_ADDRESSES, OPS_MULTISIG_ADDRESSES,
+                     OPTIMISM_L2_STANDARD_BRIDGE_ABI, OPTIMISM_STANDARD_BRIDGE,
+                     PERMISSIONLESS_POOL_ABI, SDL_ADDRESSES,
+                     SUSHISWAP_ROUTER_ABI, SUSHISWAP_ROUTER_ADDRESSES,
+                     SWAP_ABI, UNIV3_QUOTER_ABI, UNIV3_ROUTER_ABI,
+                     get_contract_from_deployment)
 
 
-def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
+def confirm_posting_transaction(safe: BrownieSafe, safe_tx: SafeTx):
     safe_nonce = safe_tx.safe_nonce
 
     current_nonce = 0
     try:
-        url = safe.base_url + \
+        url = safe.transaction_service.base_url + \
             f"/api/v1/safes/{safe.address}/multisig-transactions/"
 
         # fetch list of txs from gnosis api
@@ -113,7 +98,7 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
             return
 
     should_post = click.confirm(
-        f"Post this gnosis safe transaction to {safe.address} on {safe.base_url}?"
+        f"Post this gnosis safe transaction to {safe.address} on {safe.transaction_service.base_url}?"
     )
     while True:
         if should_post:
@@ -122,14 +107,29 @@ def confirm_posting_transaction(safe: ApeSafe, safe_tx: SafeTx):
             break
         else:
             should_post = click.confirm(
-                f"Post this gnosis safe transaction to {safe.address} on {safe.base_url}?"
+                f"Post this gnosis safe transaction to {safe.address} on {safe.transaction_service.base_url}?"
             )
 
+
+def pause_all_pools(multisig: BrownieSafe, chain_id: int):
+    ops_multisig = BrownieSafe(OPS_MULTISIG_ADDRESSES[chain_id])
+    swap_to_deposit_dict = swap_to_deposit_dicts_saddle[chain_id]
+
+    for pool_address in swap_to_deposit_dict:
+        pool = Contract.from_abi("Swap", pool_address, SWAP_ABI)
+        owner = pool.owner()
+        if (not pool.paused() and owner == multisig.address):
+            print(f"{pool_address} pause() call")
+            pool.pause({"from": multisig.address})
+        elif (pool.paused() and owner == multisig.address):
+            print(f"{pool_address} already paused")
+        else:
+            print(f"{pool_address} not owned by multisig and not paused yet")
+
+
 # claims admin fees and sends them to ops-multisig on the same chain
-
-
-def claim_admin_fees(multisig: ApeSafe, chain_id: int):
-    ops_multisig = ApeSafe(OPS_MULTISIG_ADDRESSES[chain_id])
+def claim_admin_fees(multisig: BrownieSafe, chain_id: int):
+    ops_multisig = BrownieSafe(OPS_MULTISIG_ADDRESSES[chain_id])
     swap_to_deposit_dict = swap_to_deposit_dicts_saddle[chain_id]
 
     collected_token_addresses, balances, base_lp_addresses = collect_token_addresses_saddle(
@@ -137,8 +137,13 @@ def claim_admin_fees(multisig: ApeSafe, chain_id: int):
 
     # execute txs for claiming admin fees
     for swap_address in swap_to_deposit_dict:
+        print(
+            f"Claiming admin fees from {swap_address}")
         lp_token_address = Contract.from_abi(
             "Swap", swap_address, SWAP_ABI).swapStorage()[6]
+        if (swap_address in LEGACY_SWAP_LIST):
+            lp_token_address = Contract.from_abi(
+                "SwapLegacy", swap_address, LEGACY_SWAP_ABI).swapStorage()[7]
         lp_token_name = Contract.from_abi(
             "LPToken", lp_token_address, ERC20_ABI).name()
         print(
@@ -156,7 +161,10 @@ def claim_admin_fees(multisig: ApeSafe, chain_id: int):
     )
 
 
-def send_tokens_to_ops_multisig(tokens: set, multisig: ApeSafe, ops_multisig: ApeSafe, chain_id: int):
+def send_tokens_to_ops_multisig(tokens: set, multisig: BrownieSafe, ops_multisig: BrownieSafe, chain_id: int):
+    # Create an empty DataFrame with the specified columns
+    token_transfer_df = pd.DataFrame(columns=['Token', 'Amount'])
+
     for token_address in tokens:
         token_contract = Contract.from_abi(
             "ERC20", token_address, ERC20_ABI
@@ -175,9 +183,14 @@ def send_tokens_to_ops_multisig(tokens: set, multisig: ApeSafe, ops_multisig: Ap
             )
         assert token_contract.balanceOf(multisig.address) == 0
         assert token_contract.balanceOf(ops_multisig.address) >= balance
+        token_transfer_df.loc[len(token_transfer_df)] = {
+            'Token': symbol, 'Amount': balance / (10 ** decimals)}
+
+    # Print the DataFrame (which is a table of transferred token amounts)
+    print(token_transfer_df)
 
 
-def print_token_balances(multisig: ApeSafe, _token_addresses: set):
+def print_token_balances(multisig: BrownieSafe, _token_addresses: set):
     for token_address in _token_addresses:
         token_contract = Contract.from_abi("ERC20", token_address, ERC20_ABI)
         balance = token_contract.balanceOf(multisig.address)
@@ -191,7 +204,7 @@ def print_token_balances(multisig: ApeSafe, _token_addresses: set):
 # @dev returns list of tokens and msig balances those tokens
 
 
-def collect_token_addresses_saddle(multisig: ApeSafe, swap_to_deposit_dict: dict):
+def collect_token_addresses_saddle(multisig: BrownieSafe, swap_to_deposit_dict: dict):
     # comprehend set of underlying tokens used by pools on that chain
     collected_token_addresses = set()
     base_LP_addresses = set()
@@ -225,7 +238,7 @@ def collect_token_addresses_saddle(multisig: ApeSafe, swap_to_deposit_dict: dict
 # converts fees to USDC with saddle pools, if possible
 
 
-def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int, min_amounts_delay_factor: float = 0.80):
+def convert_fees_to_USDC_saddle(ops_multisig: BrownieSafe, chain_id: int, min_amounts_delay_factor: float = 0.80):
     swap_to_deposit_dict = swap_to_deposit_dicts_saddle[chain_id]
     token_to_swap_dict = token_to_swap_dicts_saddle[chain_id]
 
@@ -292,7 +305,7 @@ def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int, min_amount
                         min_amount,
                         deadline,
                         {"from": ops_multisig.address}
-                    ) 
+                    )
 
     # capture and log token balances of ops msig after burning LP tokens
     token_balances_after = {}
@@ -397,7 +410,7 @@ def convert_fees_to_USDC_saddle(ops_multisig: ApeSafe, chain_id: int, min_amount
     print_token_balances(ops_multisig, collected_token_addresses)
 
 
-def convert_fees_to_USDC_uniswap(ops_multisig: ApeSafe, chain_id: int):
+def convert_fees_to_USDC_uniswap(ops_multisig: BrownieSafe, chain_id: int):
     univ3_fee_tier_dict = univ3_fee_tier_dicts[chain_id]
     token_to_token_univ3_dict = token_to_token_univ3_dicts[chain_id]
     collected_token_addresses, balances, base_lp_addresses = collect_token_addresses_saddle(
@@ -518,7 +531,7 @@ def convert_fees_to_USDC_uniswap(ops_multisig: ApeSafe, chain_id: int):
     print_token_balances(ops_multisig, collected_token_addresses)
 
 
-def convert_fees_to_USDC_curve(ops_multisig: ApeSafe, chain_id: int, slippage_factor: float = 0.95):
+def convert_fees_to_USDC_curve(ops_multisig: BrownieSafe, chain_id: int, slippage_factor: float = 0.95):
     swap_to_deposit_dict = swap_to_deposit_dicts_curve[chain_id]
     token_to_swap_dict = token_to_swap_dicts_curve[chain_id]
     # collected_token_addresses, balances = collect_token_addresses_saddle(ops_multisig, swap_to_deposit_dict)
@@ -680,7 +693,7 @@ def instantiate_base_swap_curve(base_swap_address, chain_id):
     return swap
 
 
-def buy_sdl_with_usdc_sushi(ops_multisig: ApeSafe, chain_id: int, divisor: int = 1):
+def buy_sdl_with_usdc_sushi(ops_multisig: BrownieSafe, chain_id: int, divisor: int = 1):
     print("\n\nBuying SDL tranche with USDC on SushiSwap \n\n")
 
     sushiswap_router = Contract.from_abi(
@@ -744,13 +757,15 @@ def buy_sdl_with_usdc_sushi(ops_multisig: ApeSafe, chain_id: int, divisor: int =
         f"SDL: {SDL_contract.balanceOf(ops_multisig.address)/ (10 ** SDL_decimals)}\n"
     )
 
+
 def buy_sdl_with_usdc_sushi_custom_amount(
-    ops_multisig: ApeSafe, 
-    chain_id: int, 
+    ops_multisig: BrownieSafe,
+    chain_id: int,
     usdc_amount: int,
     min_amount_delay_factor: float = 0.98
 ):
-    print(f"\n\nBuying {usdc_amount/10**6} USDC worth of SDL on SushiSwap \n\n")
+    print(
+        f"\n\nBuying {usdc_amount/10**6} USDC worth of SDL on SushiSwap \n\n")
 
     sushiswap_router = Contract.from_abi(
         "SushiSwapRouter",
@@ -816,17 +831,17 @@ def buy_sdl_with_usdc_sushi_custom_amount(
 
 
 def buy_sdl_with_usdc_fraxswap_custom_amount(
-    ops_multisig: ApeSafe, 
-    chain_id: int, 
+    ops_multisig: BrownieSafe,
+    chain_id: int,
     usdc_amount: int,
     min_amount_delay_factor: float = 0.98
 ):
     print(f"\n\nBuying {usdc_amount/10**6} USDC worth of SDL on FraxSwap \n\n")
-    
+
     fraxswap_router = Contract.from_abi(
         "FraxSwapRouter",
         FRAXSWAP_ROUTER_ADDRESSES[chain_id],
-        SUSHISWAP_ROUTER_ABI # dev: same ABI as SushiSwap
+        SUSHISWAP_ROUTER_ABI  # dev: same ABI as SushiSwap
     )
     SDL_contract = Contract.from_abi(
         "SDL", SDL_ADDRESSES[chain_id], ERC20_ABI
@@ -855,13 +870,13 @@ def buy_sdl_with_usdc_fraxswap_custom_amount(
         ops_multisig,
         chain_id,
         FRAXBP_CURVE,
-        False, 
+        False,
         1,
         0,
         usdc_amount,
-        slippage_factor= 0.98
+        slippage_factor=0.98
     )
-    
+
     # approve FRAX for fraxswap router
     FRAX_contract.approve(
         FRAXSWAP_ROUTER_ADDRESSES[chain_id],
@@ -870,7 +885,8 @@ def buy_sdl_with_usdc_fraxswap_custom_amount(
     )
 
     # call sync() on FRAX/SDL fraxpair twamm
-    fraxpair_twamm = Contract.from_explorer("0xCCB26b5CC4e1Ce29521DA281a0107A6672bfe099")
+    fraxpair_twamm = Contract.from_explorer(
+        "0xCCB26b5CC4e1Ce29521DA281a0107A6672bfe099")
     fraxpair_twamm.sync({"from": ops_multisig.address})
 
     # swap FRAX to SDL using fraxswap
@@ -911,8 +927,8 @@ def buy_sdl_with_usdc_fraxswap_custom_amount(
 
 
 def provide_sdl_eth_lp_sushi(
-    ops_multisig: ApeSafe,
-    multisig: ApeSafe,
+    ops_multisig: BrownieSafe,
+    multisig: BrownieSafe,
     chain_id: int,
     tolerance_factor: float = 0.5
 ):
@@ -1012,8 +1028,9 @@ def provide_sdl_eth_lp_sushi(
     assert SLP_contract.balanceOf(ops_multisig.address) == 0
     assert SLP_contract.balanceOf(multisig.address) == balance
 
+
 def provide_sdl_eth_lp_sushi_custom_amounts(
-    ops_multisig: ApeSafe,
+    ops_multisig: BrownieSafe,
     chain_id: int,
     weth_amount: int,
     sdl_amount: int,
@@ -1103,19 +1120,18 @@ def provide_sdl_eth_lp_sushi_custom_amounts(
     )
 
     # send SLP back to main multisig
-    #balance = SLP_contract.balanceOf(ops_multisig.address)
-    #SLP_contract.transfer(
+    # balance = SLP_contract.balanceOf(ops_multisig.address)
+    # SLP_contract.transfer(
     #    multisig.address,
     #    balance,
     #    {"from": ops_multisig.address}
-    #)
-    #assert SLP_contract.balanceOf(ops_multisig.address) == 0
-    #assert SLP_contract.balanceOf(multisig.address) == balance
-
+    # )
+    # assert SLP_contract.balanceOf(ops_multisig.address) == 0
+    # assert SLP_contract.balanceOf(multisig.address) == balance
 
 
 def buy_weth_with_usdc_univ3(
-    ops_multisig: ApeSafe,
+    ops_multisig: BrownieSafe,
     chain_id,
     divisor: int = 2,
     price_impact_factor: float = 1.3,
@@ -1212,7 +1228,7 @@ def buy_weth_with_usdc_univ3(
 
 
 def buy_weth_with_usdc_sushi(
-    ops_multisig: ApeSafe,
+    ops_multisig: BrownieSafe,
     chain_id,
     divisor: int = 2,
     price_impact_factor: float = 1.48,
@@ -1285,13 +1301,15 @@ def buy_weth_with_usdc_sushi(
         f"WETH: {WETH_contract.balanceOf(ops_multisig.address)/ (10 ** WETH_decimals)}"
     )
 
+
 def buy_weth_with_usdc_sushi_custom_amount(
-    ops_multisig: ApeSafe,
+    ops_multisig: BrownieSafe,
     chain_id,
     usdc_amount: int,
     min_amount_delay_factor: float = 0.98
 ):
-    print(f"\n\nBuying {usdc_amount / 10**6} USDC worth of WETH on SushiSwap\n\n")
+    print(
+        f"\n\nBuying {usdc_amount / 10**6} USDC worth of WETH on SushiSwap\n\n")
     sushiswap_router = Contract.from_abi(
         "SushiSwapRouter",
         SUSHISWAP_ROUTER_ADDRESSES[chain_id],
@@ -1357,6 +1375,7 @@ def buy_weth_with_usdc_sushi_custom_amount(
     )
     return WETH_contract.balanceOf(ops_multisig.address)
 
+
 def get_sdl_value_in_usdc_sushi(chain_id: int, sdl_amount: int):
     sushiswap_router = Contract.from_abi(
         "SushiSwapRouter",
@@ -1365,7 +1384,7 @@ def get_sdl_value_in_usdc_sushi(chain_id: int, sdl_amount: int):
     )
     # path to use for swapping
     path = [token_addresses[chain_id]["SDL"],
-            token_addresses[chain_id]["WETH"],       
+            token_addresses[chain_id]["WETH"],
             token_addresses[chain_id]["USDC"],
             ]
     # min amount of SDL to receive
@@ -1375,9 +1394,9 @@ def get_sdl_value_in_usdc_sushi(chain_id: int, sdl_amount: int):
     )[2]
     print(f"SDL value in USDC: {amount_out_min}")
     return amount_out_min
-    
 
-def bridge_usdc_to_mainnet(ops_multisig: ApeSafe, chain_id: int):
+
+def bridge_usdc_to_mainnet(ops_multisig: BrownieSafe, chain_id: int):
     print(f"\n\nBridging USDC from chain_id {chain_id} to mainnet\n\n")
 
     if chain_id == CHAIN_IDS["ARBITRUM"]:
@@ -1432,13 +1451,13 @@ def bridge_usdc_to_mainnet(ops_multisig: ApeSafe, chain_id: int):
         ).hex() + '00000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000'
 
         print(f"Calldata for bridging tx: {calldata}")
-        #ops_multisig.account.transfer(
+        # ops_multisig.account.transfer(
         #    to=ARB_GATEWAY_ROUTER[chain_id],
         #    amount=0,
         #    data=calldata
-        #)
+        # )
 
-        #assert USDC.balanceOf(ops_multisig.address) == 0
+        # assert USDC.balanceOf(ops_multisig.address) == 0
 
     elif chain_id == CHAIN_IDS["OPTIMISM"]:
         # Optimism L2 Standard Bridge
@@ -1527,21 +1546,22 @@ def bridge_usdc_to_mainnet(ops_multisig: ApeSafe, chain_id: int):
 
 
 def swap_curve(
-    multisig: ApeSafe, 
-    chain_id: int, 
-    pool_address: int, 
-    is_metapool: bool, 
-    i: int, 
-    j: int, 
+    multisig: BrownieSafe,
+    chain_id: int,
+    pool_address: int,
+    is_metapool: bool,
+    i: int,
+    j: int,
     amount: int,
     slippage_factor: float = 0.995
 ):
     assert chain_id == network.chain.id, "Dev: wrong network"
-    print(f"Swapping {amount} of index {i} to {j} on Curve pool {pool_address} on chain {chain_id}")
+    print(
+        f"Swapping {amount} of index {i} to {j} on Curve pool {pool_address} on chain {chain_id}")
     swap = None
     if not is_metapool:
         swap = instantiate_base_swap_curve(pool_address, chain_id)
-    else:   
+    else:
         swap = Contract.from_abi(
             "CurveMetaSwap", pool_address, CURVE_META_POOL_ABI
         )
@@ -1601,7 +1621,7 @@ def swap_curve(
             j,
             amount,
             min_amount,
-            {"from":multisig.address}
+            {"from": multisig.address}
         )
     balance_after = token_to.balanceOf(multisig.address)
     print(
@@ -1610,25 +1630,30 @@ def swap_curve(
     )
     return balance_after - balance_before
 
-def claim_fees_permissionless_pools(multisig: ApeSafe, chain_id: int, threshold: int = 500):
+
+def claim_fees_permissionless_pools(multisig: BrownieSafe, chain_id: int, threshold: int = 500):
     """
     This function claims fees from permissionless pools
     """
-    print(f"Claiming fees from permissionless pools on chain {chain_id}, with threshold {threshold}")
-    pool_registry = get_contract_from_deployment(chain_id, "PoolRegistry", MULTISIG_ADDRESSES[chain_id])
+    print(
+        f"Claiming fees from permissionless pools on chain {chain_id}, with threshold {threshold}")
+    pool_registry = get_contract_from_deployment(
+        chain_id, "PoolRegistry", MULTISIG_ADDRESSES[chain_id])
     for i in range(pool_registry.getPoolsLength()):
         pool_data = pool_registry.getPoolDataAtIndex(i)
         pool_address = pool_data[0]
         pool = Contract.from_abi("pool", pool_address, PERMISSIONLESS_POOL_ABI)
         # if pool not owned by saddle, assume it's permissionless
         if pool.owner() != MULTISIG_ADDRESSES[chain_id] and pool.owner() != OPS_MULTISIG_ADDRESSES[chain_id]:
-            token_0 = Contract.from_abi("ERC20",pool.getToken(0), ERC20_ABI)
+            token_0 = Contract.from_abi("ERC20", pool.getToken(0), ERC20_ABI)
             if pool.getAdminBalance(0) > (threshold * (10**token_0.decimals())):
                 print(f"Claiming fees from {pool_address}")
-                print(f"Admin balance  of token 0 before: {pool.getAdminBalance(0) / (10 ** token_0.decimals())}")
+                print(
+                    f"Admin balance  of token 0 before: {pool.getAdminBalance(0) / (10 ** token_0.decimals())}")
                 pool.withdrawAdminFees({"from": multisig.address})
-                print(f"Admin balance  of token 0 after: {pool.getAdminBalance(0) / (10 ** token_0.decimals())}")
- 
+                print(
+                    f"Admin balance  of token 0 after: {pool.getAdminBalance(0) / (10 ** token_0.decimals())}")
+
 
 def convert_string_to_bytes32(string: str) -> bytes:
     """
